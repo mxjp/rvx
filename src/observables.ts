@@ -35,6 +35,9 @@ export function resolveObserver<T>(observer: PartialObserver<T>): Partial<Observ
 	return typeof observer === "function" ? { resolve: observer } : (observer || {});
 }
 
+
+export type Operator<T, U> = (source: Observable<T>) => Observable<U>;
+
 const OBSERVERS = Symbol("observers");
 const RESOURCES = Symbol("resources");
 const STATE = Symbol("state");
@@ -43,7 +46,7 @@ const STATE = Symbol("state");
  * Represents a sequence of values over time.
  */
 export class Observable<T> {
-	public constructor(start?: (this: Observable<T>, observer: Observer<T>) => DisposeLogic) {
+	public constructor(start?: (this: Observable<T>, resolve: (value: T) => Promise<any> | void, reject: (error: any) => Promise<any> | void, end: () => void) => DisposeLogic) {
 		if (start) {
 			this.start = start;
 		}
@@ -51,13 +54,14 @@ export class Observable<T> {
 
 	private readonly [OBSERVERS] = new Set<Partial<Observer<T>>>();
 	private readonly [RESOURCES] = new Disposable();
-	private [STATE]: "new" | "started" | "ended";
+	private [STATE]: "new" | "started" | "ended" = "new";
 
 	/**
 	 * Called when this observable is first subscribed to.
 	 * @param observer The observer representing all current observers.
 	 */
-	protected start(observer: Observer<T>): DisposeLogic {
+	protected start(resolve: (value: T) => Promise<any> | void, reject: (error: any) => Promise<any> | void, end: () => void): DisposeLogic {
+		end();
 	}
 
 	/**
@@ -79,32 +83,28 @@ export class Observable<T> {
 
 		if (this[STATE] === "new") {
 			this[STATE] = "started";
-			this[RESOURCES].add(this.start({
-				resolve: value => {
-					if (this[STATE] === "started") {
-						for (const observer of observers) {
-							if (observer.resolve) {
-								observer.resolve(value);
-							}
+			this[RESOURCES].add(this.start(value => {
+				if (this[STATE] === "started") {
+					for (const observer of observers) {
+						if (observer.resolve) {
+							observer.resolve(value);
 						}
 					}
-				},
-				reject: value => {
-					if (this[STATE] === "started") {
-						for (const observer of observers) {
-							if (observer.reject) {
-								observer.reject(value);
-							}
+				}
+			}, value => {
+				if (this[STATE] === "started") {
+					for (const observer of observers) {
+						if (observer.reject) {
+							observer.reject(value);
 						}
 					}
-				},
-				end: () => {
-					if (this[STATE] === "started") {
-						this[STATE] = "ended";
-						for (const observer of observers) {
-							if (observer.end) {
-								observer.end();
-							}
+				}
+			}, () => {
+				if (this[STATE] === "started") {
+					this[STATE] = "ended";
+					for (const observer of observers) {
+						if (observer.end) {
+							observer.end();
 						}
 					}
 				}
@@ -127,5 +127,9 @@ export class Observable<T> {
 	 */
 	public subscribe(partialObserver?: PartialObserver<T>, disposable = new Disposable()) {
 		return this.subscribeResolved(resolveObserver(partialObserver), disposable);
+	}
+
+	public pipe<U>(operator: Operator<T, U>): Observable<U> {
+		return operator(this);
 	}
 }
