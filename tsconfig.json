@@ -1,0 +1,14 @@
+{
+	"compilerOptions": {
+		"declaration": true,
+		"downlevelIteration": true,
+		"module": "es6",
+		"moduleResolution": "node",
+		"outDir": "dist",
+		"rootDir": "src",
+		"target": "es6"
+	},
+	"include": [
+		"./src/**/*"
+	]
+}

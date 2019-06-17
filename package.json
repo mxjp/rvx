@@ -1,0 +1,24 @@
+{
+	"name": "rvx",
+	"version": "1.0.0-next.0",
+	"description": "Next generation reactive web application framework",
+	"main": "dist/index.js",
+	"scripts": {
+		"test": "rimraf dist/test && tsc -p tsconfig-test.json && ava -v",
+		"test:watch": "rimraf dist/test && tsc -p tsconfig-test.json && concurrently -n tsc,ava \"tsc -p tsconfig-test.json -w\" \"ava -w -v\"",
+		"prepack": "rimraf dist && tsc"
+	},
+	"devDependencies": {
+		"ava": "^2.1.0",
+		"concurrently": "^4.1.0",
+		"rimraf": "^2.6.3",
+		"typescript": "^3.5.2"
+	},
+	"ava": {
+		"files": [
+			"./dist/test/test/**/*.js"
+		]
+	},
+	"author": "Max J. Polster",
+	"license": "MIT"
+}
