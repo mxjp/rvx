@@ -1,6 +1,5 @@
-
 import test from "ava";
-import { Cycle } from "../../src/disposables";
+import { Cycle } from "../src/cycle";
 
 test("create empty", t => {
 	const cycle = new Cycle();
@@ -37,7 +36,7 @@ test("delete logic", t => {
 
 test("delete from empty", t => {
 	const cycle = new Cycle();
-	cycle.delete(() => {});
+	cycle.delete(() => { });
 	t.pass();
 });
 

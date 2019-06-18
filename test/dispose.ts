@@ -1,6 +1,5 @@
-
 import test from "ava";
-import { dispose } from "../../src/disposables";
+import { dispose } from "../src/dispose";
 
 test("invoke function", t => {
 	dispose(() => t.pass());

@@ -1,12 +1,13 @@
-
 import test from "ava";
-import { Observable, Observer } from "../../src/observables";
-import { Disposable } from "../../src/disposables";
+import { Disposable } from "../src/disposable";
+import { Observable } from "../src/observable";
+import { Observer } from "../src/observer";
+import { capture } from "./_utility";
 
 test("create empty", t => {
 	const observable = new Observable();
 	const { events } = capture(observable);
-	t.deepEqual(events, [ null ]);
+	t.deepEqual(events, [ false ]);
 });
 
 test("resolve", t => {
@@ -36,7 +37,7 @@ test("end", t => {
 		resolve(42);
 	});
 	const { events } = capture(observable);
-	t.deepEqual(events, [ { resolve: "foo" }, { reject: "bar" }, null ]);
+	t.deepEqual(events, [ { resolve: "foo" }, { reject: "bar" }, false ]);
 });
 
 test("unsubscribe", t => {
@@ -51,16 +52,6 @@ test("unsubscribe", t => {
 	t.false(disposed);
 	disposable.dispose();
 	t.true(disposed);
-});
-
-test("pipe", t => {
-	const a = new Observable<string>();
-	const b = new Observable<number>();
-
-	t.is(a.pipe(source => {
-		t.is(a, source);
-		return b;
-	}), b);
 });
 
 test("extend: start", t => {
@@ -93,16 +84,3 @@ test("extend: subscribeResolved", t => {
 	const { events } = capture(observable);
 	t.deepEqual(events, [ { resolve: "foo" } ]);
 });
-
-function capture<T>(observable: Observable<T>): {
-	events: ({ resolve: T } | { reject: any } | null)[],
-	disposable: Disposable
-} {
-	const events = [];
-	const disposable = observable.subscribe({
-		resolve: value => void events.push({ resolve: value }),
-		reject: value => void events.push({ reject: value }),
-		end: () => void events.push(null)
-	});
-	return { events, disposable };
-}

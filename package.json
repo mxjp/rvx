@@ -6,12 +6,14 @@
 	"scripts": {
 		"test": "rimraf dist/test && tsc -p tsconfig-test.json && ava -v",
 		"test:watch": "rimraf dist/test && tsc -p tsconfig-test.json && concurrently -n tsc,ava \"tsc -p tsconfig-test.json -w\" \"ava -w -v\"",
-		"prepack": "rimraf dist && tsc"
+		"lint": "tslint --project tsconfig-test.json",
+		"prepack": "npm run lint && npm run test && rimraf dist && tsc"
 	},
 	"devDependencies": {
 		"ava": "^2.1.0",
 		"concurrently": "^4.1.0",
 		"rimraf": "^2.6.3",
+		"tslint": "^5.17.0",
 		"typescript": "^3.5.2"
 	},
 	"ava": {
