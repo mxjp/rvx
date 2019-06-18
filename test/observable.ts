@@ -57,6 +57,11 @@ test("value", t => {
 	t.deepEqual(events, [ { resolve: "foo" }, false ]);
 });
 
+test("iterable", t => {
+	const { events } = capture(Observable.iterable(["foo", "bar"]));
+	t.deepEqual(events, [ { resolve: "foo" }, { resolve: "bar" }, false ]);
+});
+
 test("extend: start", t => {
 	const observable = new class extends Observable<string> {
 		protected start(resolve: (value: string) => void) {

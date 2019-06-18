@@ -134,4 +134,20 @@ export class Observable<T> extends ObservableBase<T> {
 			end();
 		});
 	}
+
+	/**
+	 * Create an observable from an iterable.
+	 */
+	public static iterable<T>(value: Iterable<T>) {
+		return new Observable<T>((resolve, reject, end) => {
+			try {
+				for (const next of (value as Iterable<T>)) {
+					resolve(next);
+				}
+			} catch (error) {
+				reject(error);
+			}
+			end();
+		});
+	}
 }
