@@ -23,7 +23,7 @@ test("from array", t => {
 });
 
 test("from iterable", t => {
-	const collection = Collection.items((function * () {
+	const collection = Collection.items((function *() {
 		yield "foo";
 		yield "bar";
 	})());
