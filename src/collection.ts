@@ -31,4 +31,15 @@ export class Collection<T> extends Observable<CollectionPatch<T>> implements Col
 		}
 		return super.subscribeResolved(observer, disposable);
 	}
+
+	public static items<T>(items: T[] | Iterable<T>) {
+		return new Collection<T>((resolve, reject, end) => {
+			resolve({
+				start: false,
+				end: false,
+				items: Array.isArray(items) ? items : Array.from(items)
+			});
+			end();
+		});
+	}
 }
