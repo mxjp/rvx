@@ -1,5 +1,5 @@
 import test from "ava";
-import { Observable } from "../src/observable";
+import { Observable } from "../src";
 
 test("pipe", t => {
 	const a = new Observable<string>();

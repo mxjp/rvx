@@ -1,7 +1,5 @@
 import test from "ava";
-import { Disposable } from "../src/disposable";
-import { Observable } from "../src/observable";
-import { Observer } from "../src/observer";
+import { Disposable, Observable, Observer } from "../src";
 import { capture } from "./_utility";
 
 test("create empty", t => {

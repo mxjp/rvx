@@ -1,6 +1,5 @@
 // tslint:disable: file-name-casing
-import { Disposable } from "../src/disposable";
-import { Observable } from "../src/observable";
+import { Disposable, Observable } from "../src";
 
 export function capture<T>(observable: Observable<T>): {
 	readonly events: ({ resolve: T } | { reject: any } | false)[];

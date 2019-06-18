@@ -1,5 +1,5 @@
 import test from "ava";
-import { Cycle } from "../src/cycle";
+import { Cycle } from "../src";
 
 test("create empty", t => {
 	const cycle = new Cycle();

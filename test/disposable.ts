@@ -1,5 +1,5 @@
 import test from "ava";
-import { Disposable } from "../src/disposable";
+import { Disposable } from "../src";
 
 test("create empty", t => {
 	const disposable = new Disposable();
