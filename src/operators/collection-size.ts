@@ -9,7 +9,11 @@ export function collectionSize<T>(source: CollectionLike<T>): Observable<number>
 		let size = 0;
 		return source.subscribe({
 			resolve: ({ start, end, items }) => {
-				resolve(size = size + items.length - (end === false ? size : end) + (start === false ? 0 : (start + 1)));
+				const change = items.length - (end === false ? size : end) + (start === false ? 0 : (start + 1));
+				if (change !== 0) {
+					size += change;
+					resolve(size);
+				}
 			},
 			reject,
 			end

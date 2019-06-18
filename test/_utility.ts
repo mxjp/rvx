@@ -20,5 +20,6 @@ export function smallCollection() {
 		resolve({ start: false, end: 1, items: ["baz"] });
 		resolve({ start: 0, end: false, items: ["foo"] });
 		resolve({ start: 0, end: 1, items: ["bar"] });
+		end();
 	});
 }

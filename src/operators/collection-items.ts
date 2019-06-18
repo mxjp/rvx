@@ -7,7 +7,7 @@ import { Observable } from "../observable";
 export function collectionItems<T>(source: CollectionLike<T>) {
 	return new Observable<ReadonlyArray<T>>((resolve, reject, end) => source.subscribe({
 		resolve: patch => {
-			resolve(source.items);
+			resolve(Array.from(source.items));
 		},
 		reject,
 		end
