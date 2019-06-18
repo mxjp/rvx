@@ -52,6 +52,11 @@ test("unsubscribe", t => {
 	t.true(disposed);
 });
 
+test("value", t => {
+	const { events } = capture(Observable.value("foo"));
+	t.deepEqual(events, [ { resolve: "foo" }, false ]);
+});
+
 test("extend: start", t => {
 	const observable = new class extends Observable<string> {
 		protected start(resolve: (value: string) => void) {

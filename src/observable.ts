@@ -124,4 +124,14 @@ export class Observable<T> extends ObservableBase<T> {
 	public subscribe(observer?: Partial<Observer<T>> | ((value: T) => void), disposable = new Disposable()) {
 		return this.subscribeResolved(typeof observer === "function" ? { resolve: observer } : (observer || { }), disposable);
 	}
+
+	/**
+	 * Create an observable that emits a single value and ends.
+	 */
+	public static value<T>(value: T) {
+		return new Observable((resolve, reject, end) => {
+			resolve(value);
+			end();
+		});
+	}
 }
