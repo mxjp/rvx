@@ -1,5 +1,5 @@
 // tslint:disable: file-name-casing
-import rvx, { Collection, Disposable, ObservableLike, Cycle, RenderContext, RenderContextBase } from "../src";
+import rvx, { Collection, Cycle, Disposable, ObservableLike, RenderContext, RenderContextBase } from "../src";
 
 export function capture<T>(observable: ObservableLike<T>): {
 	readonly events: ({ resolve: T } | { reject: any } | false)[];
