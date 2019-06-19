@@ -11,6 +11,7 @@
 	},
 	"devDependencies": {
 		"ava": "^2.1.0",
+		"browser-env": "^3.2.6",
 		"concurrently": "^4.1.0",
 		"rimraf": "^2.6.3",
 		"tslint": "^5.17.0",
@@ -19,6 +20,9 @@
 	"ava": {
 		"files": [
 			"./dist/test/test/**/*.js"
+		],
+		"require": [
+			"./dist/test/test/_browser.js"
 		]
 	},
 	"author": "Max J. Polster",
