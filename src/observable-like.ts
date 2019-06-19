@@ -12,3 +12,10 @@ export interface ObservableLike<T> {
 	pipe<U>(operator: CollectionOperator<T, U>): CollectionLike<U>;
 	pipe<U>(operator: Operator<T, U>): ObservableLike<U>;
 }
+
+/**
+ * Check if a value is like an observable.
+ */
+export function isObservableLike<T>(value: any): value is ObservableLike<T> {
+	return value && typeof value.subscribe === "function" && typeof value.pipe === "function";
+}

@@ -1,5 +1,6 @@
 import { Cycle } from "./cycle";
 import { DomVnode } from "./dom-vnode";
+import { isObservableLike } from "./observable-like";
 import { RenderContext } from "./render-context";
 import { RenderContextBase } from "./render-context-base";
 import { RenderPatchCallback } from "./render-patch-callback";
@@ -34,7 +35,7 @@ export class RenderEngine {
 	}
 
 	public replace(target: Node | string, content: any) {
-		return this.createSlot().appendTo(target).render(content);
+		return this.createSlot().replace(target).render(content);
 	}
 
 	public renderContent(value: any, context: RenderContext, cycle: Cycle, patch: RenderPatchCallback) {
@@ -60,6 +61,18 @@ export class RenderEngine {
 			value[RENDER](context, cycle, patch);
 		} else if (value instanceof Node) {
 			patch([value]);
+		} else if (isObservableLike(value)) {
+			const fork = cycle.fork();
+			cycle.add(value.subscribe({
+				resolve: value => {
+					fork.dispose();
+					this.renderContent(value, context, fork, patch);
+				},
+				reject: value => {
+					patch([]);
+					context.error(value);
+				}
+			}));
 		} else if (value === null || value === undefined) {
 			patch([]);
 		} else {

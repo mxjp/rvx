@@ -39,4 +39,13 @@ export class Cycle {
 			dispose(logic);
 		}
 	}
+
+	/**
+	 * Create a cycle that is disposed with this one or can be disposed on it's own.
+	 */
+	public fork() {
+		const fork = new Cycle();
+		this.add(fork);
+		return fork;
+	}
 }

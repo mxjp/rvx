@@ -21,6 +21,7 @@ export * from "./render-patch-callback";
 export * from "./render-patch-mirror";
 export * from "./render-patch-range";
 export * from "./render-slot";
+export * from "./subject";
 export * from "./vnode-constructor";
 export * from "./vnode";
 

@@ -38,6 +38,7 @@ export class RenderSlot extends RenderContextBase {
 		this._container = placeholder.parentNode;
 		this._container.replaceChild(this._end, placeholder);
 		this._container.insertBefore(this._start, this._end);
+		return this;
 	}
 
 	public render(content: any) {
