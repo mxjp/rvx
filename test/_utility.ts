@@ -1,5 +1,5 @@
 // tslint:disable: file-name-casing
-import { Collection, Disposable, ObservableLike } from "../src";
+import rvx, { Collection, Disposable, ObservableLike, Cycle, RenderContext, RenderContextBase } from "../src";
 
 export function capture<T>(observable: ObservableLike<T>): {
 	readonly events: ({ resolve: T } | { reject: any } | false)[];
@@ -22,4 +22,25 @@ export function smallCollection() {
 		resolve({ start: 0, end: 1, items: ["bar"] });
 		end();
 	});
+}
+
+export function captureErrorContext(parent?: RenderContext, cycle = new Cycle()) {
+	const errors: any[] = [];
+	const context = new class extends RenderContextBase {
+		public readonly parent = parent;
+		public readonly cycle = cycle;
+
+		public error(value: any) {
+			errors.push(value);
+		}
+	};
+	return { context, errors };
+}
+
+export function renderToHtml(content: any, context = rvx.context, cycle = context.cycle): () => string {
+	const container = document.createElement("div");
+	rvx.renderContentFor(container, content, context, cycle);
+	return () => {
+		return container.innerHTML;
+	};
 }

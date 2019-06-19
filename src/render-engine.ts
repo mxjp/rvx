@@ -39,7 +39,6 @@ export class RenderEngine {
 	}
 
 	public renderContent(value: any, context: RenderContext, cycle: Cycle, patch: RenderPatchCallback) {
-		// TODO: Support observables & promises.
 		if (Array.isArray(value)) {
 			patch([]);
 			const ranges: RenderPatchRange[] = [];
@@ -71,9 +70,10 @@ export class RenderEngine {
 				reject: value => {
 					patch([]);
 					context.error(value);
-				}
+				},
+				end: () => patch([])
 			}));
-		} else if (value === null || value === undefined) {
+		} else if (value === null || value === undefined || (typeof value === "number" && isNaN(value))) {
 			patch([]);
 		} else {
 			patch([document.createTextNode(String(value))]);
