@@ -95,14 +95,7 @@
 		"space-within-parens": [true, "never"],
 		"switch-final-break": true,
 		"type-literal-delimiter": true,
-		"variable-name": [true, {
-			"options": [
-				"ban-keywords",
-				"check-format",
-				"allow-leading-underscore",
-				"allow-pascal-case"
-			]
-		}],
+		"variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore", "allow-pascal-case"],
 
 		"align": true,
 		"arrow-parens": [true, "ban-single-arg-parens"],
