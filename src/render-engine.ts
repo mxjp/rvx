@@ -6,6 +6,7 @@ import { RenderContextBase } from "./render-context-base";
 import { RenderPatchCallback } from "./render-patch-callback";
 import { findRenderPatchEnd, findRenderPatchStart, RenderPatchRange } from "./render-patch-range";
 import { RenderSlot } from "./render-slot";
+import { resolveBinding } from "./resolve-binding";
 import { Vnode } from "./vnode";
 import { VnodeConstructor } from "./vnode-constructor";
 import { RENDER } from "./vnode-internals";
@@ -123,8 +124,20 @@ export class RenderEngine {
 	}
 
 	public renderAttributes(element: Element, attributes: {
-		[Name in string]: any
+		[Name in string]: string
 	}, context: RenderContext, cycle: Cycle) {
-		throw new Error("not implemented");
+		for (const name in attributes) {
+			cycle.add(resolveBinding(attributes[name], value => {
+				if (value === null || value === undefined || (typeof value === "number" && isNaN(value)) || value === false) {
+					element.removeAttribute(name);
+				} else if (value === true) {
+					element.setAttribute(name, "");
+				} else {
+					element.setAttribute(name, value);
+				}
+			}, value => {
+				context.error(value);
+			}));
+		}
 	}
 }

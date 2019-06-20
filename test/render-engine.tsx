@@ -1,5 +1,5 @@
 import test from "ava";
-import rvx, { DomVnode, Subject, Vnode } from "../src";
+import rvx, { DomVnode, Observable, Subject, Vnode } from "../src";
 import { captureErrorContext, renderToHtml } from "./_utility";
 
 test("create dom vnode", t => {
@@ -77,4 +77,27 @@ test("renderContent: primitives", t => {
 	t.is(renderToHtml(BigInt(42))(), "42");
 	t.is(renderToHtml(true)(), "true");
 	t.is(renderToHtml(false)(), "false");
+});
+
+test("renderAttributes: observable", t => {
+	const value = new Subject<any>();
+	const html = renderToHtml(<div foo={ value }></div>);
+	t.is(html(), "<div></div>");
+
+	value.resolve("bar");
+	t.is(html(), `<div foo="bar"></div>`);
+
+	value.resolve(Observable.value("baz"));
+	t.is(html(), `<div foo="baz"></div>`);
+});
+
+test("renderAttributes: primitives", t => {
+	t.is(renderToHtml(<div foo={ null }></div>)(), `<div></div>`);
+	t.is(renderToHtml(<div foo={ undefined }></div>)(), `<div></div>`);
+	t.is(renderToHtml(<div foo={ NaN }></div>)(), `<div></div>`);
+	t.is(renderToHtml(<div foo="bar"></div>)(), `<div foo="bar"></div>`);
+	t.is(renderToHtml(<div foo={ 42 }></div>)(), `<div foo="42"></div>`);
+	t.is(renderToHtml(<div foo={ BigInt(42) }></div>)(), `<div foo="42"></div>`);
+	t.is(renderToHtml(<div foo={ true }></div>)(), `<div foo=""></div>`);
+	t.is(renderToHtml(<div foo={ false }></div>)(), `<div></div>`);
 });

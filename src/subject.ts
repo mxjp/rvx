@@ -1,9 +1,10 @@
 import { Observable } from "./observable";
+import { Observer } from "./observer";
 
 /**
  * An observable that can be used as an observer.
  */
-export class Subject<T> extends Observable<T> {
+export class Subject<T> extends Observable<T> implements Observer<T> {
 	public constructor() {
 		super();
 		this.subscribe();
