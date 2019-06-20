@@ -1,4 +1,3 @@
-import { isCollectionLike } from "./collection-like";
 import { Cycle } from "./cycle";
 import { DomVnode } from "./dom-vnode";
 import { isObservableLike } from "./observable-like";
@@ -63,58 +62,18 @@ export class RenderEngine {
 		} else if (value instanceof Node) {
 			patch([value]);
 		} else if (isObservableLike<any>(value)) {
-			if (isCollectionLike<any>(value)) {
-				type ItemRenderPatchRange = RenderPatchRange & {
-					readonly item: any;
-					readonly cycle: Cycle;
-				};
-
-				const ranges: ItemRenderPatchRange[] = [];
-				cycle.add(value.subscribe({
-					resolve: value => {
-						const startIndex = value.start === false ? 0 : (value.start + 1);
-						const addRanges: ItemRenderPatchRange[] = value.items.map(item => ({ start: null, end: null, cycle: cycle.fork(), item }));
-						const deleteRanges = ranges.splice(startIndex, (value.end === false ? ranges.length : value.end) - startIndex, ...addRanges);
-
-						for (const range of deleteRanges) {
-							range.cycle.dispose();
-						}
-						patch([], findRenderPatchStart(ranges, startIndex), findRenderPatchEnd(ranges, startIndex - 1 + deleteRanges.length));
-
-						for (const range of addRanges) {
-							this.renderContent(range.item, context, range.cycle, (nodes, start, end) => {
-								const index = ranges.indexOf(range);
-								if (!start) {
-									start = findRenderPatchStart(ranges, index);
-									range.start = nodes[0];
-								}
-								if (!end) {
-									end = findRenderPatchEnd(ranges, index);
-									range.end = nodes[nodes.length - 1];
-								}
-								patch(nodes, start, end);
-							});
-						}
-					},
-					reject: value => {
-						context.error(value);
-					},
-					end: () => patch([])
-				}));
-			} else {
-				const fork = cycle.fork();
-				cycle.add(value.subscribe({
-					resolve: value => {
-						fork.dispose();
-						this.renderContent(value, context, fork, patch);
-					},
-					reject: value => {
-						patch([]);
-						context.error(value);
-					},
-					end: () => patch([])
-				}));
-			}
+			const fork = cycle.fork();
+			cycle.add(value.subscribe({
+				resolve: value => {
+					fork.dispose();
+					this.renderContent(value, context, fork, patch);
+				},
+				reject: value => {
+					patch([]);
+					context.error(value);
+				},
+				end: () => patch([])
+			}));
 		} else if (value === null || value === undefined || (typeof value === "number" && isNaN(value))) {
 			patch([]);
 		} else {

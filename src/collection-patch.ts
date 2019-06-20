@@ -4,15 +4,13 @@
  */
 export interface CollectionPatch<T> {
 	/**
-	 * The exclusive start index.
-	 * If false, the start of the context is used.
+	 * The inclusive start index.
 	 */
-	start: number | false;
+	start: number;
 	/**
-	 * The exclusive end index.
-	 * If false, the end of the context is used.
+	 * The number of removed items.
 	 */
-	end: number | false;
+	count: number;
 	/**
 	 * The new items.
 	 */

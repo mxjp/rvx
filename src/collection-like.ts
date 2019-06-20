@@ -1,5 +1,5 @@
 import { CollectionPatch } from "./collection-patch";
-import { isObservableLike, ObservableLike } from "./observable-like";
+import { ObservableLike } from "./observable-like";
 
 /**
  * Represents an observable collection.

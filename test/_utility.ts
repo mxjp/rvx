@@ -16,10 +16,10 @@ export function capture<T>(observable: ObservableLike<T>): {
 
 export function smallCollection() {
 	return new Collection<string>((resolve, reject, end) => {
-		resolve({ start: false, end: false, items: ["foo", "bar"] });
-		resolve({ start: false, end: 1, items: ["baz"] });
-		resolve({ start: 0, end: false, items: ["foo"] });
-		resolve({ start: 0, end: 1, items: ["bar"] });
+		resolve({ start: 0, count: 0, items: ["foo", "bar"] });
+		resolve({ start: 0, count: 1, items: ["baz"] });
+		resolve({ start: 1, count: 1, items: ["foo"] });
+		resolve({ start: 1, count: 0, items: ["bar"] });
 		end();
 	});
 }

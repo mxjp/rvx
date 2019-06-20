@@ -22,26 +22,21 @@ export class Collection<T> extends Observable<CollectionPatch<T>> implements Col
 	protected interceptResolve(resolve: (patch: CollectionPatch<T>) => void) {
 		return (patch: CollectionPatch<T>) => {
 			this[RESOLVED] = true;
-			const startIndex = patch.start === false ? 0 : (patch.start + 1);
-			this[ITEMS].splice(startIndex, (patch.end === false ? this[ITEMS].length : patch.end) - startIndex, ...patch.items);
+			this[ITEMS].splice(patch.start, patch.count, ...patch.items);
 			resolve(patch);
 		};
 	}
 
 	protected subscribeResolved(observer: Partial<Observer<CollectionPatch<T>>>, disposable: Disposable) {
 		if (observer.resolve && this[RESOLVED]) {
-			observer.resolve({ start: false, end: false, items: this[ITEMS] });
+			observer.resolve({ start: 0, count: 0, items: this[ITEMS] });
 		}
 		return super.subscribeResolved(observer, disposable);
 	}
 
 	public static items<T>(items: T[] | Iterable<T>) {
 		return new Collection<T>((resolve, reject, end) => {
-			resolve({
-				start: false,
-				end: false,
-				items: Array.isArray(items) ? items : Array.from(items)
-			});
+			resolve({ start: 0, count: 0, items: Array.isArray(items) ? items : Array.from(items) });
 			end();
 		});
 	}
