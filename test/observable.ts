@@ -8,6 +8,16 @@ test("create empty", t => {
 	t.deepEqual(events, [ false ]);
 });
 
+test("create from subscribable", t => {
+	const source = new Observable((resolve, reject, end) => {
+		resolve("foo");
+		reject("bar");
+		end();
+	});
+	const { events } = capture(new Observable(source));
+	t.deepEqual(events, [ { resolve: "foo" }, { reject: "bar" }, false ]);
+});
+
 test("resolve", t => {
 	const observable = new Observable<string>(resolve => {
 		resolve("foo");

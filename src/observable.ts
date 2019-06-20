@@ -2,6 +2,7 @@ import { Disposable } from "./disposable";
 import { DisposeLogic } from "./dispose-logic";
 import { ObservableBase } from "./observable-base";
 import { Observer } from "./observer";
+import { Subscribable } from "./subscribable";
 
 const OBSERVERS = Symbol("observers");
 const RESOURCES = Symbol("resources");
@@ -11,10 +12,12 @@ const STATE = Symbol("state");
  * Represents a sequence of values over time.
  */
 export class Observable<T> extends ObservableBase<T> {
-	public constructor(start?: (this: Observable<T>, resolve: (value: T) => void, reject: (error: any) => void, end: () => void) => DisposeLogic) {
+	public constructor(start?: ((this: Observable<T>, resolve: (value: T) => void, reject: (error: any) => void, end: () => void) => DisposeLogic) | Subscribable<T>) {
 		super();
-		if (start) {
+		if (typeof start === "function") {
 			this.start = start;
+		} else if (start) {
+			this.start = (resolve, reject, end) => start.subscribe({ resolve, reject, end });
 		}
 	}
 
