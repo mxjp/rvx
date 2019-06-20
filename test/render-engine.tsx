@@ -1,5 +1,5 @@
 import test from "ava";
-import rvx, { DomVnode, Observable, Subject, Vnode } from "../src";
+import rvx, { Collection, CollectionPatch, DomVnode, Observable, Subject, Vnode } from "../src";
 import { captureErrorContext, renderToHtml } from "./_utility";
 
 test("create dom vnode", t => {
@@ -51,6 +51,39 @@ test("renderContent: vnode", t => {
 test("renderContent: node", t => {
 	const html = renderToHtml(document.createElement("div"));
 	t.is(html(), "<div></div>");
+});
+
+test("renderContent: collection", t => {
+	const { context, errors } = captureErrorContext();
+	const patches = new Subject<CollectionPatch<any>>();
+	const collection = new Collection(patches);
+	const html = renderToHtml(collection, context);
+	t.is(html(), "");
+
+	patches.resolve({ start: false, end: false, items: [] });
+	t.is(html(), "");
+
+	patches.resolve({ start: false, end: false, items: ["foo", "bar"] });
+	t.is(html(), "foobar");
+
+	patches.resolve({ start: 0, end: 1, items: [] });
+	t.is(html(), "foobar");
+
+	patches.resolve({ start: false, end: 1, items: ["baz"] });
+	t.is(html(), "bazbar");
+
+	patches.resolve({ start: 0, end: false, items: ["foo"] });
+	t.is(html(), "bazfoo");
+
+	patches.resolve({ start: false, end: false, items: ["yee"] });
+	t.is(html(), "yee");
+
+	patches.reject("foo");
+	t.is(html(), "yee");
+	t.deepEqual(errors, ["foo"]);
+
+	patches.end();
+	t.is(html(), "");
 });
 
 test("renderContent: observable", t => {
