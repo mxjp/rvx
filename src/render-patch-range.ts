@@ -2,6 +2,8 @@
 export interface RenderPatchRange {
 	start: Node;
 	end: Node;
+
+	// TODO: Use combination of array and linked list for render patch ranges.
 }
 
 export function findRenderPatchStart(ranges: RenderPatchRange[], index: number) {
