@@ -4,6 +4,7 @@ import { Disposable } from "./disposable";
 import { Observable } from "./observable";
 import { Observer } from "./observer";
 
+const RESOLVED = Symbol("hasItems");
 const ITEMS = Symbol("items");
 
 /**
@@ -11,6 +12,7 @@ const ITEMS = Symbol("items");
  * When subscribed to, a collection emits a synchronous patch that represents the current state of the collection.
  */
 export class Collection<T> extends Observable<CollectionPatch<T>> implements CollectionLike<T> {
+	private [RESOLVED] = false;
 	private [ITEMS]: T[] = [];
 
 	public get items(): ReadonlyArray<T> {
@@ -19,6 +21,7 @@ export class Collection<T> extends Observable<CollectionPatch<T>> implements Col
 
 	protected interceptResolve(resolve: (patch: CollectionPatch<T>) => void) {
 		return (patch: CollectionPatch<T>) => {
+			this[RESOLVED] = true;
 			const startIndex = patch.start === false ? 0 : (patch.start + 1);
 			this[ITEMS].splice(startIndex, (patch.end === false ? this[ITEMS].length : patch.end) - startIndex, ...patch.items);
 			resolve(patch);
@@ -26,7 +29,7 @@ export class Collection<T> extends Observable<CollectionPatch<T>> implements Col
 	}
 
 	protected subscribeResolved(observer: Partial<Observer<CollectionPatch<T>>>, disposable: Disposable) {
-		if (observer.resolve && !this.isNew) {
+		if (observer.resolve && this[RESOLVED]) {
 			observer.resolve({ start: false, end: false, items: this[ITEMS] });
 		}
 		return super.subscribeResolved(observer, disposable);
