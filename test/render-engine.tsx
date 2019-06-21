@@ -1,6 +1,7 @@
 import test from "ava";
-import rvx, { Collection, DomVnode, Observable, Vnode } from "../src";
-import { captureErrorContext, renderToHtml } from "./_utility";
+import { Collection, DomVnode, Observable, RenderEngine, Vnode } from "../src";
+import { rvx } from "./_rvx";
+import { captureErrorContext, microtick, renderToHtml } from "./_utility";
 
 test("create dom vnode", t => {
 	const vnode: Vnode = <div foo="bar">baz</div>;
@@ -56,7 +57,7 @@ test("renderContent: node", t => {
 test("renderContent: collection", t => {
 	const { context, errors } = captureErrorContext();
 	const collection = new Collection();
-	const html = renderToHtml(collection, context);
+	const html = renderToHtml(collection, rvx, context);
 	t.is(html(), "");
 
 	collection.resolve({ start: 0, count: 0, items: [] });
@@ -85,7 +86,7 @@ test("renderContent: collection", t => {
 test("renderContent: observable", t => {
 	const { context, errors } = captureErrorContext();
 	const content = new Observable<any>();
-	const html = renderToHtml(content, context);
+	const html = renderToHtml(content, rvx, context);
 	content.resolve("foo");
 	t.is(html(), "foo");
 	content.reject("bar");
@@ -127,4 +128,16 @@ test("renderAttributes: primitives", t => {
 	t.is(renderToHtml(<div foo={ BigInt(42) }></div>)(), `<div foo="42"></div>`);
 	t.is(renderToHtml(<div foo={ true }></div>)(), `<div foo=""></div>`);
 	t.is(renderToHtml(<div foo={ false }></div>)(), `<div></div>`);
+});
+
+test("async patch mode", async t => {
+	const rvx = new RenderEngine();
+	t.is(rvx.patchMode, "async");
+
+	const a = new Observable();
+	const b = new Observable();
+
+	const html = renderToHtml([a, b], rvx);
+	await microtick();
+	t.is(html(), "");
 });

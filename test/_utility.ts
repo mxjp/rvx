@@ -1,5 +1,6 @@
 // tslint:disable: file-name-casing
-import rvx, { Collection, CollectionLike, Cycle, DisposeLogic, ObservableLike, RenderContext, RenderContextBase } from "../src";
+import { Collection, CollectionLike, Cycle, DisposeLogic, ObservableLike, RenderContext, RenderContextBase, RenderEngine } from "../src";
+import { rvx } from "./_rvx";
 
 export function capture<T>(observable: ObservableLike<T>): {
 	readonly events: ({ resolve: T } | { reject: any })[];
@@ -44,10 +45,16 @@ export function captureErrorContext(parent?: RenderContext, cycle = new Cycle())
 	return { context, errors };
 }
 
-export function renderToHtml(content: any, context = rvx.context, cycle = context.cycle): () => string {
+export function renderToHtml(content: any, engine: RenderEngine = rvx, context = engine.context): () => string {
 	const container = document.createElement("div");
-	rvx.renderContentFor(container, content, context, cycle);
+	engine.renderContentFor(container, content, context, context.cycle);
 	return () => {
 		return container.innerHTML;
 	};
+}
+
+export function microtick() {
+	return new Promise(resolve => {
+		setTimeout(resolve, 0);
+	});
 }

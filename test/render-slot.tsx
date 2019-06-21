@@ -1,5 +1,6 @@
 import test from "ava";
-import rvx, { Observable } from "../src";
+import { Observable } from "../src";
+import { rvx } from "./_rvx";
 
 const html = (content: string) => `<!--rvx-->${content}<!--/rvx-->`;
 

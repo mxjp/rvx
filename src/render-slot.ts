@@ -50,7 +50,7 @@ export class RenderSlot extends RenderContextBase {
 		}
 		this._rendering = true;
 		this.engine.renderContent(content, this, this.cycle, (nodes, start, end) => {
-			this.engine.patch(this._container, nodes, start || this._start, end || this._end);
+			this.engine.schedulePatch(this._container, nodes, start || this._start, end || this._end);
 		});
 		return this;
 	}

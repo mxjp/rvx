@@ -11,11 +11,36 @@ import { Vnode } from "./vnode";
 import { VnodeConstructor } from "./vnode-constructor";
 import { RENDER } from "./vnode-internals";
 
+const PATCH_SCHEDULED = Symbol("patchScheduled");
+const BUFFERED_PATCHES = Symbol("bufferedPatches");
+
+const patchSchedule = Promise.resolve();
+
+export type RenderPatchMode = "async" | "sync";
+
+export interface RenderEngineOptions {
+	/**
+	 * Specify, how the renderer applies patches.
+	 * + `"async"` - Aggregate and apply patches in the next micro tick. This is the default and recommended for production.
+	 * + `"sync"` - Apply patches immediately. This can be useful for testing.
+	 */
+	readonly patchMode: RenderPatchMode;
+}
+
 export class RenderEngine {
+	public constructor(options: Partial<RenderEngineOptions> = { }) {
+		this.patchMode = options.patchMode || "async";
+	}
+
+	public readonly patchMode: RenderPatchMode;
+
 	public readonly context: RenderContext = new class extends RenderContextBase {
 		public readonly parent: RenderContext = null;
 		public readonly cycle = new Cycle();
 	};
+
+	private [PATCH_SCHEDULED] = false;
+	private [BUFFERED_PATCHES] = new Map<Node, BufferedPatch[]>();
 
 	public createElement(type: string | VnodeConstructor, props: any, ...children: any[]): Vnode {
 		if (typeof type === "string") {
@@ -114,44 +139,33 @@ export class RenderEngine {
 	}
 
 	public renderContentFor(container: Node, value: any, context: RenderContext, cycle: Cycle) {
-		this.renderContent(value, context, cycle, (nodes, start, end) => this.patch(container, nodes, start, end));
+		this.renderContent(value, context, cycle, (nodes, start, end) => this.schedulePatch(container, nodes, start, end));
 	}
 
-	public patch(container: Node, nodes: Node[], start?: Node, end?: Node) {
-		// TODO: Aggregate and merge patches and apply them in a queued microtask (+ toggle option for testing purposes).
-		// TODO: Use document fragments and ranges to increase performance for large patches.
-		if (start) {
-			if (end) {
-				while (start.nextSibling !== end) {
-					container.removeChild(start.nextSibling);
-				}
-				for (const node of nodes) {
-					container.insertBefore(node, end);
-				}
+	public schedulePatch(container: Node, nodes: Node[], start?: Node, end?: Node) {
+		if (this.patchMode === "async") {
+			const buffer = this[BUFFERED_PATCHES];
+			const patches = buffer.get(container);
+			if (patches) {
+				patches.push({ nodes, start, end });
 			} else {
-				while (start.nextSibling) {
-					container.removeChild(start.nextSibling);
-				}
-				for (const node of nodes) {
-					container.appendChild(node);
-				}
+				buffer.set(container, [{ nodes, start, end }]);
 			}
+			if (!this[PATCH_SCHEDULED]) {
+				this[PATCH_SCHEDULED] = true;
+			}
+			// tslint:disable-next-line: no-floating-promises
+			patchSchedule.then(() => {
+				this[PATCH_SCHEDULED] = false;
+				for (const [container, patches] of buffer) {
+					// TODO: Reduce compatible patches to actually increase performance.
+					for (const { nodes, start, end } of patches) {
+						applyPatch(container, nodes, start, end);
+					}
+				}
+			});
 		} else {
-			if (end) {
-				while (container.firstChild !== end) {
-					container.removeChild(container.firstChild);
-				}
-				for (const node of nodes) {
-					container.insertBefore(node, end);
-				}
-			} else {
-				while (container.firstChild) {
-					container.removeChild(container.firstChild);
-				}
-				for (const node of nodes) {
-					container.appendChild(node);
-				}
-			}
+			applyPatch(container, nodes, start, end);
 		}
 	}
 
@@ -174,12 +188,12 @@ export class RenderEngine {
 	}
 }
 
-export interface RenderRange {
+interface RenderRange {
 	start: Node;
 	end: Node;
 }
 
-export function findRenderStart(ranges: RenderRange[], index: number) {
+function findRenderStart(ranges: RenderRange[], index: number) {
 	for (let i = index - 1; i >= 0; i--) {
 		if (ranges[i].end) {
 			return ranges[i].end;
@@ -187,7 +201,7 @@ export function findRenderStart(ranges: RenderRange[], index: number) {
 	}
 }
 
-export function findRenderEnd(ranges: RenderRange[], index: number) {
+function findRenderEnd(ranges: RenderRange[], index: number) {
 	for (let i = index + 1; i < ranges.length; i++) {
 		if (ranges[i].start) {
 			return ranges[i].start;
@@ -195,7 +209,7 @@ export function findRenderEnd(ranges: RenderRange[], index: number) {
 	}
 }
 
-export interface DynamicRenderRange {
+interface DynamicRenderRange {
 	start: Node;
 	end: Node;
 	item: any;
@@ -205,7 +219,7 @@ export interface DynamicRenderRange {
 	next?: DynamicRenderRange;
 }
 
-export function findDynamicRenderStart(range: DynamicRenderRange) {
+function findDynamicRenderStart(range: DynamicRenderRange) {
 	range = range.prev;
 	while (range) {
 		if (range.end) {
@@ -215,7 +229,7 @@ export function findDynamicRenderStart(range: DynamicRenderRange) {
 	}
 }
 
-export function findDynamicRenderEnd(range: DynamicRenderRange) {
+function findDynamicRenderEnd(range: DynamicRenderRange) {
 	range = range.next;
 	while (range) {
 		if (range.start) {
@@ -225,7 +239,7 @@ export function findDynamicRenderEnd(range: DynamicRenderRange) {
 	}
 }
 
-export function linkDynamicRenderRanges(ranges: DynamicRenderRange[], start: number, count: number) {
+function linkDynamicRenderRanges(ranges: DynamicRenderRange[], start: number, count: number) {
 	if (start > 0) {
 		ranges[start - 1].next = ranges[start];
 	}
@@ -236,5 +250,48 @@ export function linkDynamicRenderRanges(ranges: DynamicRenderRange[], start: num
 	}
 	if (end < ranges.length) {
 		ranges[end].prev = ranges[end - 1];
+	}
+}
+
+interface BufferedPatch {
+	readonly nodes: Node[];
+	readonly start: Node;
+	readonly end: Node;
+}
+
+function applyPatch(container: Node, nodes: Node[], start?: Node, end?: Node) {
+	// TODO: Use document fragments and ranges to increase performance for large patches.
+	if (start) {
+		if (end) {
+			while (start.nextSibling !== end) {
+				container.removeChild(start.nextSibling);
+			}
+			for (const node of nodes) {
+				container.insertBefore(node, end);
+			}
+		} else {
+			while (start.nextSibling) {
+				container.removeChild(start.nextSibling);
+			}
+			for (const node of nodes) {
+				container.appendChild(node);
+			}
+		}
+	} else {
+		if (end) {
+			while (container.firstChild !== end) {
+				container.removeChild(container.firstChild);
+			}
+			for (const node of nodes) {
+				container.insertBefore(node, end);
+			}
+		} else {
+			while (container.firstChild) {
+				container.removeChild(container.firstChild);
+			}
+			for (const node of nodes) {
+				container.appendChild(node);
+			}
+		}
 	}
 }
