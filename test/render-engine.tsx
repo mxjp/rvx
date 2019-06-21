@@ -1,7 +1,7 @@
 import test from "ava";
 import { Collection, DomVnode, Observable, RenderEngine, Vnode } from "../src";
 import { rvx } from "./_rvx";
-import { captureErrorContext, microtick, renderToHtml } from "./_utility";
+import { captureErrorContext, macro, renderToHtml } from "./_utility";
 
 test("create dom vnode", t => {
 	const vnode: Vnode = <div foo="bar">baz</div>;
@@ -130,14 +130,46 @@ test("renderAttributes: primitives", t => {
 	t.is(renderToHtml(<div foo={ false }></div>)(), `<div></div>`);
 });
 
-test("async patch mode", async t => {
-	const rvx = new RenderEngine();
-	t.is(rvx.patchMode, "async");
+test("patchMode: frame", async t => {
+	const rvx = new RenderEngine({
+		patchMode: "frame"
+	});
 
 	const a = new Observable();
 	const b = new Observable();
+	const c = new Observable();
 
-	const html = renderToHtml([a, b], rvx);
-	await microtick();
+	const html = renderToHtml([a, b, c], rvx);
+	await macro();
+	t.is(html(), "");
+
+	a.resolve("a");
+	b.resolve("b");
+	c.resolve("c");
+	await macro();
+	t.is(html(), "abc");
+
+	a.resolve(["1", "2"]);
+	await macro();
+	t.is(html(), "12bc");
+
+	c.resolve(["4", "5"]);
+	await macro();
+	t.is(html(), "12b45");
+
+	b.resolve("3");
+	await macro();
+	t.is(html(), "12345");
+
+	a.resolve(null);
+	await macro();
+	t.is(html(), "345");
+
+	c.resolve(null);
+	await macro();
+	t.is(html(), "3");
+
+	b.resolve(null);
+	await macro();
 	t.is(html(), "");
 });

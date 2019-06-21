@@ -53,8 +53,6 @@ export function renderToHtml(content: any, engine: RenderEngine = rvx, context =
 	};
 }
 
-export function microtick() {
-	return new Promise(resolve => {
-		setTimeout(resolve, 0);
-	});
+export function macro() {
+	return new Promise(resolve => setTimeout(resolve, 0));
 }

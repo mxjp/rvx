@@ -2,5 +2,5 @@
 import { RenderEngine } from "../src";
 
 export const rvx = new RenderEngine({
-	patchMode: "sync"
+	patchMode: "asap"
 });

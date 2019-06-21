@@ -14,22 +14,20 @@ import { RENDER } from "./vnode-internals";
 const PATCH_SCHEDULED = Symbol("patchScheduled");
 const BUFFERED_PATCHES = Symbol("bufferedPatches");
 
-const patchSchedule = Promise.resolve();
-
-export type RenderPatchMode = "async" | "sync";
+export type RenderPatchMode = "asap" | "frame";
 
 export interface RenderEngineOptions {
 	/**
 	 * Specify, how the renderer applies patches.
-	 * + `"async"` - Aggregate and apply patches in the next micro tick. This is the default and recommended for production.
-	 * + `"sync"` - Apply patches immediately. This can be useful for testing.
+	 * + `"asap"` - Apply patches *as soon as possible*. This is the default mode.
+	 * + `"frame"` - Aggregate and apply patches in the next animation frame. (Experimental)
 	 */
 	readonly patchMode: RenderPatchMode;
 }
 
 export class RenderEngine {
 	public constructor(options: Partial<RenderEngineOptions> = { }) {
-		this.patchMode = options.patchMode || "async";
+		this.patchMode = options.patchMode || "asap";
 	}
 
 	public readonly patchMode: RenderPatchMode;
@@ -143,7 +141,7 @@ export class RenderEngine {
 	}
 
 	public schedulePatch(container: Node, nodes: Node[], start?: Node, end?: Node) {
-		if (this.patchMode === "async") {
+		if (this.patchMode === "frame") {
 			const buffer = this[BUFFERED_PATCHES];
 			const patches = buffer.get(container);
 			if (patches) {
@@ -154,8 +152,7 @@ export class RenderEngine {
 			if (!this[PATCH_SCHEDULED]) {
 				this[PATCH_SCHEDULED] = true;
 			}
-			// tslint:disable-next-line: no-floating-promises
-			patchSchedule.then(() => {
+			requestAnimationFrame(() => {
 				this[PATCH_SCHEDULED] = false;
 				for (const [container, patches] of buffer) {
 					// TODO: Reduce compatible patches to actually increase performance.
