@@ -17,10 +17,8 @@ export * from "./render-context-base";
 export * from "./render-context";
 export * from "./render-engine";
 export * from "./render-patch-callback";
-export * from "./render-patch-mirror";
 export * from "./render-slot";
 export * from "./resolve-binding";
-export * from "./vnode-constructor";
 export * from "./vnode";
 
 // tslint:disable-next-line: no-default-export

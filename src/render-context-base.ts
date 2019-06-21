@@ -1,6 +1,9 @@
 import { Cycle } from "./cycle";
 import { RenderContext } from "./render-context";
 
+/**
+ * Base implementation for most render contexts.
+ */
 export abstract class RenderContextBase implements RenderContext {
 	public readonly abstract parent?: RenderContext;
 	public readonly abstract cycle: Cycle;

@@ -11,6 +11,16 @@ const CYCLE = Symbol("cycle");
 const PATCH_CALLBACK = Symbol("patchCallback");
 const PATCH_MIRROR = Symbol("patchMirror");
 
+/**
+ * The constructor of a vnode.
+ */
+export type VnodeConstructor = new(props: any, children: any[], engine: RenderEngine) => Vnode;
+
+/**
+ * Represents a part of the render tree that has a defined context and lifecycle.<br>
+ * + A vnode can be rendered miltiple times in the same context within one lifecycle.
+ * + A vnode can not be rendered in a different context when alive.
+ */
 export abstract class Vnode<Props = any> extends RenderContextBase {
 	public constructor(
 		public readonly props: Props,
@@ -25,22 +35,41 @@ export abstract class Vnode<Props = any> extends RenderContextBase {
 	private [PATCH_CALLBACK]: RenderPatchCallback = null;
 	private [PATCH_MIRROR]: RenderPatchMirror = null;
 
+	/**
+	 * Get the current parent.
+	 */
 	public get parent(): RenderContext {
 		return this[PARENT];
 	}
 
+	/**
+	 * Get the current lifecycle.
+	 */
 	public get cycle(): Cycle {
 		return this[CYCLE];
 	}
 
+	/**
+	 * Called to get the parent context, this vnode is rendered in.
+	 * This function may be called while the node has an active cycle.
+	 * @param context The default parent context.
+	 */
 	protected resolveContext(context: RenderContext) {
 		return context;
 	}
 
+	/**
+	 * Called to define the next lifecycle.
+	 * @param context The parent context.
+	 * @param cycle The default lifecycle.
+	 */
 	protected resolveCycle(context: RenderContext, cycle: Cycle) {
 		return cycle;
 	}
 
+	/**
+	 * Called once per lifecycle to get the content's of this vnode.
+	 */
 	protected abstract render(): any;
 
 	public [RENDER](context: RenderContext, cycle: Cycle, patch: RenderPatchCallback) {

@@ -6,6 +6,10 @@ import { ObservableLike } from "./observable-like";
  * When subscribed to, a collection emits a synchronous patch that represents the current state of the collection.
  */
 export interface CollectionLike<T> extends ObservableLike<CollectionPatch<T>> {
+	/**
+	 * Get an array that represents the current state of the collection.<br>
+	 * This array should not be modified.
+	 */
 	getItems(): readonly T[];
 }
 

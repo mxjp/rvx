@@ -6,6 +6,10 @@ import { Observer } from "./observer";
 const RESOLVED = Symbol("resolved");
 const ITEMS = Symbol("items");
 
+/**
+ * Represents an observable collection.
+ * When subscribed to, a collection emits a synchronous patch that represents the current state of the collection.
+ */
 export class Collection<T> extends Observable<CollectionPatch<T>> implements CollectionLike<T> {
 	private [RESOLVED] = false;
 	private [ITEMS]: T[] = [];

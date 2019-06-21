@@ -2,6 +2,9 @@ import { Cycle } from "./cycle";
 import { RenderContextBase } from "./render-context-base";
 import { RenderEngine } from "./render-engine";
 
+/**
+ * Represents a place in the "non rvx" dom where the render engine can render content to.
+ */
 export class RenderSlot extends RenderContextBase {
 	public constructor(public readonly engine: RenderEngine) {
 		super();
@@ -16,10 +19,17 @@ export class RenderSlot extends RenderContextBase {
 	private _container: Node;
 	private _rendering: boolean;
 
+	/**
+	 * The parent context.
+	 * Usually, this is the render engine context.
+	 */
 	public get parent() {
 		return this.engine.context;
 	}
 
+	/**
+	 * Append the placeholders of this slot to a dom element.
+	 */
 	public appendTo(target: Node | string) {
 		if (this._container) {
 			throw new Error("Slot is already attached.");
@@ -30,6 +40,9 @@ export class RenderSlot extends RenderContextBase {
 		return this;
 	}
 
+	/**
+	 * Replace a dom element with the placeholders of this slot.
+	 */
 	public replace(target: Node | string) {
 		if (this._container) {
 			throw new Error("Slot is already attached.");
@@ -41,6 +54,9 @@ export class RenderSlot extends RenderContextBase {
 		return this;
 	}
 
+	/**
+	 * Render content between the placeholders of this slot.
+	 */
 	public render(content: any) {
 		if (this._rendering) {
 			throw new Error("Slot is already rendering.");

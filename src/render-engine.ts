@@ -7,8 +7,7 @@ import { RenderContextBase } from "./render-context-base";
 import { RenderPatchCallback } from "./render-patch-callback";
 import { RenderSlot } from "./render-slot";
 import { resolveBinding } from "./resolve-binding";
-import { Vnode } from "./vnode";
-import { VnodeConstructor } from "./vnode-constructor";
+import { Vnode, VnodeConstructor } from "./vnode";
 import { RENDER } from "./vnode-internals";
 
 const PATCH_SCHEDULED = Symbol("patchScheduled");
@@ -25,13 +24,22 @@ export interface RenderEngineOptions {
 	readonly patchMode: RenderPatchMode;
 }
 
+/**
+ * The core render engine of rvx.
+ */
 export class RenderEngine {
 	public constructor(options: Partial<RenderEngineOptions> = { }) {
 		this.patchMode = options.patchMode || "asap";
 	}
 
+	/**
+	 * The patch mode that is used by this instance.
+	 */
 	public readonly patchMode: RenderPatchMode;
 
+	/**
+	 * The top level render context.
+	 */
 	public readonly context: RenderContext = new class extends RenderContextBase {
 		public readonly parent: RenderContext = null;
 		public readonly cycle = new Cycle();
@@ -40,6 +48,10 @@ export class RenderEngine {
 	private [PATCH_SCHEDULED] = false;
 	private [BUFFERED_PATCHES] = new Map<Node, BufferedPatch[]>();
 
+	/**
+	 * Create a vnode instance.
+	 * @param type The type. This can be a tag name or a vnode constructor.
+	 */
 	public createElement(type: string | VnodeConstructor, props: any, ...children: any[]): Vnode {
 		if (typeof type === "string") {
 			return new DomVnode(props, children, this, type);
@@ -50,18 +62,30 @@ export class RenderEngine {
 		}
 	}
 
+	/**
+	 * Create a render slot that uses this engine.
+	 */
 	public createSlot() {
 		return new RenderSlot(this);
 	}
 
+	/**
+	 * Render content by appending it to a dom node.
+	 */
 	public appendTo(target: Node | string, content: any) {
 		return this.createSlot().appendTo(target).render(content);
 	}
 
+	/**
+	 * Replace a dom node with rendered content.
+	 */
 	public replace(target: Node | string, content: any) {
 		return this.createSlot().replace(target).render(content);
 	}
 
+	/**
+	 * Render any kind of supported content in the specified context and cycle.
+	 */
 	public renderContent(value: any, context: RenderContext, cycle: Cycle, patch: RenderPatchCallback) {
 		if (Array.isArray(value)) {
 			patch([]);
@@ -136,10 +160,16 @@ export class RenderEngine {
 		}
 	}
 
+	/**
+	 * Render any kind of supported content in the specified context and cycle.
+	 */
 	public renderContentFor(container: Node, value: any, context: RenderContext, cycle: Cycle) {
 		this.renderContent(value, context, cycle, (nodes, start, end) => this.schedulePatch(container, nodes, start, end));
 	}
 
+	/**
+	 * Schedule a patch to be applied.
+	 */
 	public schedulePatch(container: Node, nodes: Node[], start?: Node, end?: Node) {
 		if (this.patchMode === "frame") {
 			const buffer = this[BUFFERED_PATCHES];
@@ -166,6 +196,9 @@ export class RenderEngine {
 		}
 	}
 
+	/**
+	 * Render attributes for a dom element in the specified context and cycle.
+	 */
 	public renderAttributes(element: Element, attributes: {
 		[Name in string]: string
 	}, context: RenderContext, cycle: Cycle) {
