@@ -6,15 +6,12 @@ import { ObservableLike } from "./observable-like";
  * When subscribed to, a collection emits a synchronous patch that represents the current state of the collection.
  */
 export interface CollectionLike<T> extends ObservableLike<CollectionPatch<T>> {
-	/**
-	 * The current state of the collection.
-	 */
-	readonly items: ReadonlyArray<T>;
+	getItems(): readonly T[];
 }
 
 /**
  * Check if an observable like is like a collection.
  */
 export function isCollectionLike<T>(value: ObservableLike<CollectionPatch<T>>): value is CollectionLike<T> {
-	return Array.isArray((value as any).items);
+	return typeof (value as any).getItems === "function";
 }

@@ -1,10 +1,10 @@
 import test from "ava";
-import rvx, { Subject } from "../src";
+import rvx, { Observable } from "../src";
 
 const html = (content: string) => `<!--rvx-->${content}<!--/rvx-->`;
 
 test("appendTo", t => {
-	const content = new Subject<any>();
+	const content = new Observable<any>();
 	const container = document.createElement("div");
 	rvx.appendTo(container, content);
 	t.is(container.innerHTML, html(""));
@@ -17,7 +17,7 @@ test("appendTo", t => {
 });
 
 test("replace", t => {
-	const content = new Subject<any>();
+	const content = new Observable<any>();
 	const container = document.createElement("div");
 	const placeholder = document.createElement("div");
 	container.appendChild(placeholder);

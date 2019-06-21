@@ -1,26 +1,33 @@
 // tslint:disable: file-name-casing
-import rvx, { Collection, Cycle, Disposable, ObservableLike, RenderContext, RenderContextBase } from "../src";
+import rvx, { Collection, CollectionLike, Cycle, DisposeLogic, ObservableLike, RenderContext, RenderContextBase } from "../src";
 
 export function capture<T>(observable: ObservableLike<T>): {
-	readonly events: ({ resolve: T } | { reject: any } | false)[];
-	readonly disposable: Disposable;
+	readonly events: ({ resolve: T } | { reject: any })[];
+	readonly resource: DisposeLogic;
 } {
 	const events = [];
-	const disposable = observable.subscribe({
-		resolve: value => void events.push({ resolve: value }),
-		reject: value => void events.push({ reject: value }),
-		end: () => void events.push(false)
+	const resource = observable.subscribe({
+		resolve: value => events.push({ resolve: value }),
+		reject: value => events.push({ reject: value })
 	});
-	return { events, disposable };
+	return { events, resource };
+}
+
+export function captureItems<T>(observable: CollectionLike<T>) {
+	const events: ({ resolve: readonly T[] } | { reject: any })[] = [];
+	const resource = observable.subscribe({
+		resolve: () => events.push({ resolve: Array.from(observable.getItems()) }),
+		reject: value => events.push({ reject: value })
+	});
+	return { events, resource };
 }
 
 export function smallCollection() {
-	return new Collection<string>((resolve, reject, end) => {
-		resolve({ start: 0, count: 0, items: ["foo", "bar"] });
-		resolve({ start: 0, count: 1, items: ["baz"] });
-		resolve({ start: 1, count: 1, items: ["foo"] });
-		resolve({ start: 1, count: 0, items: ["bar"] });
-		end();
+	return new Collection<string>(observer => {
+		observer.resolve({ start: 0, count: 0, items: ["foo", "bar"] });
+		observer.resolve({ start: 0, count: 1, items: ["baz"] });
+		observer.resolve({ start: 1, count: 1, items: ["foo"] });
+		observer.resolve({ start: 1, count: 0, items: ["bar"] });
 	});
 }
 

@@ -1,11 +1,11 @@
-import { Disposable } from "./disposable";
+import { DisposeLogic } from "./dispose-logic";
 import { Observer } from "./observer";
 
 /**
  * Represents a sequence of values over time.
  */
 export interface Subscribable<T> {
-	subscribe(observer?: Partial<Observer<T>> | ((value: T) => void), disposable?: Disposable): Disposable;
+	subscribe(observer?: Partial<Observer<T>> | ((value: T) => void)): DisposeLogic;
 }
 
 /**

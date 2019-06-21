@@ -1,10 +1,12 @@
+import { isCollectionLike } from "./collection-like";
 import { Cycle } from "./cycle";
 import { DomVnode } from "./dom-vnode";
+import { DynamicRenderRange, findDynamicRenderEnd, findDynamicRenderStart, linkDynamicRenderRanges } from "./dynamic-render-range";
 import { isObservableLike } from "./observable-like";
 import { RenderContext } from "./render-context";
 import { RenderContextBase } from "./render-context-base";
 import { RenderPatchCallback } from "./render-patch-callback";
-import { findRenderPatchEnd, findRenderPatchStart, RenderPatchRange } from "./render-patch-range";
+import { findRenderEnd, findRenderStart, RenderRange } from "./render-range";
 import { RenderSlot } from "./render-slot";
 import { resolveBinding } from "./resolve-binding";
 import { Vnode } from "./vnode";
@@ -42,16 +44,16 @@ export class RenderEngine {
 	public renderContent(value: any, context: RenderContext, cycle: Cycle, patch: RenderPatchCallback) {
 		if (Array.isArray(value)) {
 			patch([]);
-			const ranges: RenderPatchRange[] = [];
+			const ranges: RenderRange[] = [];
 			for (let i = 0; i < value.length; i++) {
 				ranges.push({ start: null, end: null });
 				this.renderContent(value[i], context, cycle, (nodes, start, end) => {
 					if (!start) {
-						start = findRenderPatchStart(ranges, i);
+						start = findRenderStart(ranges, i);
 						ranges[i].start = nodes[0];
 					}
 					if (!end) {
-						end = findRenderPatchEnd(ranges, i);
+						end = findRenderEnd(ranges, i);
 						ranges[i].end = nodes[nodes.length - 1];
 					}
 					patch(nodes, start, end);
@@ -62,18 +64,50 @@ export class RenderEngine {
 		} else if (value instanceof Node) {
 			patch([value]);
 		} else if (isObservableLike<any>(value)) {
-			const fork = cycle.fork();
-			cycle.add(value.subscribe({
-				resolve: value => {
-					fork.dispose();
-					this.renderContent(value, context, fork, patch);
-				},
-				reject: value => {
-					patch([]);
-					context.error(value);
-				},
-				end: () => patch([])
-			}));
+			if (isCollectionLike<any>(value)) {
+				const ranges: DynamicRenderRange[] = [];
+				value.subscribe({
+					resolve: value => {
+						const insert = value.items.map<DynamicRenderRange>(item => ({ start: null, end: null, item, cycle: new Cycle() }));
+						const removed = ranges.splice(value.start, value.count, ...insert);
+						for (const range of removed) {
+							range.cycle.dispose();
+						}
+						if (removed.length > 0) {
+							patch([], findDynamicRenderStart(removed[0]), findDynamicRenderEnd(removed[removed.length - 1]));
+						}
+						linkDynamicRenderRanges(ranges, value.start, insert.length);
+						for (const range of insert) {
+							this.renderContent(range.item, context, range.cycle, (nodes, start, end) => {
+								if (!start) {
+									start = findDynamicRenderStart(range);
+									range.start = nodes[0];
+								}
+								if (!end) {
+									end = findDynamicRenderEnd(range);
+									range.end = nodes[nodes.length - 1];
+								}
+								patch(nodes, start, end);
+							});
+						}
+					},
+					reject: value => {
+						context.error(value);
+					}
+				});
+			} else {
+				const fork = cycle.fork();
+				cycle.add(value.subscribe({
+					resolve: value => {
+						fork.dispose();
+						this.renderContent(value, context, fork, patch);
+					},
+					reject: value => {
+						patch([]);
+						context.error(value);
+					}
+				}));
+			}
 		} else if (value === null || value === undefined || (typeof value === "number" && isNaN(value))) {
 			patch([]);
 		} else {

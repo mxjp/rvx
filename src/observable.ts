@@ -1,156 +1,98 @@
-import { Disposable } from "./disposable";
+import { dispose } from "./dispose";
 import { DisposeLogic } from "./dispose-logic";
-import { ObservableBase } from "./observable-base";
+import { ObservableLike } from "./observable-like";
 import { Observer } from "./observer";
+import { Operator } from "./operator";
 import { Subscribable } from "./subscribable";
 
 const OBSERVERS = Symbol("observers");
-const RESOURCES = Symbol("resources");
-const STATE = Symbol("state");
+const RESOURCE = Symbol("resource");
+const STARTED = Symbol("state");
 
 /**
  * Represents a sequence of values over time.
  */
-export class Observable<T> extends ObservableBase<T> {
-	public constructor(start?: ((this: Observable<T>, resolve: (value: T) => void, reject: (error: any) => void, end: () => void) => DisposeLogic) | Subscribable<T>) {
-		super();
+export class Observable<T> implements ObservableLike<T> {
+	public constructor(
+		start?: ((this: Observable<T>, observer: Observer<T>) => DisposeLogic) | Subscribable<T>,
+		each?: (this: Observable<T>, observer: Observer<T>) => void
+	) {
 		if (typeof start === "function") {
 			this.start = start;
 		} else if (start) {
-			this.start = (resolve, reject, end) => start.subscribe({ resolve, reject, end });
+			this.start = observer => start.subscribe(observer);
+		}
+		if (typeof each === "function") {
+			this.each = each;
 		}
 	}
 
 	private readonly [OBSERVERS] = new Set<Partial<Observer<T>>>();
-	private readonly [RESOURCES] = new Disposable();
-	private [STATE]: "new" | "started" | "ended" = "new";
-
-	/**
-	 * Check if this observable is new.
-	 */
-	protected get isNew() {
-		return this[STATE] === "new";
-	}
+	private [STARTED] = false;
+	private [RESOURCE]: DisposeLogic;
 
 	/**
 	 * Called when this observable is first subscribed to.
-	 * @param observer The observer representing all current observers.
+	 * @param observer The observer representing all current observers. Usually, this is this observable itself.
 	 */
-	protected start(resolve: (value: T) => void, reject: (error: any) => void, end: () => void): DisposeLogic {
-		end();
+	protected start(observer: Observer<T>): DisposeLogic {
 	}
 
 	/**
-	 * Called to intercept the creation of the resolve callback.
-	 * @param resolve The resolve callback.
-	 * @returns The actual resolve callback.
+	 * Called for each new observer that is subscribing.<br>
+	 * The observer is added to this observable after each has finished.
+	 * @param observer The observer that is subscribing.
 	 */
-	protected interceptResolve(resolve: (value: T) => void): (value: T) => void {
-		return resolve;
+	protected each(observer: Partial<Observer<T>>) {
 	}
 
 	/**
-	 * Called to intercept the creation of the reject callback.
-	 * @param reject The reject callback.
-	 * @returns The actual reject callback.
+	 * Resolve the next value.
 	 */
-	protected interceptReject(reject: (value: any) => void): (value: any) => void {
-		return reject;
-	}
-
-	/**
-	 * Called to intercept the creation of the end callback.
-	 * @param end The end callback.
-	 * @returns The actual end callback.
-	 */
-	protected interceptEnd(end: () => void): () => void {
-		return end;
-	}
-
-	/**
-	 * Called when this observable is subscribed to.
-	 */
-	protected subscribeResolved(observer: Partial<Observer<T>>, disposable: Disposable) {
-		const observers = this[OBSERVERS];
-
-		if (this[STATE] === "ended") {
-			if (observer.end) {
-				observer.end();
+	public resolve(value: T) {
+		for (const observer of this[OBSERVERS]) {
+			if (observer.resolve) {
+				observer.resolve(value);
 			}
-			return disposable;
-		} else {
-			observers.add(observer);
 		}
+	}
 
-		if (this[STATE] === "new") {
-			this[STATE] = "started";
-			this[RESOURCES].add(this.start(this.interceptResolve(value => {
-				if (this[STATE] === "started") {
-					for (const observer of observers) {
-						if (observer.resolve) {
-							observer.resolve(value);
-						}
-					}
-				}
-			}), this.interceptReject(value => {
-				if (this[STATE] === "started") {
-					for (const observer of observers) {
-						if (observer.reject) {
-							observer.reject(value);
-						}
-					}
-				}
-			}), this.interceptEnd(() => {
-				if (this[STATE] === "started") {
-					this[STATE] = "ended";
-					for (const observer of observers) {
-						if (observer.end) {
-							observer.end();
-						}
-					}
-				}
-			})));
-		}
-
-		disposable.add(() => {
-			if (observers.delete(observer) && observers.size === 0) {
-				this[RESOURCES].dispose();
+	/**
+	 * Reject the next value.
+	 */
+	public reject(value: any) {
+		for (const observer of this[OBSERVERS]) {
+			if (observer.reject) {
+				observer.reject(value);
 			}
-		});
-
-		return disposable;
+		}
 	}
 
 	/**
 	 * Subscribe to this observable.
 	 */
-	public subscribe(observer?: Partial<Observer<T>> | ((value: T) => void), disposable = new Disposable()) {
-		return this.subscribeResolved(typeof observer === "function" ? { resolve: observer } : (observer || { }), disposable);
-	}
+	public subscribe(observer?: Partial<Observer<T>> | ((value: T) => void)): DisposeLogic {
+		const resolved = typeof observer === "function" ? { resolve: observer } : (observer || { });
+		this.each(resolved);
+		this[OBSERVERS].add(resolved);
 
-	/**
-	 * Create an observable that emits a single value and ends.
-	 */
-	public static value<T>(value: T) {
-		return new Observable((resolve, reject, end) => {
-			resolve(value);
-			end();
-		});
-	}
+		if (!this[STARTED]) {
+			this[STARTED] = true;
+			this[RESOURCE] = this.start(this);
+		}
 
-	/**
-	 * Create an observable from an iterable.
-	 */
-	public static iterable<T>(value: Iterable<T>) {
-		return new Observable<T>((resolve, reject, end) => {
-			try {
-				for (const next of (value as Iterable<T>)) {
-					resolve(next);
-				}
-			} catch (error) {
-				reject(error);
+		return () => {
+			if (this[OBSERVERS].delete(resolved) && this[OBSERVERS].size === 0) {
+				dispose(this[RESOURCE]);
 			}
-			end();
-		});
+		};
+	}
+
+	public pipe<U>(operator: Operator<T, U>): U {
+		return operator(this);
+	}
+
+	public static value<T>(value: T) {
+		return new Observable<T>(null, observer => observer.resolve(value));
 	}
 }

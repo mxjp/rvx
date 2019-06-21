@@ -1,5 +1,5 @@
 import test from "ava";
-import rvx, { DomVnode, Observable, Subject, Vnode } from "../src";
+import rvx, { Collection, DomVnode, Observable, Vnode } from "../src";
 import { captureErrorContext, renderToHtml } from "./_utility";
 
 test("create dom vnode", t => {
@@ -23,9 +23,9 @@ test("create custom vnode", t => {
 });
 
 test("renderContent: array", t => {
-	const foo = new Subject<string>();
-	const bar = new Subject<string>();
-	const baz = new Subject<string>();
+	const foo = new Observable<string>();
+	const bar = new Observable<string>();
+	const baz = new Observable<string>();
 	const html = renderToHtml([foo, bar, baz]);
 	t.is(html(), "");
 
@@ -40,7 +40,7 @@ test("renderContent: array", t => {
 });
 
 test("renderContent: vnode", t => {
-	const content = new Subject<any>();
+	const content = new Observable<any>();
 	const html = renderToHtml(<div>{ content }</div>);
 	t.is(html(), "<div></div>");
 
@@ -53,42 +53,38 @@ test("renderContent: node", t => {
 	t.is(html(), "<div></div>");
 });
 
-// test("renderContent: collection", t => {
-// 	const { context, errors } = captureErrorContext();
-// 	const patches = new Subject<CollectionPatch<any>>();
-// 	const collection = new Collection(patches);
-// 	const html = renderToHtml(collection, context);
-// 	t.is(html(), "");
+test("renderContent: collection", t => {
+	const { context, errors } = captureErrorContext();
+	const collection = new Collection();
+	const html = renderToHtml(collection, context);
+	t.is(html(), "");
 
-// 	patches.resolve({ start: false, end: false, items: [] });
-// 	t.is(html(), "");
+	collection.resolve({ start: 0, count: 0, items: [] });
+	t.is(html(), "");
 
-// 	patches.resolve({ start: false, end: false, items: ["foo", "bar"] });
-// 	t.is(html(), "foobar");
+	collection.resolve({ start: 0, count: 0, items: ["foo", "bar"] });
+	t.is(html(), "foobar");
 
-// 	patches.resolve({ start: 0, end: 1, items: [] });
-// 	t.is(html(), "foobar");
+	collection.resolve({ start: 0, count: 1, items: ["baz"] });
+	t.is(html(), "bazbar");
 
-// 	patches.resolve({ start: false, end: 1, items: ["baz"] });
-// 	t.is(html(), "bazbar");
+	collection.resolve({ start: 1, count: 1, items: ["foo"] });
+	t.is(html(), "bazfoo");
 
-// 	patches.resolve({ start: 0, end: false, items: ["foo"] });
-// 	t.is(html(), "bazfoo");
+	collection.resolve({ start: 1, count: 0, items: ["bar"] });
+	t.is(html(), "bazbarfoo");
 
-// 	patches.resolve({ start: false, end: false, items: ["yee"] });
-// 	t.is(html(), "yee");
+	collection.reject("foo");
+	t.is(html(), "bazbarfoo");
+	t.deepEqual(errors, ["foo"]);
 
-// 	patches.reject("foo");
-// 	t.is(html(), "yee");
-// 	t.deepEqual(errors, ["foo"]);
-
-// 	patches.end();
-// 	t.is(html(), "");
-// });
+	collection.resolve({ start: 0, count: 3, items: [] });
+	t.is(html(), "");
+});
 
 test("renderContent: observable", t => {
 	const { context, errors } = captureErrorContext();
-	const content = new Subject<any>();
+	const content = new Observable<any>();
 	const html = renderToHtml(content, context);
 	content.resolve("foo");
 	t.is(html(), "foo");
@@ -97,8 +93,6 @@ test("renderContent: observable", t => {
 	t.deepEqual(errors, ["bar"]);
 	content.resolve("baz");
 	t.is(html(), "baz");
-	content.end();
-	t.is(html(), "");
 });
 
 test("renderContent: primitives", t => {
@@ -113,7 +107,7 @@ test("renderContent: primitives", t => {
 });
 
 test("renderAttributes: observable", t => {
-	const value = new Subject<any>();
+	const value = new Observable<any>();
 	const html = renderToHtml(<div foo={ value }></div>);
 	t.is(html(), "<div></div>");
 

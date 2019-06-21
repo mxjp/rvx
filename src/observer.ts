@@ -4,17 +4,12 @@
  */
 export interface Observer<T> {
 	/**
-	 * Push the next resolved value.
+	 * Resolve the next value.
 	 */
 	resolve(value: T): void;
 
 	/**
-	 * Push the next rejected error.
+	 * Reject the next value.
 	 */
 	reject(value: any): void;
-
-	/**
-	 * Signal, that the observed subject will never push a next value again.
-	 */
-	end(): void;
 }

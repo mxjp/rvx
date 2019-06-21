@@ -1,35 +1,56 @@
 import test from "ava";
-import { filter, map, Observable } from "../src";
-import { capture } from "./_utility";
-
-// test("collection items", t => {
-// 	const { events } = capture(smallCollection().pipe(collectionItems));
-// 	t.deepEqual(events, [
-// 		{ resolve: ["foo", "bar"] },
-// 		{ resolve: ["baz", "bar"] },
-// 		{ resolve: ["baz", "foo"] },
-// 		{ resolve: ["baz", "bar", "foo"] },
-// 		false
-// 	]);
-// });
-
-// test("collection map", t => {
-// 	const collection = Collection.items([6, 7]).pipe(collectionMap(v => v * 6));
-// 	collection.subscribe();
-// 	t.deepEqual(collection.items, [36, 42]);
-// });
-
-// test("collection size", t => {
-// 	const { events } = capture(smallCollection().pipe(collectionSize));
-// 	t.deepEqual(events, [ { resolve: 2 }, { resolve: 3 }, false ]);
-// });
+import { Collection, filter, items, map, mapItems, Observable, size } from "../src";
+import { capture, captureItems, smallCollection } from "./_utility";
 
 test("filter", t => {
-	const { events } = capture(Observable.iterable([3, 11, 5, 7]).pipe(filter(v => v > 5)));
-	t.deepEqual(events, [ { resolve: 11 }, { resolve: 7 }, false ]);
+	const { events } = capture(new Observable<number>(observer => {
+		observer.resolve(3);
+		observer.resolve(11);
+		observer.resolve(5);
+		observer.resolve(7);
+	}).pipe(filter(v => v > 5)));
+	t.deepEqual(events, [ { resolve: 11 }, { resolve: 7 } ]);
+});
+
+test("items", t => {
+	const observable = smallCollection().pipe(items);
+	const { events } = capture(observable);
+	t.deepEqual(events, [
+		{ resolve: [ "foo", "bar" ] },
+		{ resolve: [ "baz", "bar" ] },
+		{ resolve: [ "baz", "foo" ] },
+		{ resolve: [ "baz", "bar", "foo" ] },
+	]);
+});
+
+test("map items", t => {
+	const { events } = captureItems(new Collection<number>(observer => {
+		observer.resolve({ start: 0, count: 0, items: [1, 2, 3] });
+		observer.resolve({ start: 1, count: 1, items: [4, 5] });
+	}).pipe(mapItems(v => v * 3)));
+	t.deepEqual(events, [
+		{ resolve: [ 3, 6, 9 ] },
+		{ resolve: [ 3, 12, 15, 9 ] }
+	]);
 });
 
 test("map", t => {
-	const { events } = capture(Observable.iterable([6, 7]).pipe(map(v => v * 6)));
-	t.deepEqual(events, [ { resolve: 36 }, { resolve: 42 }, false ]);
+	const { events } = capture(new Observable<number>(observer => {
+		observer.resolve(6);
+		observer.resolve(7);
+	}).pipe(map(v => v * 6)));
+	t.deepEqual(events, [ { resolve: 36 }, { resolve: 42 } ]);
+});
+
+test("size", t => {
+	const observable = smallCollection().pipe(size);
+	const { events } = capture(observable);
+
+	t.deepEqual(events, [
+		{ resolve: 2 },
+		{ resolve: 3 }
+	]);
+
+	t.deepEqual(capture(observable).events, [ { resolve: 3 } ]);
+	t.deepEqual(capture(new Collection().pipe(size)).events, [ ]);
 });
