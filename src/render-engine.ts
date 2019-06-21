@@ -1,12 +1,10 @@
 import { isCollectionLike } from "./collection-like";
 import { Cycle } from "./cycle";
 import { DomVnode } from "./dom-vnode";
-import { DynamicRenderRange, findDynamicRenderEnd, findDynamicRenderStart, linkDynamicRenderRanges } from "./dynamic-render-range";
 import { isObservableLike } from "./observable-like";
 import { RenderContext } from "./render-context";
 import { RenderContextBase } from "./render-context-base";
 import { RenderPatchCallback } from "./render-patch-callback";
-import { findRenderEnd, findRenderStart, RenderRange } from "./render-range";
 import { RenderSlot } from "./render-slot";
 import { resolveBinding } from "./resolve-binding";
 import { Vnode } from "./vnode";
@@ -173,5 +171,70 @@ export class RenderEngine {
 				context.error(value);
 			}));
 		}
+	}
+}
+
+export interface RenderRange {
+	start: Node;
+	end: Node;
+}
+
+export function findRenderStart(ranges: RenderRange[], index: number) {
+	for (let i = index - 1; i >= 0; i--) {
+		if (ranges[i].end) {
+			return ranges[i].end;
+		}
+	}
+}
+
+export function findRenderEnd(ranges: RenderRange[], index: number) {
+	for (let i = index + 1; i < ranges.length; i++) {
+		if (ranges[i].start) {
+			return ranges[i].start;
+		}
+	}
+}
+
+export interface DynamicRenderRange {
+	start: Node;
+	end: Node;
+	item: any;
+	cycle: Cycle;
+
+	prev?: DynamicRenderRange;
+	next?: DynamicRenderRange;
+}
+
+export function findDynamicRenderStart(range: DynamicRenderRange) {
+	range = range.prev;
+	while (range) {
+		if (range.end) {
+			return range.end;
+		}
+		range = range.prev;
+	}
+}
+
+export function findDynamicRenderEnd(range: DynamicRenderRange) {
+	range = range.next;
+	while (range) {
+		if (range.start) {
+			return range.start;
+		}
+		range = range.next;
+	}
+}
+
+export function linkDynamicRenderRanges(ranges: DynamicRenderRange[], start: number, count: number) {
+	if (start > 0) {
+		ranges[start - 1].next = ranges[start];
+	}
+	const end = start + count;
+	for (let i = start; i < end; i++) {
+		ranges[i].prev = ranges[i - 1];
+		ranges[i].next = ranges[i + 1];
+	}
+	if (end < ranges.length) {
+		ranges[end].prev = ranges[end - 1];
 	}
 }
