@@ -1,5 +1,5 @@
 import test from "ava";
-import { Collection, DomVnode, Observable, RenderEngine, Vnode } from "../src";
+import { Collection, DomVnode, Observable, RenderEngine, Subject, Vnode } from "../src";
 import { rvx } from "./_rvx";
 import { captureErrorContext, macro, renderToHtml } from "./_utility";
 
@@ -128,6 +128,25 @@ test("renderAttributes: primitives", t => {
 	t.is(renderToHtml(<div foo={ BigInt(42) }></div>)(), `<div foo="42"></div>`);
 	t.is(renderToHtml(<div foo={ true }></div>)(), `<div foo=""></div>`);
 	t.is(renderToHtml(<div foo={ false }></div>)(), `<div></div>`);
+});
+
+test("renderAttributes: events (function)", t => {
+	let clicked = false;
+	const vn: DomVnode = <div on-click={ () => {
+		clicked = true;
+	} }></div>;
+	t.is(renderToHtml(vn)(), `<div></div>`);
+	(vn.element as HTMLElement).click();
+	t.true(clicked);
+});
+
+test("renderAttributes: events (observer)", t => {
+	const clicks = new Subject<Event>(null);
+	const vn: DomVnode = <div on-click={ clicks.output() }></div>;
+	t.is(renderToHtml(vn)(), `<div></div>`);
+	t.is(clicks.getValue(), null);
+	(vn.element as HTMLElement).click();
+	t.true(clicks.getValue() instanceof MouseEvent);
 });
 
 test("patchMode: frame", async t => {

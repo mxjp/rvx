@@ -1,3 +1,4 @@
+import { Output } from "./binding";
 import { dispose } from "./dispose";
 import { DisposeLogic } from "./dispose-logic";
 import { ObservableLike } from "./observable-like";
@@ -66,6 +67,13 @@ export class Observable<T> implements ObservableLike<T> {
 				observer.reject(value);
 			}
 		}
+	}
+
+	/**
+	 * Convert this observable to a binding output.
+	 */
+	public output(): Output<T> {
+		return { observer: this };
 	}
 
 	/**

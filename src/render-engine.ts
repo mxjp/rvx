@@ -1,3 +1,4 @@
+import { Binding, resolveBinding, resolveOutputBinding } from "./binding";
 import { isCollectionLike } from "./collection-like";
 import { Cycle } from "./cycle";
 import { DomVnode } from "./dom-vnode";
@@ -6,7 +7,6 @@ import { RenderContext } from "./render-context";
 import { RenderContextBase } from "./render-context-base";
 import { RenderPatchCallback } from "./render-patch-callback";
 import { RenderSlot } from "./render-slot";
-import { resolveBinding } from "./resolve-binding";
 import { Vnode, VnodeConstructor } from "./vnode";
 import { RENDER } from "./vnode-internals";
 
@@ -200,20 +200,42 @@ export class RenderEngine {
 	 * Render attributes for a dom element in the specified context and cycle.
 	 */
 	public renderAttributes(element: Element, attributes: {
-		[Name in string]: string
+		[Name in string]: Binding<any>
 	}, context: RenderContext, cycle: Cycle) {
 		for (const name in attributes) {
-			cycle.add(resolveBinding(attributes[name], value => {
-				if (value === null || value === undefined || (typeof value === "number" && isNaN(value)) || value === false) {
-					element.removeAttribute(name);
-				} else if (value === true) {
-					element.setAttribute(name, "");
-				} else {
-					element.setAttribute(name, value);
-				}
-			}, value => {
-				context.error(value);
-			}));
+			if (name.startsWith("on-")) {
+				const eventName = name.slice(3);
+				const fork = cycle.fork();
+				cycle.add(resolveOutputBinding<Event>(attributes[name], output => {
+					fork.dispose();
+					if (output.type === "function") {
+						element.addEventListener(eventName, output.value);
+						fork.add(() => {
+							element.removeEventListener(eventName, output.value);
+						});
+					} else {
+						const listener = output.value.resolve.bind(output.value);
+						element.addEventListener(eventName, listener);
+						fork.add(() => {
+							element.removeEventListener(eventName, listener);
+						});
+					}
+				}, value => {
+					context.error(value);
+				}));
+			} else {
+				cycle.add(resolveBinding(attributes[name], value => {
+					if (value === null || value === undefined || (typeof value === "number" && isNaN(value)) || value === false) {
+						element.removeAttribute(name);
+					} else if (value === true) {
+						element.setAttribute(name, "");
+					} else {
+						element.setAttribute(name, value);
+					}
+				}, value => {
+					context.error(value);
+				}));
+			}
 		}
 	}
 }

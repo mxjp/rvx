@@ -1,5 +1,6 @@
 import { RenderEngine } from "./render-engine";
 
+export * from "./binding";
 export * from "./collection-like";
 export * from "./collection-patch";
 export * from "./collection";
@@ -18,7 +19,6 @@ export * from "./render-context";
 export * from "./render-engine";
 export * from "./render-patch-callback";
 export * from "./render-slot";
-export * from "./resolve-binding";
 export * from "./subject-like";
 export * from "./subject";
 export * from "./subscribable";
