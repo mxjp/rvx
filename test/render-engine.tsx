@@ -1,5 +1,5 @@
 import test from "ava";
-import { Collection, DomVnode, Observable, RenderEngine, Subject, Vnode } from "../src";
+import { Collection, DomVnode, Observable, Output, RenderEngine, Subject, Vnode } from "../src";
 import { rvx } from "./_rvx";
 import { captureErrorContext, macro, renderToHtml } from "./_utility";
 
@@ -147,6 +147,20 @@ test("renderAttributes: events (observer)", t => {
 	t.is(clicks.getValue(), null);
 	(vn.element as HTMLElement).click();
 	t.true(clicks.getValue() instanceof MouseEvent);
+});
+
+test("renderAttributes: events (observable observer)", t => {
+	const clicksA = new Subject<Event>(null);
+	const clicksB = new Subject<Event>(null);
+	const channel = new Subject<Output<Event>>(clicksA.output());
+	const vn: DomVnode = <div on-click={ channel }></div>;
+	t.is(renderToHtml(vn)(), `<div></div>`);
+	(vn.element as HTMLElement).click();
+	t.true(clicksA.getValue() instanceof MouseEvent);
+
+	channel.resolve(clicksB.output());
+	(vn.element as HTMLElement).click();
+	t.true(clicksB.getValue() instanceof MouseEvent);
 });
 
 test("patchMode: frame", async t => {
