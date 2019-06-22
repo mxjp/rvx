@@ -19,6 +19,9 @@ export * from "./render-engine";
 export * from "./render-patch-callback";
 export * from "./render-slot";
 export * from "./resolve-binding";
+export * from "./subject-like";
+export * from "./subject";
+export * from "./subscribable";
 export * from "./vnode";
 
 // tslint:disable-next-line: no-default-export
