@@ -1,6 +1,6 @@
 {
 	"name": "rvx",
-	"version": "1.0.0-next.0",
+	"version": "1.0.0-next.1",
 	"description": "Next generation reactive web application framework",
 	"main": "dist/index.js",
 	"scripts": {
