@@ -1,7 +1,7 @@
 import test from "ava";
-import { Collection, DomVnode, Observable, Output, RenderEngine, Subject, Vnode } from "../src";
+import { DomVnode, Observable, RenderEngine, State, Subject, Vnode } from "../src";
 import { rvx } from "./_rvx";
-import { captureErrorContext, macro, renderToHtml } from "./_utility";
+import { captureErrorContext, CollectionSubject, macro, renderToHtml } from "./_utility";
 
 test("create dom vnode", t => {
 	const vnode: Vnode = <div foo="bar">baz</div>;
@@ -24,9 +24,9 @@ test("create custom vnode", t => {
 });
 
 test("renderContent: array", t => {
-	const foo = new Observable<string>();
-	const bar = new Observable<string>();
-	const baz = new Observable<string>();
+	const foo = new Subject<string>();
+	const bar = new Subject<string>();
+	const baz = new Subject<string>();
 	const html = renderToHtml([foo, bar, baz]);
 	t.is(html(), "");
 
@@ -41,7 +41,7 @@ test("renderContent: array", t => {
 });
 
 test("renderContent: vnode", t => {
-	const content = new Observable<any>();
+	const content = new Subject<any>();
 	const html = renderToHtml(<div>{ content }</div>);
 	t.is(html(), "<div></div>");
 
@@ -56,7 +56,7 @@ test("renderContent: node", t => {
 
 test("renderContent: collection", t => {
 	const { context, errors } = captureErrorContext();
-	const collection = new Collection();
+	const collection = new CollectionSubject();
 	const html = renderToHtml(collection, rvx, context);
 	t.is(html(), "");
 
@@ -85,7 +85,7 @@ test("renderContent: collection", t => {
 
 test("renderContent: observable", t => {
 	const { context, errors } = captureErrorContext();
-	const content = new Observable<any>();
+	const content = new Subject<any>();
 	const html = renderToHtml(content, rvx, context);
 	content.resolve("foo");
 	t.is(html(), "foo");
@@ -108,7 +108,7 @@ test("renderContent: primitives", t => {
 });
 
 test("renderAttributes: observable", t => {
-	const value = new Observable<any>();
+	const value = new Subject<any>();
 	const html = renderToHtml(<div foo={ value }></div>);
 	t.is(html(), "<div></div>");
 
@@ -141,26 +141,26 @@ test("renderAttributes: events (function)", t => {
 });
 
 test("renderAttributes: events (observer)", t => {
-	const clicks = new Subject<Event>(null);
-	const vn: DomVnode = <div on-click={ clicks.output() }></div>;
+	const clicks = new State<Event>();
+	const vn: DomVnode = <div on-click={ clicks }></div>;
 	t.is(renderToHtml(vn)(), `<div></div>`);
-	t.is(clicks.getValue(), null);
+	t.is(clicks.value, undefined);
 	(vn.element as HTMLElement).click();
-	t.true(clicks.getValue() instanceof MouseEvent);
+	t.true(clicks.value instanceof MouseEvent);
 });
 
 test("renderAttributes: events (observable observer)", t => {
-	const clicksA = new Subject<Event>(null);
-	const clicksB = new Subject<Event>(null);
-	const channel = new Subject<Output<Event>>(clicksA.output());
-	const vn: DomVnode = <div on-click={ channel }></div>;
+	const a = new State<Event>();
+	const b = new State<Event>();
+	const channel = new State<State<Event>>(a);
+	const vn: DomVnode = <div on-click={ channel.wrap() }></div>;
 	t.is(renderToHtml(vn)(), `<div></div>`);
 	(vn.element as HTMLElement).click();
-	t.true(clicksA.getValue() instanceof MouseEvent);
-
-	channel.resolve(clicksB.output());
+	t.true(a.value instanceof MouseEvent);
+	t.is(b.value, undefined);
+	channel.resolve(b);
 	(vn.element as HTMLElement).click();
-	t.true(clicksB.getValue() instanceof MouseEvent);
+	t.true(b.value instanceof MouseEvent);
 });
 
 test("patchMode: frame", async t => {
@@ -168,9 +168,9 @@ test("patchMode: frame", async t => {
 		patchMode: "frame"
 	});
 
-	const a = new Observable();
-	const b = new Observable();
-	const c = new Observable();
+	const a = new Subject();
+	const b = new Subject();
+	const c = new Subject();
 
 	const html = renderToHtml([a, b, c], rvx);
 	await macro();

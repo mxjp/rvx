@@ -50,7 +50,7 @@ export class Observable<T> implements ObservableLike<T> {
 	/**
 	 * Resolve the next value.
 	 */
-	public resolve(value: T) {
+	protected notifyResolve(value: T) {
 		for (const observer of this[OBSERVERS]) {
 			if (observer.resolve) {
 				observer.resolve(value);
@@ -61,19 +61,12 @@ export class Observable<T> implements ObservableLike<T> {
 	/**
 	 * Reject the next value.
 	 */
-	public reject(value: any) {
+	protected notifyReject(value: any) {
 		for (const observer of this[OBSERVERS]) {
 			if (observer.reject) {
 				observer.reject(value);
 			}
 		}
-	}
-
-	/**
-	 * Convert this observable to a binding output.
-	 */
-	public output(): Output<T> {
-		return { observer: this };
 	}
 
 	/**
@@ -86,7 +79,10 @@ export class Observable<T> implements ObservableLike<T> {
 
 		if (!this[STARTED]) {
 			this[STARTED] = true;
-			this[RESOURCE] = this.start(this);
+			this[RESOURCE] = this.start({
+				resolve: this.notifyResolve.bind(this),
+				reject: this.notifyReject.bind(this)
+			});
 		}
 
 		return () => {

@@ -13,3 +13,10 @@ export interface Observer<T> {
 	 */
 	reject(value: any): void;
 }
+
+/**
+ * Check if a value is an observer.
+ */
+export function isObserver<T>(value: any): value is Observer<T> {
+	return value && typeof value.resolve === "function" && typeof value.reject === "function";
+}

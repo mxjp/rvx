@@ -1,5 +1,5 @@
 // tslint:disable: file-name-casing
-import { Collection, CollectionLike, Cycle, DisposeLogic, ObservableLike, RenderContext, RenderContextBase, RenderEngine } from "../src";
+import { Collection, CollectionLike, CollectionPatch, Cycle, DisposeLogic, ObservableLike, RenderContext, RenderContextBase, RenderEngine } from "../src";
 import { rvx } from "./_rvx";
 
 export function capture<T>(observable: ObservableLike<T>): {
@@ -55,4 +55,14 @@ export function renderToHtml(content: any, engine: RenderEngine = rvx, context =
 
 export function macro() {
 	return new Promise(resolve => setTimeout(resolve, 0));
+}
+
+export class CollectionSubject<T> extends Collection<T> {
+	public resolve(value: CollectionPatch<T>) {
+		this.notifyResolve(value);
+	}
+
+	public reject(value: any) {
+		this.notifyReject(value);
+	}
 }

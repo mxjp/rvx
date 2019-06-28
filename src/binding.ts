@@ -3,7 +3,7 @@ import { Disposable } from "./disposable";
 import { dispose } from "./dispose";
 import { DisposeLogic } from "./dispose-logic";
 import { isObservableLike } from "./observable-like";
-import { Observer } from "./observer";
+import { isObserver, Observer } from "./observer";
 import { Subscribable } from "./subscribable";
 
 /**
@@ -56,8 +56,8 @@ export function resolveOutputBinding<T>(value: Binding<Output<T>>, resolve: (val
 	return mapResolveBinding<Output<T>, ResolvedOutput<T>>(value, value => {
 		if (typeof value === "function") {
 			return { type: "function", value };
-		} else if (value && (value as any).observer) {
-			return { type: "observer", value: (value as any).observer };
+		} else if (isObserver(value)) {
+			return { type: "observer", value };
 		}
 	}, resolve, reject);
 }
@@ -76,7 +76,7 @@ export type ResolvedOutput<T> = {
 /**
  * Represents a bound value that can be used as output.
  */
-export type Output<T> = { observer: Observer<T> } | ((value: T) => void);
+export type Output<T> = Observer<T> | ((value: T) => void);
 
 /**
  * Represents a binding.

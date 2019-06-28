@@ -16,14 +16,14 @@ export class Collection<T> extends Observable<CollectionPatch<T>> implements Col
 
 	protected each(observer: Partial<Observer<CollectionPatch<T>>>) {
 		if (this[RESOLVED] && observer.resolve) {
-			observer.resolve({ start: 0, count: 0, items: Array.from(this[ITEMS]) });
+			observer.resolve({ start: 0, count: 0, items: this[ITEMS] });
 		}
 	}
 
-	public resolve(value: CollectionPatch<T>) {
+	protected notifyResolve(value: CollectionPatch<T>) {
 		this[RESOLVED] = true;
 		this[ITEMS].splice(value.start, value.count, ...value.items);
-		super.resolve(value);
+		super.notifyResolve(value);
 	}
 
 	public getItems(): readonly T[] {
