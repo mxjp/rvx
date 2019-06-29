@@ -6,6 +6,7 @@ import { DecaySequence } from "./decay-sequence";
 
 const TARGET = Symbol("target");
 const INDEXES = Symbol("indexes");
+const ENTRY_OBSERVERS = Symbol("entryObservers");
 
 export class SetProxy<T> extends Observable<CollectionPatch<T>> implements CollectionLike<T>, Set<T> {
 	public constructor(target: Set<T> = new Set()) {
@@ -21,6 +22,7 @@ export class SetProxy<T> extends Observable<CollectionPatch<T>> implements Colle
 
 	private readonly [TARGET]: Set<T>;
 	private readonly [INDEXES]: DecaySequence<T>;
+	private readonly [ENTRY_OBSERVERS] = new Map<T, Set<Observer<boolean>>>();
 
 	protected each(observer: Partial<Observer<CollectionPatch<T>>>) {
 		if (observer.resolve) {
@@ -32,11 +34,50 @@ export class SetProxy<T> extends Observable<CollectionPatch<T>> implements Colle
 		return this[TARGET];
 	}
 
+	public entry(value: T) {
+		return new Observable<boolean>(observer => {
+			let observers = this[ENTRY_OBSERVERS].get(value);
+			if (observers) {
+				observers.add(observer);
+			} else {
+				this[ENTRY_OBSERVERS].set(value, observers = new Set([observer]));
+			}
+			return () => {
+				observers.delete(observer);
+				if (observers.size === 0) {
+					this[ENTRY_OBSERVERS].delete(value);
+				}
+			};
+		}, observer => {
+			if (observer.resolve) {
+				observer.resolve(this[TARGET].has(value));
+			}
+		});
+	}
+
 	public clear() {
-		const count = this[TARGET].size;
+		const target = this[TARGET];
+		const count = target.size;
 		if (count !== 0) {
-			this[TARGET].clear();
+			const entryObservers = this[ENTRY_OBSERVERS];
+			const notifyEntries: Set<Observer<boolean>>[] = [];
+			if (entryObservers.size > target.size) {
+				for (const value of target) {
+					const observers = entryObservers.get(value);
+					if (observers) {
+						notifyEntries.push(observers);
+					}
+				}
+			} else if (entryObservers.size > 0) {
+				for (const [value, observers] of entryObservers) {
+					if (target.has(value)) {
+						notifyEntries.push(observers);
+					}
+				}
+			}
+			target.clear();
 			this.notifyResolve({ start: 0, count, items: [] });
+			notifyEntries.forEach(os => os.forEach(o => o.resolve(false)));
 		}
 	}
 
@@ -44,6 +85,10 @@ export class SetProxy<T> extends Observable<CollectionPatch<T>> implements Colle
 		if (!this[TARGET].has(value)) {
 			const index = this[INDEXES].append(value);
 			this[TARGET].add(value);
+			const observers = this[ENTRY_OBSERVERS].get(value);
+			if (observers) {
+				observers.forEach(o => o.resolve(true));
+			}
 			this.notifyResolve({ start: index, count: 0, items: [value] });
 		}
 		return this;
@@ -53,6 +98,10 @@ export class SetProxy<T> extends Observable<CollectionPatch<T>> implements Colle
 		const deleted = this[TARGET].delete(value);
 		if (deleted) {
 			const index = this[INDEXES].delete(value);
+			const observers = this[ENTRY_OBSERVERS].get(value);
+			if (observers) {
+				observers.forEach(o => o.resolve(false));
+			}
 			if (index !== undefined) {
 				this.notifyResolve({ start: index, count: 1, items: [] });
 			}

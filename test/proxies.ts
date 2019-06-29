@@ -27,6 +27,42 @@ test("set events", t => {
 	]);
 });
 
+test("set entries", t => {
+	const set = new SetProxy<string>();
+	const { events } = capture(set.entry("foo"));
+	t.deepEqual(events, [
+		{ resolve: false }
+	]);
+	events.length = 0;
+
+	set.add("foo");
+	set.add("bar");
+	set.delete("foo");
+	t.deepEqual(events, [
+		{ resolve: true },
+		{ resolve: false }
+	]);
+	events.length = 0;
+
+	set.add("foo");
+	set.clear();
+	t.deepEqual(events, [
+		{ resolve: true },
+		{ resolve: false }
+	]);
+	events.length = 0;
+
+	set.add("foo");
+	set.entry("bar").subscribe();
+	set.entry("baz").subscribe();
+	set.clear();
+	t.deepEqual(events, [
+		{ resolve: true },
+		{ resolve: false }
+	]);
+	events.length = 0;
+});
+
 test("map instance", t => {
 	const map = new MapProxy();
 	t.true(map instanceof Map);
@@ -49,5 +85,40 @@ test("map events", t => {
 		{ resolve: { start: 2, count: 0, items: [["baz", 3]] } },
 		{ resolve: { start: 0, count: 1, items: [] } },
 		{ resolve: { start: 0, count: 1, items: [] } }
+	]);
+});
+
+test("map entries", t => {
+	const map = new MapProxy<string, number>();
+	const { events } = capture(map.entry("foo"));
+	t.deepEqual(events, [
+		{ resolve: undefined }
+	]);
+	events.length = 0;
+
+	map.set("bar", 7);
+	map.set("foo", 42);
+	map.delete("foo");
+	t.deepEqual(events, [
+		{ resolve: 42 },
+		{ resolve: undefined }
+	]);
+	events.length = 0;
+
+	map.set("foo", 17);
+	map.clear();
+	t.deepEqual(events, [
+		{ resolve: 17 },
+		{ resolve: undefined }
+	]);
+	events.length = 0;
+
+	map.set("foo", 31);
+	map.entry("bar").subscribe();
+	map.entry("baz").subscribe();
+	map.clear();
+	t.deepEqual(events, [
+		{ resolve: 31 },
+		{ resolve: undefined }
 	]);
 });
