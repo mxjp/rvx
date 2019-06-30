@@ -2,7 +2,7 @@ import { CollectionLike } from "../collection-like";
 import { CollectionPatch } from "../collection-patch";
 import { Observable } from "../observable";
 import { Observer } from "../observer";
-import { DecaySequence } from "./decay-sequence";
+import { DecaySequence } from "../utilities/decay-sequence";
 
 const TARGET = Symbol("target");
 const INDEXES = Symbol("indexes");
