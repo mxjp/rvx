@@ -1,5 +1,5 @@
 import test from "ava";
-import { Collection, filter, items, map, mapItems, Observable, size } from "../src";
+import { Collection, filter, items, map, mapItems, Observable, size, Subject, unwrap } from "../src";
 import { capture, captureItems, smallCollection } from "./_utility";
 
 test("filter", t => {
@@ -53,4 +53,24 @@ test("size", t => {
 
 	t.deepEqual(capture(observable).events, [ { resolve: 3 } ]);
 	t.deepEqual(capture(new Collection().pipe(size)).events, [ ]);
+});
+
+test("unwrap", t => {
+	const source = new Subject();
+	const { events } = capture(source.pipe(unwrap));
+
+	const a = new Subject();
+	source.resolve(a);
+
+	a.resolve("foo");
+	a.reject("bar");
+
+	source.resolve(Observable.value("baz"));
+	a.resolve(42);
+
+	t.deepEqual(events, [
+		{ resolve: "foo" },
+		{ reject: "bar" },
+		{ resolve: "baz" }
+	]);
 });
