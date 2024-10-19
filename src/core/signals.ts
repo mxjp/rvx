@@ -302,9 +302,11 @@ export function watch<T>(expr: Expression<T>, fn: (value: T) => void): void {
 			try {
 				clear();
 				ACCESS_STACK.push(sub);
+				TRACKING_STACK.push(true);
 				nocapture(runExpr);
 			} finally {
 				ACCESS_STACK.pop();
+				TRACKING_STACK.pop();
 			}
 			dispose?.();
 			dispose = capture(runFn);
@@ -361,9 +363,11 @@ export function effect(fn: () => void): void {
 		try {
 			clear();
 			ACCESS_STACK.push(sub);
+			TRACKING_STACK.push(true);
 			dispose = capture(runFn);
 		} finally {
 			ACCESS_STACK.pop();
+			TRACKING_STACK.pop();
 		}
 	});
 	const { clear, sub } = _observer(entry);

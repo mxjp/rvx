@@ -2,6 +2,7 @@
 
 ## 16.1
 + Add `Component` utility type.
++ Fix observer tracking isolation.
 
 ## 16.0
 + Rebranded **Gluon** to **Rvx**.

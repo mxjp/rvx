@@ -137,6 +137,161 @@ await test("signals", async ctx => {
 			dispose();
 			assertEvents(events, ["e:6"]);
 		});
+
+		await test("interleaved effect updates", () => {
+			const events: unknown[] = [];
+			const a = sig(0);
+			const b = sig();
+
+			uncapture(() => {
+				effect(() => {
+					strictEqual(isTracking(), true);
+					events.push(`a:${a.value}`);
+					if (a.value < 3) {
+						b.notify();
+					}
+					events.push("a:end");
+				});
+				assertEvents(events, ["a:0", "a:end"]);
+
+				effect(() => {
+					strictEqual(isTracking(), true);
+					events.push(`b:start`);
+					b.access();
+					untrack(() => a.value++);
+					events.push("b:end");
+				});
+
+				/* eslint-disable @typescript-eslint/indent */
+				assertEvents(events, [
+					"b:start",
+						"a:1",
+						// (notify b)
+						"a:end",
+					"b:end",
+					"b:start",
+						"a:2",
+						// (notify b)
+						"a:end",
+					"b:end",
+					"b:start",
+						"a:3",
+						"a:end",
+					"b:end",
+				]);
+				/* eslint-enable @typescript-eslint/indent */
+			});
+		});
+
+		await test("interleaved watch updates", () => {
+			const events: unknown[] = [];
+			const a = sig(0);
+			const b = sig();
+
+			uncapture(() => {
+				watch(() => {
+					strictEqual(isTracking(), true);
+					return a.value;
+				}, value => {
+					strictEqual(isTracking(), false);
+					events.push(`a:${value}`);
+					if (value < 3) {
+						b.notify();
+					}
+					events.push("a:end");
+				});
+				assertEvents(events, ["a:0", "a:end"]);
+
+				watch(() => {
+					strictEqual(isTracking(), true);
+					b.access();
+				}, () => {
+					strictEqual(isTracking(), false);
+					events.push(`b:start`);
+					b.access();
+					untrack(() => a.value++);
+					events.push("b:end");
+				});
+
+				/* eslint-disable @typescript-eslint/indent */
+				assertEvents(events, [
+					"b:start",
+						"a:1",
+						// (notify b)
+						"a:end",
+					"b:end",
+					"b:start",
+						"a:2",
+						// (notify b)
+						"a:end",
+					"b:end",
+					"b:start",
+						"a:3",
+						"a:end",
+					"b:end",
+				]);
+				/* eslint-enable @typescript-eslint/indent */
+			});
+		});
+
+		await test("effect self disposal", () => {
+			const events: unknown[] = [];
+			const signal = sig(0);
+			const dispose = capture(() => {
+				effect(() => {
+					if (signal.value > 0) {
+						const value = signal.value;
+						events.push(`s:${value}`);
+						signal.value++;
+						if (value > 2) {
+							events.push("dispose");
+							dispose();
+						}
+						events.push(`e:${value}`);
+					}
+				});
+			});
+			assertEvents(events, []);
+			signal.value = 1;
+			assertEvents(events, [
+				"s:1",
+				"e:1",
+				"s:2",
+				"e:2",
+				"s:3",
+				"dispose",
+				"e:3",
+			]);
+		});
+
+		await test("watch self disposal", () => {
+			const events: unknown[] = [];
+			const signal = sig(0);
+			const dispose = capture(() => {
+				watch(signal, value => {
+					if (value > 0) {
+						events.push(`s:${value}`);
+						signal.value++;
+						if (value > 2) {
+							events.push("dispose");
+							dispose();
+						}
+						events.push(`e:${value}`);
+					}
+				});
+			});
+			assertEvents(events, []);
+			signal.value = 1;
+			assertEvents(events, [
+				"s:1",
+				"e:1",
+				"s:2",
+				"e:2",
+				"s:3",
+				"dispose",
+				"e:3",
+			]);
+		});
 	});
 
 	await ctx.test("access cycles", () => {
@@ -401,6 +556,33 @@ await test("signals", async ctx => {
 			assertEvents(events, ["o", "i", "i2", "o2"]);
 		});
 
+		await ctx.test("re-entry tracking isolation", () => {
+			const events: unknown[] = [];
+			const signal = sig();
+			uncapture(() => {
+				watch(() => {
+					events.push("a");
+					strictEqual(isTracking(), true);
+					return signal.access();
+				}, () => {
+					strictEqual(isTracking(), false);
+					events.push("b");
+				});
+				assertEvents(events, ["a", "b"]);
+				watch(() => {
+					strictEqual(isTracking(), true);
+					untrack(() => {
+						strictEqual(isTracking(), false);
+						signal.notify();
+						strictEqual(isTracking(), false);
+					});
+					strictEqual(isTracking(), true);
+					assertEvents(events, ["a", "b"]);
+				}, () => {});
+				assertEvents(events, []);
+			});
+		});
+
 		await ctx.test("context", () => {
 			const events: unknown[] = [];
 			const signal = sig(1);
@@ -581,6 +763,30 @@ await test("signals", async ctx => {
 			assertEvents(events, ["o3", "i2"]);
 			inner.value++;
 			assertEvents(events, ["i3"]);
+		});
+
+		await ctx.test("re-entry tracking isolation", () => {
+			const events: unknown[] = [];
+			const signal = sig();
+			uncapture(() => {
+				effect(() => {
+					events.push("a");
+					strictEqual(isTracking(), true);
+					signal.access();
+				});
+				assertEvents(events, ["a"]);
+				effect(() => {
+					strictEqual(isTracking(), true);
+					untrack(() => {
+						strictEqual(isTracking(), false);
+						signal.notify();
+						strictEqual(isTracking(), false);
+					});
+					strictEqual(isTracking(), true);
+					assertEvents(events, ["a"]);
+				});
+				assertEvents(events, []);
+			});
 		});
 
 		await ctx.test("expected infinite loop", () => {
@@ -1204,6 +1410,52 @@ await test("signals", async ctx => {
 				assertEvents(events, []);
 			});
 			assertEvents(events, ["t", 4]);
+		});
+
+		await ctx.test("external untrack", () => {
+			const events: unknown[] = [];
+			const signal = sig(1);
+			const pipe = uncapture(() => trigger(() => events.push("trigger")));
+			uncapture(() => {
+				effect(() => {
+					strictEqual(isTracking(), true);
+					untrack(() => {
+						strictEqual(isTracking(), false);
+						pipe(() => {
+							strictEqual(isTracking(), false);
+							events.push("access");
+							signal.access();
+							strictEqual(isTracking(), false);
+						});
+						strictEqual(isTracking(), false);
+					});
+					strictEqual(isTracking(), true);
+				});
+			});
+			assertEvents(events, ["access"]);
+			signal.notify();
+			assertEvents(events, []);
+		});
+
+		await ctx.test("internal untrack", () => {
+			const events: unknown[] = [];
+			const signal = sig(1);
+			const pipe = uncapture(() => trigger(() => events.push("trigger")));
+			uncapture(() => {
+				effect(() => {
+					pipe(() => {
+						strictEqual(isTracking(), true);
+						untrack(() => {
+							events.push("access");
+							signal.access();
+						});
+						strictEqual(isTracking(), true);
+					});
+				});
+			});
+			assertEvents(events, ["access"]);
+			signal.notify();
+			assertEvents(events, []);
 		});
 	});
 });
