@@ -7,6 +7,7 @@ theme:
     - navigation.indexes
     - navigation.instant
     - navigation.instant.progress
+    - tac.follow
     - toc.integrate
     - content.tabs.link
   palette:
