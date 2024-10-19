@@ -19,6 +19,7 @@ rvx-example {
 	border: .1rem dashed var(--md-accent-fg-color);
 }
 
-.md-typeset details code {
+.md-typeset details code,
+.admonition code {
 	font-size: 1em;
 }
