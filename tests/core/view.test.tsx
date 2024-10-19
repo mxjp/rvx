@@ -1,7 +1,7 @@
 import { deepStrictEqual, notStrictEqual, strictEqual, throws } from "node:assert";
 import test from "node:test";
 
-import { Attach, capture, For, IndexFor, mount, movable, Nest, render, Show, sig, teardown, uncapture, View, watch, watchUpdates } from "rvx";
+import { Attach, capture, Component, For, IndexFor, memo, mount, movable, Nest, render, Show, sig, teardown, uncapture, View, watch, watchUpdates } from "rvx";
 import { wrap } from "rvx/store";
 
 import { assertEvents, boundaryEvents, lifecycleEvent, TestView, testView, text, withMsg } from "../common.js";
@@ -316,6 +316,139 @@ await test("view", async ctx => {
 				signal.value = 11;
 				strictEqual(text(view.take()), "123");
 			});
+		});
+
+		await ctx.test("component memo", () => {
+			const events: unknown[] = [];
+			const signal = sig(0);
+
+			function A() {
+				lifecycleEvent(events, "a");
+				return <>a {signal}</>;
+			}
+
+			function B() {
+				lifecycleEvent(events, "b");
+				return <>b {signal}</>;
+			}
+
+			const view = uncapture(() => {
+				return <Nest>
+					{memo(() => signal.value < 2 ? A : B)}
+				</Nest> as View;
+			});
+
+			assertEvents(events, ["s:a"]);
+			strictEqual(text(view.take()), "a 0");
+
+			signal.value = 1;
+			assertEvents(events, []);
+			strictEqual(text(view.take()), "a 1");
+
+			signal.value = 2;
+			assertEvents(events, ["e:a", "s:b"]);
+			strictEqual(text(view.take()), "b 2");
+
+			signal.value = 3;
+			assertEvents(events, []);
+			strictEqual(text(view.take()), "b 3");
+		});
+
+		await ctx.test("external state reset", () => {
+			const events: unknown[] = [];
+			const signal = sig();
+			const count = sig(0);
+
+			function Content() {
+				const version = `v${count.value}`;
+				lifecycleEvent(events, version);
+				return <>{version} {count}</>;
+			}
+
+			const view = uncapture(() => {
+				return <Nest>
+					{() => {
+						signal.access();
+						return Content;
+					}}
+				</Nest> as View;
+			});
+
+			assertEvents(events, ["s:v0"]);
+			strictEqual(text(view.take()), "v0 0");
+
+			count.value++;
+			assertEvents(events, []);
+			strictEqual(text(view.take()), "v0 1");
+
+			signal.notify();
+			assertEvents(events, ["e:v0", "s:v1"]);
+			strictEqual(text(view.take()), "v1 1");
+
+			count.value++;
+			assertEvents(events, []);
+			strictEqual(text(view.take()), "v1 2");
+		});
+
+		await ctx.test("internal state reset", () => {
+			const events: unknown[] = [];
+			const signal = sig();
+			const count = sig(0);
+
+			const view = uncapture(() => {
+				return <Nest>
+					{() => {
+						signal.access();
+						return () => {
+							const version = `v${count.value}`;
+							lifecycleEvent(events, version);
+							return <>{version} {count}</>;
+						};
+					}}
+				</Nest> as View;
+			});
+
+			assertEvents(events, ["s:v0"]);
+			strictEqual(text(view.take()), "v0 0");
+
+			count.value++;
+			assertEvents(events, []);
+			strictEqual(text(view.take()), "v0 1");
+
+			signal.notify();
+			assertEvents(events, ["e:v0", "s:v1"]);
+			strictEqual(text(view.take()), "v1 1");
+
+			count.value++;
+			assertEvents(events, []);
+			strictEqual(text(view.take()), "v1 2");
+		});
+
+		await ctx.test("component from signal", () => {
+			const events: unknown[] = [];
+			const comp = sig<Component | undefined>(undefined);
+			const view = uncapture(() => <Nest>{comp}</Nest> as View);
+
+			assertEvents(events, []);
+			strictEqual(text(view.take()), "");
+
+			comp.value = () => {
+				lifecycleEvent(events, "a");
+				return "a";
+			};
+			assertEvents(events, ["s:a"]);
+			strictEqual(text(view.take()), "a");
+
+			comp.value = () => {
+				lifecycleEvent(events, "b");
+				return "b";
+			};
+			assertEvents(events, ["e:a", "s:b"]);
+			strictEqual(text(view.take()), "b");
+
+			comp.notify();
+			assertEvents(events, ["e:b", "s:b"]);
+			strictEqual(text(view.take()), "b");
 		});
 	});
 
