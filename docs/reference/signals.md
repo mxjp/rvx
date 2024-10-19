@@ -445,6 +445,89 @@ Final count: 2
 
 
 
+## Memory References
+Observers like [`watch`](#watch) and [`trigger`](#trigger), signals and teardown hooks reference each other in the ways described below.
+
++ Observer registered teardown hooks reference their observers.
++ Observers reference all accessed signals from the latest expression until disposed.
++ Signals reference all current observers.
+
+!!! warning
+	Not cleaning up unused observers by calling their teardown hooks can result in memory leaks and other undefined behavior.
+
+	=== "JSX"
+		```jsx
+		function showNotification(message: unknown) {
+			const view = mount(
+				document.body,
+				<div class="notification">
+					<T id="notification-title" />
+					{message}
+				</div>
+			);
+			setTimeout(() => view.detach(), 3000);
+		}
+		```
+
+	=== "No Build"
+		```jsx
+		function showNotification(message: unknown) {
+			const view = mount(
+				document.body,
+				e("div").class("notification").append(
+					T({ id: "notification-title" }),
+					message,
+				),
+			);
+			setTimeout(() => view.detach(), 3000);
+		}
+		```
+
+	Assuming that the `<T>` component accesses some global signal with the current locale code to translate the specified key, calling the `showNotification` function will result in a memory leak, because the teardown hooks from observing that signal are never called.
+
+	In addition, calling this function in a context that did capture teardown hooks can result in unintended behavior.
+
+	This can be fixed by manually capturing teardown hooks and then using these to dispose the notification later:
+
+	=== "JSX"
+		```jsx
+		function showNotification(message: unknown) {
+			const dispose = capture(() => {
+				mount(
+					document.body,
+					<div class="notification">
+						<T id="notification-title" />
+						{message}
+					</div>
+				);
+			});
+			setTimeout(dispose, 3000);
+		}
+		```
+
+	=== "No Build"
+		```jsx
+		function showNotification(message: unknown) {
+			const dispose = capture(() => {
+				mount(
+					document.body,
+					e("div").class("notification").append(
+						T({ id: "notification-title" }),
+						message,
+					),
+				);
+			});
+			setTimeout(dispose, 3000);
+		}
+		```
+
+	This prevents any signal related memory leaks and also isolates everything inside `showNotification` from the outside lifecycle context.
+
+!!! tip
+	In a development or testing environment, you can set up [leak detection](./testing.md#leak-detection) to automatically detect leaked teardown hooks.
+
+
+
 ## Troubleshooting
 For signal based reactivity to work, the following is required:
 
