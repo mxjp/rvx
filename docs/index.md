@@ -35,7 +35,10 @@ This is a signal based frontend framework.
 	);
 	```
 
-## Concept
+## Goals & Motivation
+
+### Precise API
+Rvx tries to be as transparent as possible about it's exact behavior and possible edge cases to avoid any hidden complexity. Instead of trying to look like react, the API is designed to closely represent what happens internally.
 
 ### Low Level
 In rvx, you directly create real DOM elements which is relatively fast and has a low memory footprint compared to virtual DOMs. For rendering conditional or repeated nodes, rvx uses so called Views which are just sequences of nodes that can change themselves over time.
@@ -107,8 +110,8 @@ Rvx doesn't require a build system. You can choose between an element builder AP
 	}
 	```
 
-### Bundle Size
-The entire rvx core module has a size of [~4KB gzipped](https://bundlephobia.com/package/rvx) and almost everything in rvx is tree-shakeable, so you only pay for what you need.
+### Lightweight
+The entire rvx core module has a size of [~4KB gzipped](https://bundlephobia.com/package/rvx) and almost everything is tree-shakeable, so you only pay for what you need.
 
 ### Strongly Typed Reactivity
 When using rvx with TypeScript, the fact which component properties may be reactive is [encoded in the type system](./reference/components.md#expressions). This allows developers to know what to expect of a component and eliminates weird caveats when accessing properties from a component's props argument.
@@ -135,8 +138,17 @@ When using rvx with TypeScript, the fact which component properties may be react
 	<ElapsedTime elapsed={someSignal} />
 	```
 
+	Component props can be destructured in any way without breaking reactivity:
+	```jsx
+	function ElapsedTime(props: { elapsed: Expression<number> }) {
+		// This is still reactive:
+		const elapsed = props.elapsed;
+		return <>Elapsed time: {() => Math.floor(get(elapsed))}</>;
+	}
+	```
+
 ### Immediate Updates
-Signal updates are always processed immediately. This ensures that your application state stays consistent & predictable at any time.
+Signal updates are processed immediately. This ensures that your application state stays consistent & predictable at any time.
 
 ??? note "Example"
 	```jsx
@@ -146,6 +158,30 @@ Signal updates are always processed immediately. This ensures that your applicat
 	message.value = "Hello World!";
 	elem.textContent; // "Hello World!"
 	```
+
+	Immediate side effects run synchronously in sequence:
+	```jsx
+	const count = sig(0);
+	effect(() => {
+		console.group("Current:", count.value);
+		if (count.value < 2) {
+			count.value++;
+			console.log("New:", count.value);
+		}
+		console.groupEnd();
+	});
+	console.log("Final:", count.value);
+	```
+	```
+	Current: 0
+	  New: 1
+	Current: 1
+	  New: 2
+	Current: 2
+	Final: 2
+	```
+
+
 
 ## Features
 Rvx supports all the client side features you would expect from a modern framework including:
