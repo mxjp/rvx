@@ -1,5 +1,8 @@
 # Changelog
 
+## 16.1
++ Add `Component` utility type.
+
 ## 16.0
 + Rebranded **Gluon** to **Rvx**.
 + **Breaking:** Replace `e` function with an element builder API.
