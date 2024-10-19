@@ -8,6 +8,7 @@
 /docs_out
 /docs/examples
 /docs/stylesheets
+/docs/assets
 /examples
 /mkdocs*
 /package-lock.json
