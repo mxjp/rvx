@@ -1,3 +1,4 @@
+import { Component } from "./component.js";
 import { createParent, createPlaceholder, extractRange, Falsy, NOOP } from "./internals.js";
 import { capture, nocapture, teardown, TeardownHook } from "./lifecycle.js";
 import { render } from "./render.js";
@@ -195,7 +196,7 @@ export function Nest(props: {
 	/**
 	 * An expression that returns a function to create content or null or undefined to render nothing.
 	 */
-	children: Expression<(() => unknown) | null | undefined>;
+	children: Expression<Component | null | undefined>;
 }): View {
 	return new View((setBoundary, self) => {
 		watch(props.children, value => {
@@ -235,12 +236,12 @@ export function Show<T>(props: {
 	/**
 	 * A function to create content if the value is truthy.
 	 */
-	children: (value: T) => unknown;
+	children: Component<T>;
 
 	/**
 	 * An optional function to create content if the value is falsy.
 	 */
-	else?: () => unknown;
+	else?: Component;
 }): View {
 	const getValue = memo(props.when);
 	return Nest({

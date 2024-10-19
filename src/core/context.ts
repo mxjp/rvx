@@ -1,3 +1,4 @@
+import { Component } from "./component.js";
 import { CONTEXT_STACK } from "./internals.js";
 import { useStack } from "./internals.js";
 
@@ -100,7 +101,7 @@ export function inject<K, R>(key: K, value: ContextValue<K>, fn: () => R): R {
 export function Inject<K>(props: {
 	key: K;
 	value: ContextValue<K>;
-	children: () => unknown;
+	children: Component;
 }): unknown {
 	return inject(props.key, props.value, props.children);
 }

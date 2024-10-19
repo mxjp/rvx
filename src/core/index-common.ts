@@ -1,3 +1,4 @@
+export * from "./component.js";
 export * from "./context.js";
 export * from "./element-common.js";
 export * from "./events.js";

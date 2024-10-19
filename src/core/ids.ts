@@ -1,3 +1,4 @@
+import { Component } from "./component.js";
 import { NEXT_ID } from "./internals.js";
 
 /**
@@ -31,7 +32,7 @@ export function uniqueId(): string {
  * ```
  */
 export function UseUniqueId(props: {
-	children: (id: string) => unknown;
+	children: Component<string>;
 }): unknown {
 	return props.children(uniqueId());
 }
