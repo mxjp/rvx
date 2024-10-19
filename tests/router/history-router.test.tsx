@@ -1,5 +1,5 @@
 import { strictEqual } from "node:assert";
-import test from "node:test";
+import test, { suite } from "node:test";
 
 import { uncapture, watch } from "rvx";
 import { HistoryRouter } from "rvx/router";
@@ -37,8 +37,8 @@ globalThis.location = {
 	},
 } as typeof globalThis.location;
 
-await test("router/history router", async ctx => {
-	await ctx.test("general usage", async () => {
+await suite("router/history router", async () => {
+	await test("general usage", async () => {
 		locationPath = "/";
 		locationSearch = "";
 
@@ -78,7 +78,7 @@ await test("router/history router", async ctx => {
 		assertEvents(events, [["/f", "test=4"]]);
 	});
 
-	await ctx.test("base path", async () => {
+	await test("base path", async () => {
 		locationPath = "/";
 		locationSearch = "";
 

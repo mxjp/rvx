@@ -1,15 +1,15 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
-import test from "node:test";
+import test, { suite } from "node:test";
 
 import { createElement, extract, inject, NODE, sig, StyleMap, uncapture } from "rvx";
 import { e } from "rvx/builder";
 
 import { assertEvents } from "../common.js";
 
-await test("element", async ctx => {
+await suite("element", async () => {
 	for (const jsx of [false, true]) {
-		await ctx.test(jsx ? "jsx" : "builder", async ctx => {
-			await ctx.test("element content", () => {
+		await suite(jsx ? "jsx" : "builder", async () => {
+			await test("element content", () => {
 				strictEqual((
 					jsx
 						? <div /> as HTMLElement
@@ -35,7 +35,7 @@ await test("element", async ctx => {
 				).outerHTML, "<div>12</div>");
 			});
 
-			await ctx.test("events", () => {
+			await test("events", () => {
 				const events: unknown[] = [];
 
 				const elem = inject("foo", "bar", () => {
@@ -78,7 +78,7 @@ await test("element", async ctx => {
 				assertEvents(events, [b]);
 			});
 
-			await ctx.test("attributes", () => {
+			await test("attributes", () => {
 				const elem = uncapture(() => {
 					return jsx
 						? <div
@@ -103,7 +103,7 @@ await test("element", async ctx => {
 				strictEqual(elem.title, "example");
 			});
 
-			await ctx.test("removed attribute", () => {
+			await test("removed attribute", () => {
 				const signal = sig<any>(false);
 				const elem = uncapture(() => {
 					return jsx
@@ -128,7 +128,7 @@ await test("element", async ctx => {
 				strictEqual(elem.getAttribute("test-attr"), null);
 			});
 
-			await ctx.test("class attribute", () => {
+			await test("class attribute", () => {
 				const a = sig("a");
 				const d = sig(false);
 				const elem = uncapture(() => {
@@ -165,7 +165,7 @@ await test("element", async ctx => {
 				deepStrictEqual(Array.from(elem.classList), ["foo", "b", "c", "d"]);
 			});
 
-			await ctx.test("style attribute", () => {
+			await test("style attribute", () => {
 				const a = sig<StyleMap>({ color: "blue" });
 				const b = sig("red");
 				const c = sig<StyleMap>({ width: "42px" });
@@ -214,7 +214,7 @@ await test("element", async ctx => {
 				strictEqual(elem.style.width, "7px");
 			});
 
-			await ctx.test("api types", () => {
+			await test("api types", () => {
 				const elem = jsx
 					? <div /> as HTMLElement
 					: e("div").elem;
@@ -223,7 +223,7 @@ await test("element", async ctx => {
 				elem.click();
 			});
 
-			await ctx.test("node target", () => {
+			await test("node target", () => {
 				const elem = jsx
 					? <div>
 						{{ [NODE]: document.createTextNode("test") }}
@@ -234,7 +234,7 @@ await test("element", async ctx => {
 				strictEqual(elem.outerHTML, "<div>test</div>");
 			});
 
-			await ctx.test("nesting", () => {
+			await test("nesting", () => {
 				const elem = jsx
 					? <div>
 						<input type="text" />
@@ -264,7 +264,7 @@ await test("element", async ctx => {
 				].join(""));
 			});
 
-			await ctx.test("interop", () => {
+			await test("interop", () => {
 				const elem = jsx
 					? <div>
 						{e("div")}
@@ -275,13 +275,13 @@ await test("element", async ctx => {
 		});
 	}
 
-	await ctx.test("jsx fragment", () => {
+	await test("jsx fragment", () => {
 		strictEqual(<></>, undefined);
 		strictEqual(<>test</>, "test");
 		deepStrictEqual(<>{1}{2}</>, [1, 2]);
 	});
 
-	await ctx.test("ref attribute", () => {
+	await test("ref attribute", () => {
 		const events: unknown[] = [];
 		uncapture(() => <div
 			attr:data-a={() => {
@@ -302,17 +302,17 @@ await test("element", async ctx => {
 		assertEvents(events, ["a", "ref", "b", "content"]);
 	});
 
-	await ctx.test("ref native attr", () => {
+	await test("ref native attr", () => {
 		const elem = <div attr:ref="42" /> as HTMLDivElement;
 		strictEqual(elem.getAttribute("ref"), "42");
 	});
 
-	await ctx.test("ref native prop", () => {
+	await test("ref native prop", () => {
 		const elem = <div prop:ref="42" /> as HTMLDivElement;
 		strictEqual((elem as any).ref, "42");
 	});
 
-	await ctx.test("createElement", () => {
+	await test("createElement", () => {
 		strictEqual(createElement("div", {}, undefined).outerHTML, `<div></div>`);
 		strictEqual(createElement("div", { title: "a" }, undefined).outerHTML, `<div title="a"></div>`);
 		strictEqual(createElement("div", {}, "b").outerHTML, `<div>b</div>`);

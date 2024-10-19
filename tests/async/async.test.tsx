@@ -1,13 +1,13 @@
 import { strictEqual } from "node:assert";
-import test from "node:test";
+import test, { suite } from "node:test";
 
 import { Inject, uncapture } from "rvx";
 import { ASYNC, Async, AsyncContext } from "rvx/async";
 
 import { assertEvents, future, text } from "../common.js";
 
-await test("async/async", async ctx => {
-	await ctx.test("tracking", async () => {
+await suite("async/async", async () => {
+	await test("tracking", async () => {
 		const events: unknown[] = [];
 		const [promise, resolve] = future();
 		const ac = new AsyncContext();
@@ -27,7 +27,7 @@ await test("async/async", async ctx => {
 		assertEvents(events, ["complete"]);
 	});
 
-	await ctx.test("errors", async () => {
+	await test("errors", async () => {
 		const events: unknown[] = [];
 		const [promise,, reject] = future();
 		const ac = new AsyncContext();
@@ -47,7 +47,7 @@ await test("async/async", async ctx => {
 		assertEvents(events, ["test"]);
 	});
 
-	await ctx.test("content, resolve", async () => {
+	await test("content, resolve", async () => {
 		const [promise, resolve] = future<number>();
 		const root = uncapture(() => <div>
 			<Async source={promise} pending={() => "pending"}>
@@ -60,7 +60,7 @@ await test("async/async", async ctx => {
 		strictEqual(text(root), "resolved: 42");
 	});
 
-	await ctx.test("content, reject", async () => {
+	await test("content, reject", async () => {
 		const [promise,, reject] = future<number>();
 		const root = uncapture(() => <div>
 			<Async

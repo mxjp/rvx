@@ -1,12 +1,12 @@
 import { deepStrictEqual, strictEqual, throws } from "node:assert";
-import test from "node:test";
+import test, { suite } from "node:test";
 
 import { batch, capture, effect, extract, get, inject, isTracking, map, memo, optionalString, sig, string, teardown, TeardownHook, track, trigger, TriggerPipe, uncapture, untrack, watch, watchUpdates } from "rvx";
 
 import { assertEvents, lifecycleEvent, withMsg } from "../common.js";
 
-await test("signals", async ctx => {
-	await ctx.test("inert usage", () => {
+await suite("signals", async () => {
+	await test("inert usage", () => {
 		const signal = sig(42);
 		strictEqual(signal.value, 42);
 
@@ -25,7 +25,7 @@ await test("signals", async ctx => {
 		signal.notify();
 	});
 
-	await ctx.test("pipe", () => {
+	await test("pipe", () => {
 		const a = sig(42);
 		const c = a.pipe(b => {
 			strictEqual(a, b);
@@ -34,7 +34,7 @@ await test("signals", async ctx => {
 		strictEqual(c, 7);
 	});
 
-	await ctx.test("immediate side effects", async ctx => {
+	await suite("immediate side effects", async () => {
 		await test("watch", () => {
 			const events: unknown[] = [];
 			const signal = sig(0);
@@ -86,7 +86,7 @@ await test("signals", async ctx => {
 			assertEvents(events, ["e:6"]);
 		});
 
-		await ctx.test("effect", () => {
+		await test("effect", () => {
 			const events: unknown[] = [];
 			const signal = sig(0);
 			const dispose = capture(() => {
@@ -294,7 +294,7 @@ await test("signals", async ctx => {
 		});
 	});
 
-	await ctx.test("access cycles", () => {
+	await test("access cycles", () => {
 		const a = sig(false);
 		const b = sig(7);
 		const events: unknown[] = [];
@@ -343,7 +343,7 @@ await test("signals", async ctx => {
 		assertEvents(events, [2]);
 	});
 
-	await ctx.test("same values", () => {
+	await test("same values", () => {
 		const events: unknown[] = [];
 		const signal = sig(42);
 		uncapture(() => watch(signal, value => {
@@ -360,8 +360,8 @@ await test("signals", async ctx => {
 		assertEvents(events, []);
 	});
 
-	await ctx.test("watch", async ctx => {
-		await ctx.test("static", () => {
+	await suite("watch", async () => {
+		await test("static", () => {
 			const events: unknown[] = [];
 			strictEqual(isTracking(), false);
 			watch(42, value => {
@@ -371,7 +371,7 @@ await test("signals", async ctx => {
 			assertEvents(events, [42]);
 		});
 
-		await ctx.test("signal & dispose", () => {
+		await test("signal & dispose", () => {
 			const events: unknown[] = [];
 			const signal = sig(42);
 			strictEqual(signal.active, false);
@@ -400,7 +400,7 @@ await test("signals", async ctx => {
 			assertEvents(events, []);
 		});
 
-		await ctx.test("function & batch", () => {
+		await test("function & batch", () => {
 			const events: unknown[] = [];
 			const a = sig("a");
 			const b = sig(1);
@@ -444,7 +444,7 @@ await test("signals", async ctx => {
 			strictEqual(isTracking(), false);
 		});
 
-		await ctx.test("uncapture expression", () => {
+		await test("uncapture expression", () => {
 			const events: unknown[] = [];
 			const signal = sig(42);
 			uncapture(() => watch(() => {
@@ -469,7 +469,7 @@ await test("signals", async ctx => {
 			assertEvents(events, []);
 		});
 
-		await ctx.test("capture callback", () => {
+		await test("capture callback", () => {
 			const events: unknown[] = [];
 			const signal = sig(1);
 
@@ -494,7 +494,7 @@ await test("signals", async ctx => {
 			assertEvents(events, []);
 		});
 
-		await ctx.test("teardown un-support", () => {
+		await test("teardown un-support", () => {
 			const events: unknown[] = [];
 			const signal = sig(1);
 
@@ -527,7 +527,7 @@ await test("signals", async ctx => {
 			assertEvents(events, [2]);
 		});
 
-		await ctx.test("access isolation", () => {
+		await test("access isolation", () => {
 			const events: unknown[] = [];
 			const outer = sig(1);
 			const inner = sig(1);
@@ -556,7 +556,7 @@ await test("signals", async ctx => {
 			assertEvents(events, ["o", "i", "i2", "o2"]);
 		});
 
-		await ctx.test("re-entry tracking isolation", () => {
+		await test("re-entry tracking isolation", () => {
 			const events: unknown[] = [];
 			const signal = sig();
 			uncapture(() => {
@@ -583,7 +583,7 @@ await test("signals", async ctx => {
 			});
 		});
 
-		await ctx.test("context", () => {
+		await test("context", () => {
 			const events: unknown[] = [];
 			const signal = sig(1);
 			inject("test", 42, () => {
@@ -604,8 +604,8 @@ await test("signals", async ctx => {
 		});
 
 		for (const inExpr of [false, true]) {
-			await ctx.test(`${inExpr ? "expression" : "callback"} error handling`, async ctx => {
-				await ctx.test("immediate, no access", () => {
+			await suite(`${inExpr ? "expression" : "callback"} error handling`, async () => {
+				await test("immediate, no access", () => {
 					uncapture(() => {
 						throws(() => {
 							watch(() => {
@@ -619,7 +619,7 @@ await test("signals", async ctx => {
 					});
 				});
 
-				await ctx.test("immediate, access", () => {
+				await test("immediate, access", () => {
 					const events: unknown[] = [];
 					const signal = sig(42);
 					const dispose = capture(() => {
@@ -660,7 +660,7 @@ await test("signals", async ctx => {
 					assertEvents(events, []);
 				});
 
-				await ctx.test("deferred, access", () => {
+				await test("deferred, access", () => {
 					const events: unknown[] = [];
 					const signal = sig(42);
 
@@ -697,8 +697,8 @@ await test("signals", async ctx => {
 		}
 	});
 
-	await ctx.test("effect", async ctx => {
-		await ctx.test("normal usage", () => {
+	await suite("effect", async () => {
+		await test("normal usage", () => {
 			const events: unknown[] = [];
 			const signal = sig(1);
 			const dispose = capture(() => {
@@ -723,7 +723,7 @@ await test("signals", async ctx => {
 			assertEvents(events, []);
 		});
 
-		await ctx.test("batch", () => {
+		await test("batch", () => {
 			const events: unknown[] = [];
 			const a = sig("a");
 			const b = sig(1);
@@ -742,7 +742,7 @@ await test("signals", async ctx => {
 			assertEvents(events, ["b2"]);
 		});
 
-		await ctx.test("access isolation", () => {
+		await test("access isolation", () => {
 			const events: unknown[] = [];
 			const outer = sig(1);
 			const inner = sig(1);
@@ -765,7 +765,7 @@ await test("signals", async ctx => {
 			assertEvents(events, ["i3"]);
 		});
 
-		await ctx.test("re-entry tracking isolation", () => {
+		await test("re-entry tracking isolation", () => {
 			const events: unknown[] = [];
 			const signal = sig();
 			uncapture(() => {
@@ -789,7 +789,7 @@ await test("signals", async ctx => {
 			});
 		});
 
-		await ctx.test("expected infinite loop", () => {
+		await test("expected infinite loop", () => {
 			let count = 0;
 			const signal = sig(0);
 			uncapture(() => {
@@ -803,8 +803,8 @@ await test("signals", async ctx => {
 			strictEqual(count, 5);
 		});
 
-		await ctx.test("error handling", async ctx => {
-			await ctx.test("immediate, no access", () => {
+		await suite("error handling", async () => {
+			await test("immediate, no access", () => {
 				uncapture(() => {
 					throws(() => {
 						effect(() => {
@@ -814,7 +814,7 @@ await test("signals", async ctx => {
 				});
 			});
 
-			await ctx.test("immediate, access", () => {
+			await test("immediate, access", () => {
 				const events: unknown[] = [];
 				const signal = sig(42);
 				const dispose = capture(() => {
@@ -853,7 +853,7 @@ await test("signals", async ctx => {
 		});
 	});
 
-	await ctx.test("watchUpdates", () => {
+	await test("watchUpdates", () => {
 		const events: unknown[] = [];
 		const signal = sig("a");
 		strictEqual(signal.active, false);
@@ -878,8 +878,8 @@ await test("signals", async ctx => {
 		assertEvents(events, []);
 	});
 
-	await ctx.test("tracking", async ctx => {
-		await ctx.test("inert", () => {
+	await suite("tracking", async () => {
+		await test("inert", () => {
 			strictEqual(isTracking(), false);
 			track(() => {
 				strictEqual(isTracking(), false);
@@ -892,7 +892,7 @@ await test("signals", async ctx => {
 			});
 		});
 
-		await ctx.test("watch", () => {
+		await test("watch", () => {
 			const events: unknown[] = [];
 			const a = sig(0);
 			const b = sig(0);
@@ -920,8 +920,8 @@ await test("signals", async ctx => {
 		});
 	});
 
-	await ctx.test("memo", async ctx => {
-		await ctx.test("watch", () => {
+	await suite("memo", async () => {
+		await test("watch", () => {
 			const events: unknown[] = [];
 			const signal = sig(1);
 			strictEqual(signal.active, false);
@@ -946,7 +946,7 @@ await test("signals", async ctx => {
 			assertEvents(events, ["e"]);
 		});
 
-		await ctx.test("dispose", () => {
+		await test("dispose", () => {
 			const signal = sig(1);
 
 			let memoized!: () => number;
@@ -969,7 +969,7 @@ await test("signals", async ctx => {
 		for (const useBatch of [false, true]) {
 			const batchType = useBatch ? "batch" : "non-batch";
 
-			await ctx.test(`${batchType} + memos + non-memos in same dependant`, () => {
+			await test(`${batchType} + memos + non-memos in same dependant`, () => {
 				const events: unknown[] = [];
 				const signal = sig(1);
 				const computed = uncapture(() => memo(() => signal.value * 2));
@@ -988,7 +988,7 @@ await test("signals", async ctx => {
 				assertEvents(events, useBatch ? [[2, 4]] : [[2, 4], [2, 4]]);
 			});
 
-			await ctx.test(`${batchType} + memos + non-memos in distinct dependants`, () => {
+			await test(`${batchType} + memos + non-memos in distinct dependants`, () => {
 				const events: unknown[] = [];
 				const signal = sig(1);
 				const computed = uncapture(() => memo(() => signal.value * 2));
@@ -1011,7 +1011,7 @@ await test("signals", async ctx => {
 			});
 		}
 
-		await ctx.test("batch & nested memos", () => {
+		await test("batch & nested memos", () => {
 			const events: unknown[] = [];
 			const signal = sig(1);
 			const inner = uncapture(() => memo(() => {
@@ -1038,7 +1038,7 @@ await test("signals", async ctx => {
 			assertEvents(events, ["i", "o", 9]);
 		});
 
-		await ctx.test("error handling", () => {
+		await test("error handling", () => {
 			const events: unknown[] = [];
 			const signal = sig(42);
 
@@ -1069,8 +1069,8 @@ await test("signals", async ctx => {
 		});
 	});
 
-	await ctx.test("batch", async ctx => {
-		await ctx.test("usage", () => {
+	await suite("batch", async () => {
+		await test("usage", () => {
 			const events: unknown[] = [];
 			const a = sig(0);
 			const b = sig(1);
@@ -1121,7 +1121,7 @@ await test("signals", async ctx => {
 			assertEvents(events, [11]);
 		});
 
-		await ctx.test("error handling", () => {
+		await test("error handling", () => {
 			const events: unknown[] = [];
 			const signal = sig(42);
 			uncapture(() => watch(signal, value => {
@@ -1161,7 +1161,7 @@ await test("signals", async ctx => {
 			assertEvents(events, [3]);
 		});
 
-		await ctx.test("disposed watch", () => {
+		await test("disposed watch", () => {
 			const events: unknown[] = [];
 			const signal = sig(42);
 			const dispose = capture(() => watch(signal, value => {
@@ -1178,7 +1178,7 @@ await test("signals", async ctx => {
 			assertEvents(events, ["b", 77]);
 		});
 
-		await ctx.test("disposed effect", () => {
+		await test("disposed effect", () => {
 			const events: unknown[] = [];
 			const signal = sig(42);
 			const dispose = capture(() => effect(() => {
@@ -1196,7 +1196,7 @@ await test("signals", async ctx => {
 		});
 	});
 
-	await ctx.test("mapper", () => {
+	await test("mapper", () => {
 		strictEqual(map(42, String), "42");
 
 		const a = map(() => 42, String);
@@ -1208,20 +1208,20 @@ await test("signals", async ctx => {
 		strictEqual((b as () => string)(), "42");
 	});
 
-	await ctx.test("string", () => {
+	await test("string", () => {
 		strictEqual(get(string(42)), "42");
 		strictEqual(get(string(null)), "null");
 		strictEqual(get(string(undefined)), "undefined");
 	});
 
-	await ctx.test("optionalString", () => {
+	await test("optionalString", () => {
 		strictEqual(get(optionalString(42)), "42");
 		strictEqual(get(optionalString(null)), null);
 		strictEqual(get(optionalString(undefined)), undefined);
 	});
 
-	await ctx.test("trigger", async ctx => {
-		await ctx.test("usage & lifecycle", () => {
+	await suite("trigger", async () => {
+		await test("usage & lifecycle", () => {
 			const events: unknown[] = [];
 			const signalA = sig(42);
 			const signalB = sig(1);
@@ -1273,7 +1273,7 @@ await test("signals", async ctx => {
 			strictEqual(signalB.active, false);
 		});
 
-		await ctx.test("distinct update order, pre+post", () => {
+		await test("distinct update order, pre+post", () => {
 			const events: unknown[] = [];
 			const signal = sig(1);
 			uncapture(() => watch(signal, () => events.push("a")));
@@ -1287,7 +1287,7 @@ await test("signals", async ctx => {
 			assertEvents(events, ["a", "b"]);
 		});
 
-		await ctx.test("distinct update order, pre", () => {
+		await test("distinct update order, pre", () => {
 			const events: unknown[] = [];
 			const signal = sig(1);
 			const pipe = uncapture(() => trigger(() => events.push("t")));
@@ -1301,7 +1301,7 @@ await test("signals", async ctx => {
 			assertEvents(events, ["a", "b"]);
 		});
 
-		await ctx.test("distinct update order, post", () => {
+		await test("distinct update order, post", () => {
 			const events: unknown[] = [];
 			const signal = sig(1);
 			uncapture(() => watch(signal, () => events.push("a")));
@@ -1315,7 +1315,7 @@ await test("signals", async ctx => {
 			assertEvents(events, ["a", "b"]);
 		});
 
-		await ctx.test("nested update order", () => {
+		await test("nested update order", () => {
 			const events: unknown[] = [];
 			const signal = sig(1);
 			const pipeA = uncapture(() => trigger(() => events.push("a")));
@@ -1336,7 +1336,7 @@ await test("signals", async ctx => {
 			assertEvents(events, ["b", "a", "update", 3]);
 		});
 
-		await ctx.test("implicit update disposal", () => {
+		await test("implicit update disposal", () => {
 			const events: unknown[] = [];
 			const signalA = sig(1);
 			const signalB = sig(2);
@@ -1358,7 +1358,7 @@ await test("signals", async ctx => {
 			assertEvents(events, []);
 		});
 
-		await ctx.test("batch", () => {
+		await test("batch", () => {
 			const events: unknown[] = [];
 			const signalA = sig(1);
 			const signalB = sig(2);
@@ -1387,7 +1387,7 @@ await test("signals", async ctx => {
 			assertEvents(events, []);
 		});
 
-		await ctx.test("nested + batch", () => {
+		await test("nested + batch", () => {
 			const events: unknown[] = [];
 			const signal = sig(1);
 			const pipe = uncapture(() => trigger(() => events.push("t")));
@@ -1412,7 +1412,7 @@ await test("signals", async ctx => {
 			assertEvents(events, ["t", 4]);
 		});
 
-		await ctx.test("external untrack", () => {
+		await test("external untrack", () => {
 			const events: unknown[] = [];
 			const signal = sig(1);
 			const pipe = uncapture(() => trigger(() => events.push("trigger")));
@@ -1437,7 +1437,7 @@ await test("signals", async ctx => {
 			assertEvents(events, []);
 		});
 
-		await ctx.test("internal untrack", () => {
+		await test("internal untrack", () => {
 			const events: unknown[] = [];
 			const signal = sig(1);
 			const pipe = uncapture(() => trigger(() => events.push("trigger")));

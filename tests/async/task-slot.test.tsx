@@ -1,13 +1,13 @@
 import { strictEqual } from "node:assert";
-import test from "node:test";
+import test, { suite } from "node:test";
 
 import { uncapture } from "rvx";
 import { TaskSlot } from "rvx/async";
 
 import { assertEvents } from "../common.js";
 
-await test("async/task-slot", async ctx => {
-	await ctx.test("sync side effect", () => {
+await suite("async/task-slot", async () => {
+	await test("sync side effect", () => {
 		const events: unknown[] = [];
 		const slot = uncapture(() => new TaskSlot());
 		slot.sideEffect(signal => {
@@ -19,7 +19,7 @@ await test("async/task-slot", async ctx => {
 		assertEvents(events, [0, 1, 2]);
 	});
 
-	await ctx.test("sync blocking", () => {
+	await test("sync blocking", () => {
 		const events: unknown[] = [];
 		const slot = uncapture(() => new TaskSlot());
 		void slot.block(() => {
@@ -29,7 +29,7 @@ await test("async/task-slot", async ctx => {
 		assertEvents(events, [0, 1]);
 	});
 
-	await ctx.test("abort side effect", async () => {
+	await test("abort side effect", async () => {
 		const events: unknown[] = [];
 		const slot = uncapture(() => new TaskSlot());
 		slot.sideEffect(async signal => {
@@ -43,7 +43,7 @@ await test("async/task-slot", async ctx => {
 		assertEvents(events, [0, 2, 1, true]);
 	});
 
-	await ctx.test("dequeue side effect & run most recent", async () => {
+	await test("dequeue side effect & run most recent", async () => {
 		const events: unknown[] = [];
 		const slot = uncapture(() => new TaskSlot());
 		slot.sideEffect(async signal => {
@@ -63,7 +63,7 @@ await test("async/task-slot", async ctx => {
 		assertEvents(events, [5]);
 	});
 
-	await ctx.test("abort side effects by blocking tasks", async () => {
+	await test("abort side effects by blocking tasks", async () => {
 		const events: unknown[] = [];
 		const slot = uncapture(() => new TaskSlot());
 		slot.sideEffect(async signal => {
@@ -86,7 +86,7 @@ await test("async/task-slot", async ctx => {
 		assertEvents(events, []);
 	});
 
-	await ctx.test("multiple blocking tasks", async () => {
+	await test("multiple blocking tasks", async () => {
 		const events: unknown[] = [];
 		const slot = uncapture(() => new TaskSlot());
 		slot.sideEffect(async signal => {
@@ -108,7 +108,7 @@ await test("async/task-slot", async ctx => {
 		assertEvents(events, [1, true, "a", "b"]);
 	});
 
-	await ctx.test("side effect after blocking", async () => {
+	await test("side effect after blocking", async () => {
 		const events: unknown[] = [];
 		const slot = uncapture(() => new TaskSlot());
 		await slot.block(() => {

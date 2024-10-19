@@ -1,10 +1,10 @@
 import { strictEqual } from "node:assert";
-import test from "node:test";
+import test, { suite } from "node:test";
 
 import { join, normalize, relative } from "rvx/router";
 
-await test("router/path", async ctx => {
-	await ctx.test("normalize", () => {
+await suite("router/path", async () => {
+	await test("normalize", () => {
 		strictEqual(normalize(""), "");
 		strictEqual(normalize("/"), "");
 		strictEqual(normalize("/", false), "");
@@ -18,7 +18,7 @@ await test("router/path", async ctx => {
 		strictEqual(normalize("/foo/", false), "/foo");
 	});
 
-	await ctx.test("join", () => {
+	await test("join", () => {
 		strictEqual(join("", ""), "");
 		strictEqual(join("", "/"), "");
 		strictEqual(join("", "/", false), "");
@@ -56,7 +56,7 @@ await test("router/path", async ctx => {
 		strictEqual(join("/foo/", "/bar/"), "/foo/bar/");
 	});
 
-	await ctx.test("relative", () => {
+	await test("relative", () => {
 		strictEqual(relative("", ""), "");
 		strictEqual(relative("", "/"), "");
 		strictEqual(relative("/", ""), "");

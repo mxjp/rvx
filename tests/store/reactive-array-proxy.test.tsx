@@ -1,5 +1,5 @@
 import { deepStrictEqual, fail, notStrictEqual, strictEqual } from "node:assert";
-import test from "node:test";
+import test, { suite } from "node:test";
 
 import { For, uncapture, View, watchUpdates } from "rvx";
 import { wrap } from "rvx/store";
@@ -7,8 +7,8 @@ import { wrap } from "rvx/store";
 import { assertEvents, text } from "../common.js";
 import { WrapTest } from "./common.js";
 
-await test("store/reactive-array-proxy", async ctx => {
-	await ctx.test("inert usage", () => {
+await suite("store/reactive-array-proxy", async () => {
+	await test("inert usage", () => {
 		const inner = ["a", "b"];
 		const proxy = wrap(inner);
 		notStrictEqual(inner, proxy);
@@ -21,7 +21,7 @@ await test("store/reactive-array-proxy", async ctx => {
 		assertEntries([inner, proxy], ["a", "b", "c", "d"]);
 	});
 
-	await ctx.test("updates", async ctx => {
+	await suite("updates", async () => {
 		function assertUpdates(options: {
 			start: string[];
 			action: (target: string[]) => void;
@@ -63,7 +63,7 @@ await test("store/reactive-array-proxy", async ctx => {
 			}
 		}
 
-		await ctx.test("copyWithin", () => {
+		await test("copyWithin", () => {
 			assertUpdates({
 				start: [],
 				action: p => strictEqual(p.copyWithin(1, 2, 3), p),
@@ -82,7 +82,7 @@ await test("store/reactive-array-proxy", async ctx => {
 			});
 		});
 
-		await ctx.test("fill", () => {
+		await test("fill", () => {
 			assertUpdates({
 				start: [],
 				action: p => strictEqual(p.fill("a"), p),
@@ -101,7 +101,7 @@ await test("store/reactive-array-proxy", async ctx => {
 			});
 		});
 
-		await ctx.test("pop", () => {
+		await test("pop", () => {
 			assertUpdates({
 				start: [],
 				action: p => strictEqual(p.pop(), undefined),
@@ -120,7 +120,7 @@ await test("store/reactive-array-proxy", async ctx => {
 			});
 		});
 
-		await ctx.test("push", () => {
+		await test("push", () => {
 			assertUpdates({
 				start: [],
 				action: p => strictEqual(p.push(), 0),
@@ -140,7 +140,7 @@ await test("store/reactive-array-proxy", async ctx => {
 			});
 		});
 
-		await ctx.test("reverse", () => {
+		await test("reverse", () => {
 			assertUpdates({
 				start: [],
 				action: p => strictEqual(p.reverse(), p),
@@ -165,7 +165,7 @@ await test("store/reactive-array-proxy", async ctx => {
 			});
 		});
 
-		await ctx.test("shift", () => {
+		await test("shift", () => {
 			assertUpdates({
 				start: [],
 				action: p => strictEqual(p.shift(), undefined),
@@ -186,7 +186,7 @@ await test("store/reactive-array-proxy", async ctx => {
 			});
 		});
 
-		await ctx.test("sort", () => {
+		await test("sort", () => {
 			assertUpdates({
 				start: [],
 				action: p => strictEqual(p.sort(), p),
@@ -206,7 +206,7 @@ await test("store/reactive-array-proxy", async ctx => {
 			});
 		});
 
-		await ctx.test("splice", () => {
+		await test("splice", () => {
 			assertUpdates({
 				start: [],
 				action: p => deepStrictEqual(p.splice(0), []),
@@ -227,7 +227,7 @@ await test("store/reactive-array-proxy", async ctx => {
 			});
 		});
 
-		await ctx.test("unshift", () => {
+		await test("unshift", () => {
 			assertUpdates({
 				start: [],
 				action: p => deepStrictEqual(p.unshift(), 0),
@@ -250,7 +250,7 @@ await test("store/reactive-array-proxy", async ctx => {
 		});
 	});
 
-	await ctx.test("conversion", () => {
+	await test("conversion", () => {
 		const inner = [new WrapTest()];
 		const proxy = wrap(inner);
 		proxy.push(new WrapTest());
@@ -270,8 +270,8 @@ await test("store/reactive-array-proxy", async ctx => {
 		}
 	});
 
-	await ctx.test("reactive access", async ctx => {
-		await ctx.test("at", () => {
+	await suite("reactive access", async () => {
+		await test("at", () => {
 			const events: unknown[] = [];
 			const proxy = wrap(["a", "b"]);
 			uncapture(() => {
@@ -315,7 +315,7 @@ await test("store/reactive-array-proxy", async ctx => {
 			["toSpliced", p => p.toSpliced(0, 0)],
 			["with", p => p.with(0, "x")],
 		] as [string, (target: string[]) => void][]) {
-			await ctx.test(name, () => {
+			await test(name, () => {
 				const events: unknown[] = [];
 				const proxy = wrap(["a", "b", "c"]);
 				uncapture(() => {
@@ -333,7 +333,7 @@ await test("store/reactive-array-proxy", async ctx => {
 		}
 	});
 
-	await ctx.test("index specific inert access", async ctx => {
+	await suite("index specific inert access", async () => {
 		for (const [name, access] of [
 			["keys", p => p.keys()],
 			["slice", p => p.slice(1, 1)],
@@ -348,7 +348,7 @@ await test("store/reactive-array-proxy", async ctx => {
 			["some", p => strictEqual(p.some(x => x === "a"), true)],
 			["with", p => deepStrictEqual(p.with(1, "x"), ["a", "x", "c"])],
 		] as [string, (target: string[]) => void][]) {
-			await ctx.test(name, () => {
+			await test(name, () => {
 				const proxy = wrap(["a", "b", "c"]);
 				uncapture(() => {
 					watchUpdates(() => access(proxy), () => {
@@ -360,7 +360,7 @@ await test("store/reactive-array-proxy", async ctx => {
 		}
 	});
 
-	await ctx.test("view compat", async () => {
+	await test("view compat", async () => {
 		const proxy = wrap(["a", "b"]);
 		const view = uncapture(() => {
 			return <For each={proxy}>{v => v}</For> as View;

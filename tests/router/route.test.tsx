@@ -1,5 +1,5 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
-import test from "node:test";
+import test, { suite } from "node:test";
 
 import { extract, Inject, sig, uncapture, watch } from "rvx";
 import { ChildRouter, matchRoute, Route, ROUTER, Routes, watchRoutes } from "rvx/router";
@@ -7,8 +7,8 @@ import { ChildRouter, matchRoute, Route, ROUTER, Routes, watchRoutes } from "rvx
 import { assertEvents, lifecycleEvent, text } from "../common.js";
 import { TestRouter } from "./common.js";
 
-await test("router/route", async ctx => {
-	await ctx.test("match", async () => {
+await suite("router/route", async () => {
+	await test("match", async () => {
 		function assert(
 			route: Route,
 			path: string,
@@ -69,7 +69,7 @@ await test("router/route", async ctx => {
 		assert({ match: /^\/foo(?=\/bar$)/ }, "/foo/bar", ["/foo", "/bar"]);
 	});
 
-	await ctx.test("watch", () => {
+	await test("watch", () => {
 		const events: unknown[] = [];
 		const routes: Route[] = [
 			{ match: "/" },
@@ -106,8 +106,8 @@ await test("router/route", async ctx => {
 		strictEqual(watched.rest(), "");
 	});
 
-	await ctx.test("routes", async ctx => {
-		await ctx.test("matching", () => {
+	await suite("routes", async () => {
+		await test("matching", () => {
 			const router = new TestRouter();
 			const root = uncapture(() => <div>
 				<Inject key={ROUTER} value={router}>
@@ -134,7 +134,7 @@ await test("router/route", async ctx => {
 			}
 		});
 
-		await ctx.test("lifecycle & child router", () => {
+		await test("lifecycle & child router", () => {
 			const events: unknown[] = [];
 			const router = new TestRouter();
 			uncapture(() => <div>

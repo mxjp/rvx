@@ -1,12 +1,12 @@
 import { strictEqual, throws } from "node:assert";
-import test from "node:test";
+import test, { suite } from "node:test";
 
 import { ContextKey, deriveContext, extract, inject } from "rvx";
 
 import { withMsg } from "../common.js";
 
-await test("context", async ctx => {
-	await ctx.test("nesting", () => {
+await suite("context", async () => {
+	await test("nesting", () => {
 		strictEqual(extract("foo"), undefined);
 
 		inject("foo", "bar", () => {
@@ -25,7 +25,7 @@ await test("context", async ctx => {
 		strictEqual(extract("foo"), undefined);
 	});
 
-	await ctx.test("typed keys", () => {
+	await test("typed keys", () => {
 		const KEY_A = Symbol("a") as ContextKey<number>;
 		const KEY_B = Symbol("b") as ContextKey<string>;
 		deriveContext(context => {
@@ -40,8 +40,8 @@ await test("context", async ctx => {
 		});
 	});
 
-	await ctx.test("error handling", async ctx => {
-		await ctx.test("inject", () => {
+	await suite("error handling", async () => {
+		await test("inject", () => {
 			strictEqual(extract("foo"), undefined);
 			inject("foo", "bar", () => {
 				strictEqual(extract("foo"), "bar");
@@ -56,7 +56,7 @@ await test("context", async ctx => {
 			strictEqual(extract("foo"), undefined);
 		});
 
-		await ctx.test("deriveContext", () => {
+		await test("deriveContext", async () => {
 			strictEqual(extract("foo"), undefined);
 			deriveContext(outer => {
 				outer.set("foo", "bar");

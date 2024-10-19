@@ -1,12 +1,12 @@
 import { fail, strictEqual, throws } from "node:assert";
-import test from "node:test";
+import test, { suite } from "node:test";
 
 import { capture, captureSelf, isolate, teardown, TeardownHook, uncapture } from "rvx";
 
 import { assertEvents, withMsg } from "../common.js";
 
-await test("lifecycle", async ctx => {
-	await ctx.test("inert use", () => {
+await suite("lifecycle", async () => {
+	await test("inert use", () => {
 		uncapture(() => {
 			teardown(() => {
 				throw new Error("this should not happen");
@@ -14,7 +14,7 @@ await test("lifecycle", async ctx => {
 		});
 	});
 
-	await ctx.test("capture", () => {
+	await test("capture", () => {
 		const events: unknown[] = [];
 		events.push(0);
 		let inner!: TeardownHook;
@@ -49,8 +49,8 @@ await test("lifecycle", async ctx => {
 		assertEvents(events, [6]);
 	});
 
-	await ctx.test("capture self", async ctx => {
-		await ctx.test("defer immediate", () => {
+	await suite("capture self", async () => {
+		await test("defer immediate", () => {
 			const events: unknown[] = [];
 			events.push(0);
 			const value = captureSelf(dispose => {
@@ -68,7 +68,7 @@ await test("lifecycle", async ctx => {
 			assertEvents(events, [0, 1, 2, 4, 3, 5]);
 		});
 
-		await ctx.test("delayed", () => {
+		await test("delayed", () => {
 			const events: unknown[] = [];
 			events.push(0);
 			const dispose = captureSelf(dispose => {
@@ -86,8 +86,8 @@ await test("lifecycle", async ctx => {
 		});
 	});
 
-	await ctx.test("isolate", async ctx => {
-		await ctx.test("no error", () => {
+	await suite("isolate", async () => {
+		await test("no error", () => {
 			const events: unknown[] = [];
 			const dispose = capture(() => {
 				teardown(() => events.push(0));
@@ -103,7 +103,7 @@ await test("lifecycle", async ctx => {
 			assertEvents(events, [3, 2, 1, 0]);
 		});
 
-		await ctx.test("error", () => {
+		await test("error", () => {
 			const events: unknown[] = [];
 			const dispose = capture(() => {
 				try {
@@ -126,8 +126,8 @@ await test("lifecycle", async ctx => {
 		});
 	});
 
-	await ctx.test("error handling", async ctx => {
-		await ctx.test("capture", () => {
+	await suite("error handling", async () => {
+		await test("capture", () => {
 			const events: unknown[] = [];
 			const outer = capture(() => {
 				teardown(() => {
@@ -151,7 +151,7 @@ await test("lifecycle", async ctx => {
 		});
 
 		for (const disposeInner of [false, true]) {
-			await ctx.test(`captureSelf (immediate${disposeInner ? ", dispose inner" : ""})`, () => {
+			await test(`captureSelf (immediate${disposeInner ? ", dispose inner" : ""})`, () => {
 				const events: unknown[] = [];
 				captureSelf(outer => {
 					outer();
@@ -178,7 +178,7 @@ await test("lifecycle", async ctx => {
 				assertEvents(events, [1, 0]);
 			});
 
-			await ctx.test(`captureSelf (delayed${disposeInner ? ", dispose inner" : ""})`, () => {
+			await test(`captureSelf (delayed${disposeInner ? ", dispose inner" : ""})`, () => {
 				const events: unknown[] = [];
 				let outerDispose!: TeardownHook;
 				captureSelf(outer => {
@@ -210,7 +210,7 @@ await test("lifecycle", async ctx => {
 			});
 		}
 
-		await ctx.test("capture, teardown error", () => {
+		await test("capture, teardown error", () => {
 			const events: unknown[] = [];
 			const dispose = capture(() => {
 				teardown(() => {
@@ -227,7 +227,7 @@ await test("lifecycle", async ctx => {
 			assertEvents(events, [1]);
 		});
 
-		await ctx.test("captureSelf, immediate, teardown error", () => {
+		await test("captureSelf, immediate, teardown error", () => {
 			const events: unknown[] = [];
 			throws(() => {
 				captureSelf(dispose => {
@@ -250,7 +250,7 @@ await test("lifecycle", async ctx => {
 			assertEvents(events, [3, 2, 1]);
 		});
 
-		await ctx.test("captureSelf, deferred, teardown hook error", () => {
+		await test("captureSelf, deferred, teardown hook error", () => {
 			const events: unknown[] = [];
 			let disposeFn!: TeardownHook;
 			captureSelf(dispose => {
@@ -274,7 +274,7 @@ await test("lifecycle", async ctx => {
 			assertEvents(events, [2, 1]);
 		});
 
-		await ctx.test("capture + teardown error", () => {
+		await test("capture + teardown error", () => {
 			throws(() => {
 				capture(() => {
 					teardown(() => {
@@ -285,7 +285,7 @@ await test("lifecycle", async ctx => {
 			}, withMsg("a"));
 		});
 
-		await ctx.test("captureSelf (non disposed) + teardown error", () => {
+		await test("captureSelf (non disposed) + teardown error", () => {
 			throws(() => {
 				captureSelf(() => {
 					teardown(() => {
@@ -296,7 +296,7 @@ await test("lifecycle", async ctx => {
 			}, withMsg("a"));
 		});
 
-		await ctx.test("captureSelf (disposed) + teardown error", () => {
+		await test("captureSelf (disposed) + teardown error", () => {
 			throws(() => {
 				captureSelf(dispose => {
 					dispose();

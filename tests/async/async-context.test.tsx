@@ -1,12 +1,12 @@
 import { deepStrictEqual, fail, rejects, strictEqual } from "node:assert";
-import test from "node:test";
+import test, { suite } from "node:test";
 
 import { uncapture, watch } from "rvx";
 import { AsyncContext, AsyncError } from "rvx/async";
 
 import { assertEvents, future } from "../common.js";
 
-await test("async/async-context", async ctx => {
+await suite("async/async-context", async () => {
 	async function assertErrors(promise: Promise<unknown>, expected: unknown[]) {
 		try {
 			await promise;
@@ -21,26 +21,26 @@ await test("async/async-context", async ctx => {
 		}
 	}
 
-	await ctx.test("complete empty", async () => {
+	await test("complete empty", async () => {
 		const ac = new AsyncContext();
 		await ac.complete();
 	});
 
-	await ctx.test("single task", async () => {
+	await test("single task", async () => {
 		const ac = new AsyncContext();
 		ac.track(Promise.resolve(42));
 		ac.track(Promise.resolve("test"));
 		await ac.complete();
 	});
 
-	await ctx.test("single error", async () => {
+	await test("single error", async () => {
 		const ac = new AsyncContext();
 		ac.track(Promise.resolve(42));
 		ac.track(Promise.reject("test"));
 		await rejects(() => ac.complete());
 	});
 
-	await ctx.test("multiple errors", async () => {
+	await test("multiple errors", async () => {
 		const ac = new AsyncContext();
 		ac.track(Promise.resolve(42));
 		ac.track(Promise.reject("a"));
@@ -73,7 +73,7 @@ await test("async/async-context", async ctx => {
 		name: string,
 		fn: ((a: () => void, b: () => void) => void | Promise<void>),
 	][]) {
-		await ctx.test(`delayed tracking (${name})`, async () => {
+		await test(`delayed tracking (${name})`, async () => {
 			const ac = new AsyncContext();
 			ac.track(Promise.resolve(42));
 			const [a,, rejectA] = future();
@@ -86,7 +86,7 @@ await test("async/async-context", async ctx => {
 		});
 	}
 
-	await ctx.test("pending", async () => {
+	await test("pending", async () => {
 		const events: unknown[] = [];
 		const ac = new AsyncContext();
 		uncapture(() => watch(() => ac.pending, pending => {

@@ -1,12 +1,12 @@
 import { strictEqual } from "node:assert";
-import test from "node:test";
+import test, { suite } from "node:test";
 
 import { uniqueId } from "rvx";
 
 import { NEXT_ID } from "../../dist/es/core/internals.js";
 
-await test("uniqueId", async ctx => {
-	await ctx.test("initial usage", () => {
+await suite("uniqueId", async () => {
+	await test("initial usage", () => {
 		const first = uniqueId();
 		const match = /^rvx_(\d+)$/.exec(first);
 		if (!match) {
@@ -17,7 +17,7 @@ await test("uniqueId", async ctx => {
 		strictEqual(uniqueId(), `rvx_${++counter}`);
 	});
 
-	await ctx.test("max safe int overflow", () => {
+	await test("max safe int overflow", () => {
 		const original = NEXT_ID.value;
 		try {
 			NEXT_ID.value = Number.MAX_SAFE_INTEGER - 2;

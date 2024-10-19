@@ -1,5 +1,5 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
-import test from "node:test";
+import test, { suite } from "node:test";
 
 import { For, uncapture, View, watch } from "rvx";
 import { ReactiveMap, wrap } from "rvx/store";
@@ -7,8 +7,8 @@ import { ReactiveMap, wrap } from "rvx/store";
 import { assertEvents, text } from "../common.js";
 import { WrapTest } from "./common.js";
 
-await test("store/reactive-map", async ctx => {
-	await ctx.test("inert usage", () => {
+await suite("store/reactive-map", async () => {
+	await test("inert usage", () => {
 		const inner = new Map<string, number>([["foo", 7]]);
 		const map = wrap(inner);
 		strictEqual(map instanceof ReactiveMap, true);
@@ -31,7 +31,7 @@ await test("store/reactive-map", async ctx => {
 		assertEntries([inner, map], []);
 	});
 
-	await ctx.test("reactive usage", () => {
+	await test("reactive usage", () => {
 		const events: unknown[] = [];
 		const inner = new Map<string, number>([["foo", 7]]);
 		const map = wrap(inner);
@@ -118,7 +118,7 @@ await test("store/reactive-map", async ctx => {
 		assertEvents(events, iterators([]));
 	});
 
-	await ctx.test("conversion", () => {
+	await test("conversion", () => {
 		const inner = new Map([["foo", new WrapTest()]]);
 		const map = wrap(inner);
 		map.set("bar", new WrapTest());
@@ -137,7 +137,7 @@ await test("store/reactive-map", async ctx => {
 		}
 	});
 
-	await ctx.test("view compat", async () => {
+	await test("view compat", async () => {
 		const proxy = wrap(new Map<string, number>([["foo", 0]]));
 		const view = uncapture(() => {
 			return <For each={proxy}>{v => `(${v[0]}:${v[1]})`}</For> as View;

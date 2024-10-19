@@ -1,17 +1,17 @@
 import { deepStrictEqual, notStrictEqual, strictEqual } from "node:assert";
-import test from "node:test";
+import test, { suite } from "node:test";
 
 import { NODE, render, sig, uncapture, View, viewNodes } from "rvx";
 
 import { createText } from "../../dist/es/core/internals.js";
 import { assertEvents, boundaryEvents, testView, text } from "../common.js";
 
-await test("render", async ctx => {
+await suite("render", async () => {
 	function renderToNodes(content: unknown) {
 		return Array.from(viewNodes(render(content)));
 	}
 
-	await ctx.test("createText (internal)", () => {
+	await test("createText (internal)", () => {
 		const signal = sig<unknown>(undefined);
 		const text = uncapture(() => createText(signal));
 		strictEqual(text.textContent, "");
@@ -23,14 +23,14 @@ await test("render", async ctx => {
 		strictEqual(text.textContent, "test");
 	});
 
-	await ctx.test("view passthrough", () => {
+	await test("view passthrough", () => {
 		const inner = render(undefined);
 		strictEqual(inner instanceof View, true);
 		const outer = render(inner);
 		strictEqual(inner, outer);
 	});
 
-	await ctx.test("null & undefined", () => {
+	await test("null & undefined", () => {
 		for (const value of [null, undefined]) {
 			const view = render(value);
 			const nodes = renderToNodes(view);
@@ -39,7 +39,7 @@ await test("render", async ctx => {
 		}
 	});
 
-	await ctx.test("document fragment", () => {
+	await test("document fragment", () => {
 		const fragment = document.createDocumentFragment();
 		const a = document.createElement("div");
 		const b = document.createElement("div");
@@ -56,14 +56,14 @@ await test("render", async ctx => {
 		strictEqual(b.parentNode, next);
 	});
 
-	await ctx.test("node target", () => {
+	await test("node target", () => {
 		const view = render({ [NODE]: document.createTextNode("test") });
 		strictEqual(view.first instanceof Text, true);
 		strictEqual(view.first, view.last);
 		strictEqual(text(view.take()), "test");
 	});
 
-	await ctx.test("node targets", () => {
+	await test("node targets", () => {
 		const view = render([
 			{ [NODE]: document.createTextNode("a") },
 			{ [NODE]: document.createTextNode("b") },
@@ -71,13 +71,13 @@ await test("render", async ctx => {
 		strictEqual(text(view.take()), "ab");
 	});
 
-	await ctx.test("empty document fragment", () => {
+	await test("empty document fragment", () => {
 		const view = render(document.createDocumentFragment());
 		strictEqual(view.first instanceof Comment, true);
 		strictEqual(view.first, view.last);
 	});
 
-	await ctx.test("empty document fragment in array", () => {
+	await test("empty document fragment in array", () => {
 		const view = render([
 			document.createDocumentFragment(),
 			document.createDocumentFragment(),
@@ -86,7 +86,7 @@ await test("render", async ctx => {
 		strictEqual(view.last instanceof Comment, true);
 	});
 
-	await ctx.test("empty document fragment in array with view", () => {
+	await test("empty document fragment in array with view", () => {
 		const events: unknown[] = [];
 		const inner = testView();
 		const view = uncapture(() => {
@@ -103,7 +103,7 @@ await test("render", async ctx => {
 		assertEvents(events, []);
 	});
 
-	await ctx.test("empty document fragments in array with view", () => {
+	await test("empty document fragments in array with view", () => {
 		const events: unknown[] = [];
 		const inner = testView();
 		const view = uncapture(() => {
@@ -124,7 +124,7 @@ await test("render", async ctx => {
 		assertEvents(events, []);
 	});
 
-	await ctx.test("non empty document fragments in array with view", () => {
+	await test("non empty document fragments in array with view", () => {
 		const events: unknown[] = [];
 		const inner = testView();
 		const view = uncapture(() => {
@@ -145,7 +145,7 @@ await test("render", async ctx => {
 		assertEvents(events, []);
 	});
 
-	await ctx.test("node", () => {
+	await test("node", () => {
 		for (const node of [
 			document.createElement("div"),
 			document.createComment("test"),
@@ -154,7 +154,7 @@ await test("render", async ctx => {
 		}
 	});
 
-	await ctx.test("text", () => {
+	await test("text", () => {
 		for (const value of ["test", 42, true]) {
 			for (const nodes of [
 				renderToNodes(value),
@@ -168,8 +168,8 @@ await test("render", async ctx => {
 		}
 	});
 
-	await ctx.test("arrays", async ctx => {
-		await ctx.test("single view", () => {
+	await suite("arrays", async () => {
+		await test("single view", () => {
 			const content = document.createElement("div");
 			const inner = render(content);
 			strictEqual(inner instanceof View, true);
@@ -178,7 +178,7 @@ await test("render", async ctx => {
 			deepStrictEqual(Array.from(viewNodes(outer)), [content]);
 		});
 
-		await ctx.test("inner view", () => {
+		await test("inner view", () => {
 			const inner = testView();
 
 			const fragmentChild = document.createElement("div");
@@ -220,7 +220,7 @@ await test("render", async ctx => {
 			}
 		});
 
-		await ctx.test("outer views", () => {
+		await test("outer views", () => {
 			const events: unknown[] = [];
 			const first = testView();
 			const last = testView();

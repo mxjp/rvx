@@ -1,5 +1,5 @@
 import { deepStrictEqual, notStrictEqual, strictEqual, throws } from "node:assert";
-import test from "node:test";
+import test, { suite } from "node:test";
 
 import { For, uncapture, View, watch } from "rvx";
 import { unwrap, wrap, wrapInstancesOf } from "rvx/store";
@@ -7,8 +7,8 @@ import { unwrap, wrap, wrapInstancesOf } from "rvx/store";
 import { assertEvents, text } from "../common.js";
 import { WrapTest } from "./common.js";
 
-await test("store/reactive-proxy", async ctx => {
-	await ctx.test("inert usage", () => {
+await suite("store/reactive-proxy", async () => {
+	await test("inert usage", () => {
 		const inner: Partial<Record<string, number>> = { foo: 7 };
 		const proxy = wrap(inner);
 		notStrictEqual(inner, proxy);
@@ -32,7 +32,7 @@ await test("store/reactive-proxy", async ctx => {
 		assertEntries([inner, proxy], [["baz", 77]]);
 	});
 
-	await ctx.test("reactive usage", () => {
+	await test("reactive usage", () => {
 		const events: unknown[] = [];
 		const inner: Partial<Record<string, number>> = { foo: 7 };
 		const proxy = wrap(inner);
@@ -178,7 +178,7 @@ await test("store/reactive-proxy", async ctx => {
 		assertEvents(events, []);
 	});
 
-	await ctx.test("conversion", () => {
+	await test("conversion", () => {
 		const inner: Record<string, WrapTest> = { foo: new WrapTest() };
 		const proxy = wrap(inner);
 		notStrictEqual(inner, proxy);
@@ -194,7 +194,7 @@ await test("store/reactive-proxy", async ctx => {
 		}
 	});
 
-	await ctx.test("view compat", () => {
+	await test("view compat", () => {
 		const proxy = wrap<Record<string, number>>({ foo: 0 });
 		const view = uncapture(() => {
 			return <For each={() => Object.entries(proxy)}>{v => `(${v[0]}:${v[1]})`}</For> as View;

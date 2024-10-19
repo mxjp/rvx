@@ -1,5 +1,5 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
-import test from "node:test";
+import test, { suite } from "node:test";
 
 import { For, uncapture, View, watch } from "rvx";
 import { ReactiveSet, wrap } from "rvx/store";
@@ -7,8 +7,8 @@ import { ReactiveSet, wrap } from "rvx/store";
 import { assertEvents, text } from "../common.js";
 import { WrapTest } from "./common.js";
 
-await test("store/reactive-set", async ctx => {
-	await ctx.test("inert usage", () => {
+await suite("store/reactive-set", async () => {
+	await test("inert usage", () => {
 		const inner = new Set(["foo"]);
 		const set = wrap(inner);
 		strictEqual(set instanceof ReactiveSet, true);
@@ -29,7 +29,7 @@ await test("store/reactive-set", async ctx => {
 		assertEntries([inner, set], []);
 	});
 
-	await ctx.test("reactive usage", () => {
+	await test("reactive usage", () => {
 		const events: unknown[] = [];
 		const inner = new Set(["foo"]);
 		const set = wrap(inner);
@@ -110,7 +110,7 @@ await test("store/reactive-set", async ctx => {
 		assertEvents(events, iterators([]));
 	});
 
-	await ctx.test("conversion", () => {
+	await test("conversion", () => {
 		const inner = new Set([new WrapTest()]);
 		const set = wrap(inner);
 		set.add(new WrapTest());
@@ -129,7 +129,7 @@ await test("store/reactive-set", async ctx => {
 		}
 	});
 
-	await ctx.test("view compat", async () => {
+	await test("view compat", async () => {
 		const proxy = wrap(new Set<string>(["a"]));
 		const view = uncapture(() => {
 			return <For each={proxy}>{v => v}</For> as View;

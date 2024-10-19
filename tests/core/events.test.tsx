@@ -1,12 +1,12 @@
 import { throws } from "node:assert";
-import test from "node:test";
+import test, { suite } from "node:test";
 
 import { capture, Emitter, uncapture } from "rvx";
 
 import { assertEvents, withMsg } from "../common.js";
 
-await test("events", async ctx => {
-	await ctx.test("usage", () => {
+await suite("events", async () => {
+	await test("usage", () => {
 		const events: unknown[] = [];
 		const emitter = new Emitter<[foo: string, bar: number]>();
 
@@ -38,7 +38,7 @@ await test("events", async ctx => {
 		assertEvents(events, []);
 	});
 
-	await ctx.test("error handling", () => {
+	await test("error handling", () => {
 		const events: unknown[] = [];
 		const emitter = new Emitter<[]>();
 

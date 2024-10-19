@@ -1,12 +1,12 @@
 import { strictEqual } from "node:assert";
-import test from "node:test";
+import test, { suite } from "node:test";
 
 import { map, nocapture, teardown } from "rvx";
 import { RvxElement, RvxElementOptions } from "rvx/element";
 
 import { assertEvents } from "../common.js";
 
-await test("element/element", async ctx => {
+await suite("element/element", async () => {
 	let options: RvxElementOptions | undefined;
 
 	class TestElement extends RvxElement {
@@ -30,7 +30,7 @@ await test("element/element", async ctx => {
 
 	customElements.define("test-element", TestElement);
 
-	await ctx.test("default lifecycle & attributes", async () => {
+	await test("default lifecycle & attributes", async () => {
 		options = undefined;
 		const elem = nocapture(() => <test-element /> as TestElement);
 		strictEqual(elem instanceof TestElement, true);
@@ -53,7 +53,7 @@ await test("element/element", async ctx => {
 		}
 	});
 
-	await ctx.test("manual lifecycle & attributes", async () => {
+	await test("manual lifecycle & attributes", async () => {
 		options = {
 			start: "manual",
 			dispose: "manual",
@@ -85,7 +85,7 @@ await test("element/element", async ctx => {
 		}
 	});
 
-	await ctx.test("no shadow root", async () => {
+	await test("no shadow root", async () => {
 		options = {
 			shadow: false,
 		};

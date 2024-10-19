@@ -1,10 +1,10 @@
 import { notStrictEqual, strictEqual } from "node:assert";
-import test from "node:test";
+import test, { suite } from "node:test";
 
 import { unwrap, wrap } from "rvx/store";
 
-await test("store/barrier", async ctx => {
-	await ctx.test("non-reactive types", () => {
+await suite("store/barrier", async () => {
+	await test("non-reactive types", () => {
 		// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 		class Test {}
 
@@ -23,7 +23,7 @@ await test("store/barrier", async ctx => {
 		strictEqual(Number.isNaN(wrap(NaN)), true);
 	});
 
-	await ctx.test("mapping", () => {
+	await test("mapping", () => {
 		const inner = {};
 		const proxy = wrap(inner);
 		notStrictEqual(inner, proxy);

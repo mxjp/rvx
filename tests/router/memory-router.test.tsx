@@ -1,13 +1,13 @@
 import { strictEqual } from "node:assert";
-import test from "node:test";
+import test, { suite } from "node:test";
 
 import { uncapture, watch } from "rvx";
 import { MemoryRouter } from "rvx/router";
 
 import { assertEvents } from "../common.js";
 
-await test("router/memory router", async ctx => {
-	await ctx.test("general usage", () => {
+await suite("router/memory router", async () => {
+	await test("general usage", () => {
 		const events: unknown[] = [];
 		const router = uncapture(() => new MemoryRouter());
 		strictEqual(router.root, router);
@@ -34,7 +34,7 @@ await test("router/memory router", async ctx => {
 		assertEvents(events, [["/d", "test=2"]]);
 	});
 
-	await ctx.test("initial state", () => {
+	await test("initial state", () => {
 		const router = uncapture(() => new MemoryRouter({
 			path: "/foo/bar/",
 			query: {

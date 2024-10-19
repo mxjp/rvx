@@ -1,14 +1,14 @@
 import { strictEqual } from "node:assert";
-import test from "node:test";
+import test, { suite } from "node:test";
 
 import { capture, extract, inject, mount, uncapture, watch, wrapContext } from "rvx";
 import { isPending, isSelfPending, TASKS, Tasks, waitFor } from "rvx/async";
 
 import { assertEvents, future } from "../common.js";
 
-await test("async/tasks", async ctx => {
+await suite("async/tasks", async () => {
 	for (const fn of [false, true]) {
-		await ctx.test(`waitFor ${fn ? "function" : "promise"}`, async () => {
+		await test(`waitFor ${fn ? "function" : "promise"}`, async () => {
 			const parent = uncapture(() => new Tasks());
 			const inner = uncapture(() => new Tasks(parent));
 			strictEqual(parent.pending, false);
@@ -32,7 +32,7 @@ await test("async/tasks", async ctx => {
 		});
 	}
 
-	await ctx.test("setPending", async () => {
+	await test("setPending", async () => {
 		const tasks = uncapture(() => new Tasks());
 		strictEqual(tasks.pending, false);
 		const dispose = capture(() => tasks.setPending());
@@ -41,7 +41,7 @@ await test("async/tasks", async ctx => {
 		strictEqual(tasks.pending, false);
 	});
 
-	await ctx.test("multiple tasks", async () => {
+	await test("multiple tasks", async () => {
 		const [a, resolveA] = future();
 		const [b, resolveB] = future();
 		const tasks = uncapture(() => new Tasks());
@@ -59,7 +59,7 @@ await test("async/tasks", async ctx => {
 		strictEqual(tasks.selfPending, false);
 	});
 
-	await ctx.test("error handling", async () => {
+	await test("error handling", async () => {
 		const tasks = uncapture(() => new Tasks());
 		const [a,, rejectA] = future();
 		tasks.waitFor(a);
@@ -71,7 +71,7 @@ await test("async/tasks", async ctx => {
 		strictEqual(tasks.selfPending, false);
 	});
 
-	await ctx.test("tracking", async () => {
+	await test("tracking", async () => {
 		const events: unknown[] = [];
 		const tasks = uncapture(() => new Tasks());
 		uncapture(() => {
@@ -93,7 +93,7 @@ await test("async/tasks", async ctx => {
 		assertEvents(events, [false, false]);
 	});
 
-	await ctx.test("context api", async () => {
+	await test("context api", async () => {
 		strictEqual(isPending(), false);
 		strictEqual(isSelfPending(), false);
 
@@ -124,7 +124,7 @@ await test("async/tasks", async ctx => {
 		});
 	});
 
-	await ctx.test("manage focus", async () => {
+	await test("manage focus", async () => {
 		const input = <input /> as HTMLInputElement;
 		const dispose = capture(() => mount(document.body, input));
 		try {

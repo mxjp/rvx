@@ -1,13 +1,13 @@
 import { deepStrictEqual, notStrictEqual, strictEqual, throws } from "node:assert";
-import test from "node:test";
+import test, { suite } from "node:test";
 
 import { Attach, capture, Component, For, IndexFor, memo, mount, movable, Nest, render, Show, sig, teardown, uncapture, View, watch, watchUpdates } from "rvx";
 import { wrap } from "rvx/store";
 
 import { assertEvents, boundaryEvents, lifecycleEvent, TestView, testView, text, withMsg } from "../common.js";
 
-await test("view", async ctx => {
-	await ctx.test("init incomplete", () => {
+await suite("view", async () => {
+	await test("init incomplete", () => {
 		throws(() => new View(() => {}), withMsg("G1"));
 		throws(() => new View(setBoundary => {
 			setBoundary(document.createTextNode("test"), undefined);
@@ -17,7 +17,7 @@ await test("view", async ctx => {
 		}), withMsg("G1"));
 	});
 
-	await ctx.test("init single node", () => {
+	await test("init single node", () => {
 		const view = new View(setBoundary => {
 			const node = <div>test</div> as HTMLElement;
 			setBoundary(node, node);
@@ -28,14 +28,14 @@ await test("view", async ctx => {
 		strictEqual(text(view.first), "test");
 	});
 
-	await ctx.test("init different nodes", () => {
+	await test("init different nodes", () => {
 		const { view } = testView();
 		strictEqual(view.parent instanceof DocumentFragment, true);
 		strictEqual(text(view.first), "f");
 		strictEqual(text(view.last), "l");
 	});
 
-	await ctx.test("boundary owner", () => {
+	await test("boundary owner", () => {
 		const events: unknown[] = [];
 		const view = testView();
 
@@ -63,7 +63,7 @@ await test("view", async ctx => {
 		assertEvents(events, []);
 	});
 
-	await ctx.test("take single node", () => {
+	await test("take single node", () => {
 		let node!: Node;
 		let parent!: Node;
 		const view = new View(setBoundary => {
@@ -76,7 +76,7 @@ await test("view", async ctx => {
 		strictEqual(node.parentNode, parent);
 	});
 
-	await ctx.test("detach single node", () => {
+	await test("detach single node", () => {
 		let node!: Node;
 		let parent!: Node;
 		const view = new View(setBoundary => {
@@ -89,7 +89,7 @@ await test("view", async ctx => {
 		strictEqual(node.parentNode, null);
 	});
 
-	await ctx.test("take multiple nodes", () => {
+	await test("take multiple nodes", () => {
 		const { view } = testView();
 		const frag = view.take();
 		strictEqual(frag instanceof DocumentFragment, true);
@@ -97,7 +97,7 @@ await test("view", async ctx => {
 		strictEqual(view.last, frag.lastChild);
 	});
 
-	await ctx.test("detach multiple nodes", () => {
+	await test("detach multiple nodes", () => {
 		const { view } = testView();
 		const parent = view.parent;
 		view.detach();
@@ -106,7 +106,7 @@ await test("view", async ctx => {
 		notStrictEqual(view.first.parentNode, parent);
 	});
 
-	await ctx.test("mount", async () => {
+	await test("mount", async () => {
 		const root = <div /> as HTMLElement;
 		strictEqual(text(root), "");
 		let view!: View;
@@ -124,8 +124,8 @@ await test("view", async ctx => {
 		strictEqual(text(view.take()), "test2");
 	});
 
-	await ctx.test("Nest", async ctx => {
-		await ctx.test("lifecycle", () => {
+	await suite("Nest", async () => {
+		await test("lifecycle", () => {
 			const events: unknown[] = [];
 			const signal = sig(0);
 
@@ -163,7 +163,7 @@ await test("view", async ctx => {
 			assertEvents(events, ["-2"]);
 		});
 
-		await ctx.test("boundary", () => {
+		await test("boundary", () => {
 			const events: unknown[] = [];
 
 			const inner = sig<TestView | undefined>(undefined);
@@ -202,7 +202,7 @@ await test("view", async ctx => {
 			assertEvents(events, [""]);
 		});
 
-		await ctx.test("render side effects", () => {
+		await test("render side effects", () => {
 			const events: unknown[] = [];
 			const signal = sig(0);
 			let view!: View;
@@ -224,8 +224,8 @@ await test("view", async ctx => {
 			assertEvents(events, ["s:0", "e:0", "s:1", "e:1", "s:2", "e:2", "s:3"]);
 		});
 
-		await ctx.test("error handling", async ctx => {
-			await ctx.test("expression, initialization", () => {
+		await suite("error handling", async () => {
+			await test("expression, initialization", () => {
 				const signal = sig(42);
 				throws(() => {
 					capture(() => {
@@ -240,7 +240,7 @@ await test("view", async ctx => {
 				signal.value = 77;
 			});
 
-			await ctx.test("expression, signal update", () => {
+			await test("expression, signal update", () => {
 				const signal = sig(42);
 				let view!: View;
 				const dispose = capture(() => {
@@ -269,7 +269,7 @@ await test("view", async ctx => {
 				strictEqual(text(view.take()), "123");
 			});
 
-			await ctx.test("component, initialization", () => {
+			await test("component, initialization", () => {
 				const signal = sig(42);
 				throws(() => {
 					capture(() => {
@@ -286,7 +286,7 @@ await test("view", async ctx => {
 				signal.value = 77;
 			});
 
-			await ctx.test("component, signal update", () => {
+			await test("component, signal update", () => {
 				const signal = sig(42);
 				let view!: View;
 				const dispose = capture(() => {
@@ -318,7 +318,7 @@ await test("view", async ctx => {
 			});
 		});
 
-		await ctx.test("component memo", () => {
+		await test("component memo", () => {
 			const events: unknown[] = [];
 			const signal = sig(0);
 
@@ -354,7 +354,7 @@ await test("view", async ctx => {
 			strictEqual(text(view.take()), "b 3");
 		});
 
-		await ctx.test("external state reset", () => {
+		await test("external state reset", () => {
 			const events: unknown[] = [];
 			const signal = sig();
 			const count = sig(0);
@@ -390,7 +390,7 @@ await test("view", async ctx => {
 			strictEqual(text(view.take()), "v1 2");
 		});
 
-		await ctx.test("internal state reset", () => {
+		await test("internal state reset", () => {
 			const events: unknown[] = [];
 			const signal = sig();
 			const count = sig(0);
@@ -424,7 +424,7 @@ await test("view", async ctx => {
 			strictEqual(text(view.take()), "v1 2");
 		});
 
-		await ctx.test("component from signal", () => {
+		await test("component from signal", () => {
 			const events: unknown[] = [];
 			const comp = sig<Component | undefined>(undefined);
 			const view = uncapture(() => <Nest>{comp}</Nest> as View);
@@ -452,7 +452,7 @@ await test("view", async ctx => {
 		});
 	});
 
-	await ctx.test("Show", () => {
+	await test("Show", () => {
 		const events: unknown[] = [];
 
 		const signal = sig(0, false);
@@ -509,7 +509,7 @@ await test("view", async ctx => {
 		})();
 	});
 
-	await ctx.test("For", async ctx => {
+	await suite("For", async () => {
 		function sequenceTest(sequence: unknown[][], withErrors: boolean) {
 			if (withErrors) {
 				sequence = structuredClone(sequence);
@@ -590,8 +590,8 @@ await test("view", async ctx => {
 		}
 
 		for (const withErrors of [false, true]) {
-			await ctx.test(withErrors ? "diff" : "error handling", async ctx => {
-				await ctx.test("fixed sequence", () => {
+			await suite(withErrors ? "diff" : "error handling", async () => {
+				await test("fixed sequence", () => {
 					sequenceTest([
 						// Initial items:
 						[1, 2, 3, 4, 5],
@@ -620,7 +620,7 @@ await test("view", async ctx => {
 					], withErrors);
 				});
 
-				await ctx.test("random", ctx => {
+				await test("random", ctx => {
 					const SEQ_SIZE = 100;
 					const MAX_COUNT = 20;
 					const MAX_OFFSET = 8;
@@ -655,7 +655,7 @@ await test("view", async ctx => {
 		}
 
 		for (const context of [capture, uncapture]) {
-			await ctx.test(`initial iteration error handling (${context.name})`, () => {
+			await test(`initial iteration error handling (${context.name})`, () => {
 				const events: unknown[] = [];
 				throws(() => {
 					context(() => {
@@ -677,7 +677,7 @@ await test("view", async ctx => {
 				assertEvents(events, context === capture ? ["+0", "+1", "e", "-0", "-1"] : ["+0", "+1", "e"]);
 			});
 
-			await ctx.test(`initial render error handling (${context.name})`, () => {
+			await test(`initial render error handling (${context.name})`, () => {
 				const events: unknown[] = [];
 				throws(() => {
 					context(() => {
@@ -699,7 +699,7 @@ await test("view", async ctx => {
 			});
 		}
 
-		await ctx.test("sequential item render side effects", () => {
+		await test("sequential item render side effects", () => {
 			const events: unknown[] = [];
 			const signal = sig([1]);
 			const view = uncapture(() => {
@@ -754,7 +754,7 @@ await test("view", async ctx => {
 			assertEvents(events, options.disposeEvents);
 		}
 
-		await ctx.test("lifecycle & update order", () => {
+		await test("lifecycle & update order", () => {
 			lifecycleTest({
 				sequence: [
 					[
@@ -793,7 +793,7 @@ await test("view", async ctx => {
 			});
 		});
 
-		await ctx.test("lifecycle & update order (NaN)", () => {
+		await test("lifecycle & update order (NaN)", () => {
 			lifecycleTest({
 				sequence: [
 					[
@@ -819,7 +819,7 @@ await test("view", async ctx => {
 			});
 		});
 
-		await ctx.test("iterator internal updates", async () => {
+		await test("iterator internal updates", async () => {
 			const proxy = wrap(["a", "b"]);
 			const view = uncapture(() => {
 				return <For each={proxy}>{v => v}</For> as View;
@@ -830,7 +830,7 @@ await test("view", async ctx => {
 		});
 	});
 
-	await ctx.test("IndexFor", async ctx => {
+	await suite("IndexFor", async () => {
 		function sequenceTest(sequence: unknown[][], withErrors: boolean) {
 			if (withErrors) {
 				sequence = structuredClone(sequence);
@@ -907,8 +907,8 @@ await test("view", async ctx => {
 		}
 
 		for (const withErrors of [false, true]) {
-			await ctx.test(withErrors ? "diff" : "error handling", async ctx => {
-				await ctx.test("fixed sequence", () => {
+			await suite(withErrors ? "diff" : "error handling", async () => {
+				await test("fixed sequence", () => {
 					sequenceTest([
 						[1, 2, 3],
 						[1, 4, 3],
@@ -919,7 +919,7 @@ await test("view", async ctx => {
 					], withErrors);
 				});
 
-				await ctx.test("random", ctx => {
+				await test("random", ctx => {
 					const SEQ_SIZE = 100;
 					const MAX_COUNT = 20;
 					const MAX_VALUE = 5;
@@ -945,7 +945,7 @@ await test("view", async ctx => {
 		}
 
 		for (const context of [capture, uncapture]) {
-			await ctx.test(`initial iteration error handling (${context.name})`, () => {
+			await test(`initial iteration error handling (${context.name})`, () => {
 				const events: unknown[] = [];
 				throws(() => {
 					context(() => {
@@ -967,7 +967,7 @@ await test("view", async ctx => {
 				assertEvents(events, context === capture ? ["+0", "+1", "e", "-0", "-1"] : ["+0", "+1", "e"]);
 			});
 
-			await ctx.test(`initial render error handling (${context.name})`, () => {
+			await test(`initial render error handling (${context.name})`, () => {
 				const events: unknown[] = [];
 				throws(() => {
 					context(() => {
@@ -989,7 +989,7 @@ await test("view", async ctx => {
 			});
 		}
 
-		await ctx.test("sequential item render side effects", () => {
+		await test("sequential item render side effects", () => {
 			const events: unknown[] = [];
 			const signal = sig([1]);
 			const view = uncapture(() => {
@@ -1044,7 +1044,7 @@ await test("view", async ctx => {
 			assertEvents(events, options.disposeEvents);
 		}
 
-		await ctx.test("lifecycle & update order", () => {
+		await test("lifecycle & update order", () => {
 			lifecycleTest({
 				sequence: [
 					[
@@ -1084,7 +1084,7 @@ await test("view", async ctx => {
 			});
 		});
 
-		await ctx.test("lifecycle & update order (NaN)", () => {
+		await test("lifecycle & update order (NaN)", () => {
 			lifecycleTest({
 				sequence: [
 					[
@@ -1110,7 +1110,7 @@ await test("view", async ctx => {
 			});
 		});
 
-		await ctx.test("iterator internal updates", async () => {
+		await test("iterator internal updates", async () => {
 			const proxy = wrap(["a", "b"]);
 			const view = uncapture(() => {
 				return <IndexFor each={proxy}>{v => v}</IndexFor> as View;
@@ -1121,7 +1121,7 @@ await test("view", async ctx => {
 		});
 	});
 
-	await ctx.test("movable", async () => {
+	await test("movable", async () => {
 		const inner = sig(1);
 		const view = uncapture(() => movable(<>
 			inner: {inner}
@@ -1149,7 +1149,7 @@ await test("view", async ctx => {
 		strictEqual(text(c.take()), "inner: 3");
 	});
 
-	await ctx.test("Attach", async () => {
+	await test("Attach", async () => {
 		const signal = sig(false);
 		const inner = sig(1);
 
