@@ -12,18 +12,19 @@ const dom = new JSDOM(`
 `);
 
 for (const key of [
-	"window",
-	"document",
-	"Range",
-	"Node",
-	"Text",
 	"Comment",
 	"customElements",
-	"DocumentFragment",
-	"HTMLElement",
-	"HTMLDivElement",
 	"CustomEvent",
+	"document",
+	"DocumentFragment",
+	"Element",
+	"HTMLDivElement",
+	"HTMLElement",
 	"MouseEvent",
+	"Node",
+	"Range",
+	"Text",
+	"window",
 ]) {
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 	(globalThis as any)[key] = dom.window[key];
