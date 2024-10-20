@@ -65,13 +65,13 @@
 		}
 	},
 	"scripts": {
-		"build": "concurrently npm:build:es npm:build:types && concurrently npm:build:bundle:* npm:build:tests",
+		"build": "mx-parallel npm:build:es npm:build:types && mx-parallel npm:build:bundle:* npm:build:tests",
 		"build:es": "tsc -p tsconfig-es.json",
 		"build:types": "tsc -p tsconfig-types.json",
 		"build:tests": "tsc -p tests/tsconfig.json",
 		"build:bundle:core": "node scripts/bundle.js -m core/index-builder -o dist/rvx",
 		"build:bundle:all": "node scripts/bundle.js -m async core/index-all element router store test -o dist/rvx.all",
-		"start": "concurrently npm:start:*",
+		"start": "mx-parallel npm:start:*",
 		"start:es": "tsc -p tsconfig-es.json -w --preserveWatchOutput",
 		"start:types": "tsc -p tsconfig-types.json -w --preserveWatchOutput",
 		"start:tests": "tsc -p tests/tsconfig.json -w --preserveWatchOutput",
@@ -79,10 +79,10 @@
 		"prepack": "npm run build && npm test && node scripts/prepack.js"
 	},
 	"devDependencies": {
+		"@mxjp/parallel": "^1.0.2",
 		"@rollup/plugin-terser": "^0.4.4",
 		"@types/jsdom": "^21.1.7",
 		"@types/node": "^22.7.4",
-		"concurrently": "^9.0.1",
 		"jsdom": "^25.0.1",
 		"prettier": "^3.3.3",
 		"rollup": "^4.24.0",
