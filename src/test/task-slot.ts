@@ -1,8 +1,6 @@
 import { TaskSlot } from "../async/task-slot.js";
 
 const KEY = Symbol.for("rvx:test:task-slots");
-
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const SLOTS: Map<unknown, TaskSlot> = (globalThis as any)[KEY] ?? ((globalThis as any)[KEY] = new Map());
 
 /**

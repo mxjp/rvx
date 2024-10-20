@@ -50,7 +50,6 @@ export class TaskSlot {
 		if (this.#running === undefined) {
 			this.#running = (async () => {
 				let task: Task | undefined;
-				// eslint-disable-next-line no-cond-assign
 				while (task = this.#queue.shift()) {
 					this.#blocked--;
 					if (task.blocking) {

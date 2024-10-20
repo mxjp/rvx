@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { createElement } from "../element-create.js";
 
 export * from "./types.js";
