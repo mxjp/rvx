@@ -18,7 +18,7 @@ export async function runAsyncTest<T>(fn: AsyncTestFn<T>): Promise<T> {
 	ctx.set(ASYNC, asyncCtx);
 
 	async function cleanup() {
-		for (let i = 0; i < teardown.length; i++) {
+		for (let i = teardown.length - 1; i >= 0; i--) {
 			teardown[i]();
 		}
 		return asyncCtx.complete();
