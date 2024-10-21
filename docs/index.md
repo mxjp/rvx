@@ -181,6 +181,36 @@ Signal updates are processed immediately. This ensures that your application sta
 	Final: 2
 	```
 
+### Side Effect Separation
+Reactive expressions can be separated from their side effects. This reduces the risk of accidental infinite loops known from other signal based systems.
+
+??? note "Example"
+	The code below shows how many times a checkbox has been checked using the `watch` primitive:
+	```jsx
+	const checked = sig(false);
+	const count = sig(0);
+
+	watch(checked, value => {
+		if (value) {
+			count.value++;
+		}
+	});
+
+	<>
+		<SomeCheckbox checked={checked} />
+		Checked {count} times.
+	</>
+	```
+
+	In contrast, the code below would create an infinite loop because `count` is also accessed to increment it:
+	```jsx
+	effect(() => {
+		if (checked.value) {
+			count.value++;
+		}
+	});
+	```
+
 
 
 ## Features
