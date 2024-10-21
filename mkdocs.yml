@@ -35,5 +35,7 @@ markdown_extensions:
 
 plugins:
   - privacy
+  - search:
+      enabled: true
 
 repo_url: https://github.com/mxjp/rvx
