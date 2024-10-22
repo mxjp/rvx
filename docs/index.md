@@ -1,5 +1,8 @@
 ---
 title: Overview
+hide:
+  - navigation
+  - toc
 ---
 
 ![](./assets/banner.svg)
@@ -220,7 +223,7 @@ Rvx supports all the client side features you would expect from a modern framewo
 + [Manually watching for state changes](./reference/signals.md#watch)
 + [Memoized computations](./reference/signals.md#memo)
 + [Two way data binding via mapped signals](./reference/components.md#signals)
-+ [Portaling elements](./reference/views/portalling.md)
++ [Portaling elements](./reference/views/render.md#portalling)
 + [Conditional rendering](./reference/views/index.md)
 + [Custom rendering logic](./reference/views/index.md#creating-views)
 + [Lifecycle hooks](./reference/lifecycle.md#teardown)

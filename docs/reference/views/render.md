@@ -1,4 +1,37 @@
-# Portalling
+# Wrapping Content
+The `mount` and `render` functions can be used to wrap arbitrary [supported content](../elements.md#content) in a view.
+
+=== "JSX"
+	```jsx
+	import { render } from "rvx";
+
+	const view = render(<>Hello World!</>);
+	```
+
+=== "No Build"
+	```jsx
+	import { render } from "rvx";
+
+	const view = render("Hello World!");
+	```
+
+The `mount` function also appends the created view to a parent node until the current [lifecycle](../lifecycle.md) is disposed.
+
+=== "JSX"
+	```jsx
+	import { mount } from "rvx";
+
+	mount(document.body, <>Hello World!</>);
+	```
+
+=== "No Build"
+	```jsx
+	import { mount } from "rvx";
+
+	mount(document.body, "Hello World!");
+	```
+
+## Portalling
 In addition to being the entry point of your application, the `mount` function allows you to render content into a different part of the DOM. This is commonly known as "portalling" in other frameworks.
 
 === "JSX"

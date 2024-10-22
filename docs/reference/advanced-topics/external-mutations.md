@@ -63,7 +63,7 @@ In the example below, updating `someSignal` will only overwrite the `"color"` pr
 ## Nodes
 
 !!! info
-	The term **logical node** in this section refers to anything that was used as [content](./elements.md#content) such as an element, a text node or an entire view.
+	The term **logical node** in this section refers to anything that was used as [content](../elements.md#content) such as an element, a text node or an entire view.
 
 	Each line of content in the example below represents a logical node:
 
@@ -88,7 +88,7 @@ In the example below, updating `someSignal` will only overwrite the `"color"` pr
 	_The concept of logical nodes doesn't exist at runtime and is only a means of explanation._
 
 !!! warning
-	This section only covers the content of elements, content returned from components and views created with the [`mount` or `render`](./views/index.md#creating-views) function.
+	This section only covers the content of elements, content returned from components and views created with the [`mount` or `render`](../views/render.md) function.
 
 	It's never safe to mutate the children of other views like `<Show>` or `<For>`.
 
@@ -173,16 +173,16 @@ The example below shows which logical nodes are safe and which are unsafe to rem
 	```
 
 !!! warning
-	Removing nodes doesn't affect their [lifecycle](./lifecycle.md) in any way and signal updates for removed nodes are still processed.
+	Removing nodes doesn't affect their [lifecycle](../lifecycle.md) in any way and signal updates for removed nodes are still processed.
 
 !!! warning
-	When removing entire views, you need to make sure that all nodes of that view remain in one same parent node at all time as explained [here](./views/index.md#view-api).
+	When removing entire views, you need to make sure that all nodes of that view remain in one same parent node at all time as explained [here](../views/index.md#view-api).
 
 ### Moving Nodes
 Moving nodes is safe, if [removing](#removing-nodes) them from their current position and [inserting](#inserting-nodes) them at the new position is safe.
 
 ### Referencing Logical Nodes
-Since the concept of logical nodes doesn't exist at runtime, you need to convert them into views using the [`render`](./views/index.md#creating-views) function. A view's `first` and `last` properties always refer to the respective DOM nodes of that view.
+Since the concept of logical nodes doesn't exist at runtime, you need to convert them into views using the [`render`](../views/render.md) function. A view's `first` and `last` properties always refer to the respective DOM nodes of that view.
 
 === "JSX"
 	```jsx
@@ -211,4 +211,4 @@ Since the concept of logical nodes doesn't exist at runtime, you need to convert
 	```
 
 !!! tip
-	You can assume, that the `first` and `last` properties always refer to an arbitrary node since [views are never empty](./views/index.md#implementing-views).
+	You can assume, that the `first` and `last` properties always refer to an arbitrary node since [views are never empty](../views/index.md#implementing-views).

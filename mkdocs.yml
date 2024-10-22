@@ -8,6 +8,7 @@ theme:
     - navigation.indexes
     - navigation.instant
     - navigation.instant.progress
+    - navigation.tabs
     - tac.follow
     - toc.integrate
     - content.tabs.link
@@ -23,6 +24,8 @@ extra_css:
   - stylesheets/extra.css
 
 markdown_extensions:
+  - attr_list
+  - md_in_html
   - admonition
   - pymdownx.details
   - pymdownx.highlight:

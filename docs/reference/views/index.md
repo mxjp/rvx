@@ -4,46 +4,15 @@ Views are an abstraction for sequences of DOM nodes that may change over time. T
 Views can be used as [element content](../elements.md#content) or can be returned from [component functions](../components.md).
 
 ## Creating Views
-Rvx provides the following components for common use cases:
+Rvx provides the following views for common use cases:
 
++ [`render` & `mount`](./render.md) - Wrap content in a view.
 + [`<Show>`](show.md) - Render content if a condition is met.
 + [`<Attach>`](attach.md) -  Attach already rendered content if a condition is met.
 + [`<Nest>`](nest.md) - Render a component returned from an expression.
 + [`<For>`](for.md) - Render content for each unique value in an iterable.
 + [`<IndexFor>`](index-for.md) - Render content for each index in an iterable.
 + [`movable`](movable.md) - Wrap content for safely moving it somewhere else.
-
-You can also directly create views from arbitrary [content](../elements.md#content) using the `render` and `mount` functions:
-
-=== "JSX"
-	```jsx
-	import { render } from "rvx";
-
-	const view = render(<>Hello World!</>);
-	```
-
-=== "No Build"
-	```jsx
-	import { render } from "./rvx.js";
-
-	const view = render("Hello World!");
-	```
-
-The `mount` function creates a view and appends it to an element until the current [lifecycle](../lifecycle.md) is disposed:
-
-=== "JSX"
-	```jsx
-	import { mount } from "rvx";
-
-	const view = mount(document.body, <>Hello World!</>);
-	```
-
-=== "No Build"
-	```jsx
-	import { mount } from "./rvx.js";
-
-	const view = mount(document.body, "Hello World!");
-	```
 
 ## View API
 As a consumer of the view API, you need to guarantee that:
@@ -80,6 +49,7 @@ When implementing your own view, you need to guarantee that:
 
 + The view doesn't break when the parent node is replaced or when a view consisting of only a single node is detached from it's parent.
 + The boundary is updated immediately after the first or last node has been updated.
++ There is at least one node at all time.
 + If there are multiple nodes, all nodes remain in the current parent.
 + If there are multiple nodes, the initial nodes must have a common parent.
 + When changing nodes, the view must remain in it's current position.
