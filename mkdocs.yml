@@ -3,6 +3,7 @@ site_url: https://mxjp.github.io/rvx
 theme:
   name: material
   logo: assets/logo.svg
+  favicon: assets/favicon.svg
   features:
     - navigation.indexes
     - navigation.instant
