@@ -1,4 +1,5 @@
 import { TaskSlot } from "../async/task-slot.js";
+import { uncapture } from "../core/lifecycle.js";
 
 const KEY = Symbol.for("rvx:test:task-slots");
 const SLOTS: Map<unknown, TaskSlot> = (globalThis as any)[KEY] ?? ((globalThis as any)[KEY] = new Map());
@@ -12,7 +13,7 @@ const SLOTS: Map<unknown, TaskSlot> = (globalThis as any)[KEY] ?? ((globalThis a
 export function exclusive<T>(key: unknown, action: () => T | Promise<T>): Promise<T> {
 	let slot = SLOTS.get(key);
 	if (slot === undefined) {
-		slot = new TaskSlot();
+		slot = uncapture(() => new TaskSlot());
 		SLOTS.set(key, slot);
 	}
 	return slot.block(action);
