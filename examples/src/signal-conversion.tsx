@@ -3,11 +3,11 @@
 # Signal Conversion
 When building user inputs, signals are the best way to pass data in and out of your components.
 
-This example shows a "trim" function that derives a signal to automatically trim user input.
+This example shows two functions `trim` and `debounce` that can be combined to change the behavior of inputs.
 
 */
 
-import { Signal, sig, watchUpdates } from "rvx";
+import { Signal, sig, teardown, watchUpdates } from "rvx";
 
 function trim(source: Signal<string>) {
 	const input = sig(source.value);
@@ -27,12 +27,41 @@ function trim(source: Signal<string>) {
 	return input;
 }
 
+function debounce<T>(source: Signal<T>, delay: number) {
+	const input = sig<T>(source.value);
+
+	let timer: number | undefined;
+
+	// Schedule writing into the source signal:
+	watchUpdates(input, value => {
+		clearTimeout(timer);
+		if (source.value !== value) {
+			timer = setTimeout(() => {
+				source.value = value;
+			}, delay);
+		}
+	});
+
+	// Always write into the input signal:
+	watchUpdates(source, value => {
+		input.value = value;
+	});
+
+	teardown(() => {
+		clearTimeout(timer);
+	});
+
+	return input;
+}
+
 export function Example() {
 	const text = sig("Hello World!");
 	return <div class="column">
 		<div class="row">
-			<TextInput value={text.pipe(trim)} />
-			<button on:click={() => { text.value = "Hello World!" }}>Reset</button>
+			Trim: <TextInput value={text.pipe(trim)} />
+		</div>
+		<div class="row">
+			Trim & debounce: <TextInput value={text.pipe(trim).pipe(debounce, 500)} />
 		</div>
 		<div>
 			You typed: <b>{() => JSON.stringify(text.value)}</b>

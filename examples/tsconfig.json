@@ -6,7 +6,8 @@
 		"strict": true,
 		"isolatedModules": true,
 		"jsx": "react-jsx",
-		"jsxImportSource": "rvx"
+		"jsxImportSource": "rvx",
+		"types": []
 	},
 	"include": [
 		"src"
