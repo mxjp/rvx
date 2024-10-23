@@ -135,11 +135,12 @@ You can watch arbitrary [expressions](./signals.md#expressions) using the `watch
 
 === "JSX"
 	```jsx
-	import { sig, watchFor, isPending } from "rvx";
+	import { sig } from "rvx";
+	import { watchFor, isPending } from "rvx/async";
 
 	// Wait for a specific signal value:
 	const count = sig(0);
-	doSomethingAsyncWithCount();
+	setInterval(() => { count.value++ }, 1000);
 	await watchFor(() => count.value > 7);
 
 	// Wait with a timeout:
@@ -155,7 +156,7 @@ You can watch arbitrary [expressions](./signals.md#expressions) using the `watch
 
 	// Wait for a specific signal value:
 	const count = sig(0);
-	doSomethingAsyncWithCount();
+	setInterval(() => { count.value++ }, 1000);
 	await watchFor(() => count.value > 7);
 
 	// Wait with a timeout:
