@@ -1,7 +1,7 @@
 import { strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
 
-import { ContextKey, deriveContext, extract, inject } from "rvx";
+import { ContextKey, deriveContext, extract, Inject, inject } from "rvx";
 
 import { withMsg } from "../common.js";
 
@@ -25,18 +25,36 @@ await suite("context", async () => {
 		strictEqual(extract("foo"), undefined);
 	});
 
-	await test("typed keys", () => {
-		const KEY_A = Symbol("a") as ContextKey<number>;
-		const KEY_B = Symbol("b") as ContextKey<string>;
-		deriveContext(context => {
-			context.set(KEY_A, 42);
-			context.set(KEY_B, "test");
+	await suite("typed keys", async () => {
+		await test("usage", () => {
+			const KEY_A = Symbol("a") as ContextKey<number>;
+			const KEY_B = Symbol("b") as ContextKey<string>;
+			deriveContext(context => {
+				context.set(KEY_A, 42);
+				context.set(KEY_B, "test");
 
-			const a: number | undefined = extract(KEY_A);
-			strictEqual(a, 42);
+				const a: number | undefined = extract(KEY_A);
+				strictEqual(a, 42);
 
-			const b: string | undefined = extract(KEY_B);
-			strictEqual(b, "test");
+				const b: string | undefined = extract(KEY_B);
+				strictEqual(b, "test");
+			});
+		});
+
+		await test("inject undefined", () => {
+			const KEY = Symbol("b") as ContextKey<string>;
+			deriveContext(context => {
+				context.set(KEY, undefined);
+				strictEqual(extract(KEY), undefined);
+			});
+			inject(KEY, undefined, () => {
+				strictEqual(extract(KEY), undefined);
+			});
+			<Inject key={KEY} value={undefined}>
+				{() => {
+					strictEqual(extract(KEY), undefined);
+				}}
+			</Inject>;
 		});
 	});
 

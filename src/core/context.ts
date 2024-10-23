@@ -42,7 +42,7 @@ export interface ReadonlyContext {
 export interface Context extends ReadonlyContext {
 	clear(): void;
 	delete(key: unknown): boolean;
-	set<K>(key: K, value: ContextValue<K>): void;
+	set<K>(key: K, value: ContextValue<K> | undefined): void;
 }
 
 /**
@@ -80,7 +80,7 @@ export function extract<K>(key: K): ContextValue<K> | undefined {
  * @param fn The function to run.
  * @returns The function's return value.
  */
-export function inject<K, R>(key: K, value: ContextValue<K>, fn: () => R): R {
+export function inject<K, R>(key: K, value: ContextValue<K> | undefined, fn: () => R): R {
 	const context = new Map(getContext() as Map<any, any>) as Context;
 	context.set(key, value);
 	return runInContext(context, fn);
@@ -100,7 +100,7 @@ export function inject<K, R>(key: K, value: ContextValue<K>, fn: () => R): R {
  */
 export function Inject<K>(props: {
 	key: K;
-	value: ContextValue<K>;
+	value: ContextValue<K> | undefined;
 	children: Component;
 }): unknown {
 	return inject(props.key, props.value, props.children);

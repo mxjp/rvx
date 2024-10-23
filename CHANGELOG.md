@@ -1,5 +1,8 @@
 # Changelog
 
+## 16.2
++ Allow `undefined` in context values.
+
 ## 16.1
 + Add `Component` utility type.
 + Fix observer tracking isolation.
