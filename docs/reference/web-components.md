@@ -110,7 +110,7 @@ The `reflect` function can be used to get a signal that reflects an attribute va
 		get count() {
 			return Number(this.#count.value);
 		}
-		set count(value: number) {
+		set count(value) {
 			this.#count.value = String(value);
 		}
 	}
