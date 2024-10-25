@@ -1,13 +1,11 @@
-import { join } from "node:path";
-import { fileURLToPath } from "node:url";
-import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
-
-import { rollup } from "rollup";
-import { dts } from "rollup-plugin-dts";
-import prettier from "rollup-plugin-prettier";
-import parseArgs from "yargs-parser";
 import terser from "@rollup/plugin-terser";
 import { createHash } from "node:crypto";
+import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { rollup } from "rollup";
+import { dts } from "rollup-plugin-dts";
+import parseArgs from "yargs-parser";
 
 const root = join(fileURLToPath(import.meta.url), "../..");
 const args = parseArgs(process.argv.slice(2), {
@@ -42,7 +40,6 @@ for (const name of modules) {
 }
 
 const build = join(root, "build");
-const dist = join(root, "dist");
 
 await mkdir(build, { recursive: true });
 
@@ -53,6 +50,22 @@ await writeFile(join(build, `${entryBase}.d.ts`), entryContent);
 const license = await readFile(join(root, "LICENSE"), "utf-8");
 const banner = `/*!\n${license}*/`;
 
+const format = {
+	generateBundle(_options, bundle) {
+		for (const name in bundle) {
+			const asset = bundle[name];
+			if (asset.type === "chunk") {
+				let code = asset.code;
+				code = code.replace(/^( {4})+/gm, c => "\t".repeat(c.length / 4));
+				if (/\t (?!\*)/m.test(code)) {
+					throw new Error("output indentation is broken");
+				}
+				asset.code = code;
+			}
+		}
+	},
+};
+
 {
 	const bundle = await rollup({
 		logLevel: "silent",
@@ -62,17 +75,8 @@ const banner = `/*!\n${license}*/`;
 		format: "es",
 		file: join(root, output + ".js"),
 		plugins: [
-			prettier({
-				parser: "acorn",
-				useTabs: true,
-				printWidth: 120,
-				singleQuote: false,
-				semi: true,
-				arrowParens: "avoid",
-				bracketSameLine: true,
-				bracketSpacing: true,
-			}),
 			{ banner },
+			format,
 		],
 	});
 	await bundle.write({
@@ -94,6 +98,7 @@ const banner = `/*!\n${license}*/`;
 				tsconfig: join(root, "tsconfig-types.json"),
 			}),
 			{ banner },
+			format,
 		],
 	});
 	await bundle.write({
