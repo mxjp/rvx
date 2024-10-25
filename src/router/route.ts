@@ -1,4 +1,3 @@
-import { extract, inject } from "../core/context.js";
 import { Expression, get, sig, watch } from "../core/signals.js";
 import { Nest } from "../core/view.js";
 import { ChildRouter } from "./child-router.js";
@@ -161,7 +160,7 @@ export function Routes(props: {
 	 */
 	routes: Expression<Iterable<ComponentRoute>>;
 }): unknown {
-	const router = extract(ROUTER);
+	const router = ROUTER.current;
 	if (!router) {
 		// Router is not available in the current context:
 		throw new Error("G3");
@@ -171,7 +170,7 @@ export function Routes(props: {
 		children: () => {
 			const match = watched.match();
 			if (match) {
-				return () => inject(ROUTER, new ChildRouter(router, match.path, watched.rest), () => {
+				return () => ROUTER.inject(new ChildRouter(router, match.path, watched.rest), () => {
 					return match.route.content({ params: match.params });
 				});
 			}

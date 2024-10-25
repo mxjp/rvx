@@ -1,4 +1,4 @@
-import { extract, wrapContext } from "./context.js";
+import { Context } from "./context.js";
 import { ClassValue, EventListener, HTML, NODE, NodeTarget, StyleValue, XMLNS } from "./element-common.js";
 import { appendContent, setAttr, setClass, setStyle, TagNameMap } from "./internals.js";
 import { Expression, watch } from "./signals.js";
@@ -17,7 +17,7 @@ export class ElementBuilder<E extends Element> implements NodeTarget {
 	on<K extends keyof HTMLElementEventMap>(name: K, listener: EventListener<HTMLElementEventMap[K]>, options?: AddEventListenerOptions): this;
 	on<E extends Event>(name: string, listener: EventListener<E>, options?: AddEventListenerOptions): this;
 	on(name: string, listener: EventListener<Event>, options?: AddEventListenerOptions): this {
-		this.elem.addEventListener(name, wrapContext(listener), options);
+		this.elem.addEventListener(name, Context.capture(listener), options);
 		return this;
 	}
 
@@ -56,5 +56,5 @@ export class ElementBuilder<E extends Element> implements NodeTarget {
 export function e<K extends keyof TagNameMap>(tagName: K): ElementBuilder<TagNameMap[K]>;
 export function e<E extends Element>(tagName: string): ElementBuilder<E>;
 export function e(tagName: string): ElementBuilder<Element> {
-	return new ElementBuilder(document.createElementNS(extract(XMLNS) ?? HTML, tagName));
+	return new ElementBuilder(document.createElementNS(XMLNS.current ?? HTML, tagName));
 }

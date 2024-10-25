@@ -1,4 +1,3 @@
-import { extract } from "../core/context.js";
 import { sig } from "../core/signals.js";
 import { Nest, View } from "../core/view.js";
 import { ASYNC } from "./async-context.js";
@@ -55,7 +54,7 @@ export function Async<T>(props: {
 		promise = source;
 	}
 
-	const ac = extract(ASYNC);
+	const ac = ASYNC.current;
 	promise.then(value => {
 		state.value = { type: "resolved", value };
 	}, (value: unknown) => {

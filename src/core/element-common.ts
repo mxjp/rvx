@@ -1,4 +1,4 @@
-import { ContextKey } from "./context.js";
+import { Context } from "./context.js";
 import { Expression } from "./signals.js";
 
 /**
@@ -19,18 +19,9 @@ export const MATHML = "http://www.w3.org/1998/Math/MathML";
 export type XMLNS = typeof HTML | typeof SVG | typeof MATHML;
 
 /**
- * Key for setting the namespace URI for newly created elements.
- *
- * @example
- * ```tsx
- * import { XMLNS, SVG, Inject } from "rvx";
- *
- * <Inject key={XMLNS} value={SVG}>
- *   {() => <svg>...</svg>}
- * </Inject>
- * ```
+ * Context for setting the namespace URI for new elements.
  */
-export const XMLNS = Symbol.for("rvx:namespace") as ContextKey<XMLNS>;
+export const XMLNS = new Context<XMLNS>();
 
 export type ClassValue = Expression<undefined | null | false | string | Record<string, Expression<boolean | undefined>> | ClassValue[]>;
 

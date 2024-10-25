@@ -1,7 +1,7 @@
 import { strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 
-import { capture, extract, inject, mount, uncapture, watch, wrapContext } from "rvx";
+import { capture, Context, mount, uncapture, watch } from "rvx";
 import { isPending, isSelfPending, TASKS, Tasks, waitFor } from "rvx/async";
 
 import { assertEvents, future } from "../common.js";
@@ -97,12 +97,12 @@ await suite("async/tasks", async () => {
 		strictEqual(isPending(), false);
 		strictEqual(isSelfPending(), false);
 
-		await inject(TASKS, uncapture(() => new Tasks()), () => {
-			const outer = extract(TASKS);
+		await TASKS.inject(uncapture(() => new Tasks()), () => {
+			const outer = TASKS.current;
 			strictEqual(outer instanceof Tasks, true);
 
-			inject(TASKS, uncapture(() => new Tasks(outer)), () => {
-				strictEqual(extract(TASKS)?.parent, outer);
+			TASKS.inject(uncapture(() => new Tasks(outer)), () => {
+				strictEqual(TASKS.current?.parent, outer);
 			});
 
 			const [a, resolveA] = future();
@@ -112,12 +112,12 @@ await suite("async/tasks", async () => {
 			strictEqual(isSelfPending(), true);
 
 			return Promise.resolve()
-				.then(wrapContext(() => {
+				.then(Context.capture(() => {
 					strictEqual(isPending(), true);
 					strictEqual(isSelfPending(), true);
 				}))
 				.then(resolveA)
-				.then(wrapContext(() => {
+				.then(Context.capture(() => {
 					strictEqual(isPending(), false);
 					strictEqual(isSelfPending(), false);
 				}));

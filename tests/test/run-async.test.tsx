@@ -1,6 +1,7 @@
 import { rejects, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { extract, teardown } from "rvx";
+import { teardown } from "rvx";
+import { ASYNC } from "rvx/async";
 import { runAsyncTest } from "rvx/test";
 import { assertEvents } from "../common.js";
 
@@ -12,6 +13,7 @@ await suite("test/run-async", async () => {
 				teardown(() => {});
 			});
 			testCtx.use(() => {
+				strictEqual(ASYNC.current, testCtx.asyncCtx);
 				teardown(() => {
 					events.push("a");
 				});
@@ -88,18 +90,6 @@ await suite("test/run-async", async () => {
 		}), error => {
 			assertEvents(events, ["throw in flow", "throw out of flow"]);
 			return error instanceof Error && error.message === "in flow";
-		});
-	});
-
-	await test("context", async () => {
-		await runAsyncTest(async testCtx => {
-			testCtx.use(() => {
-				testCtx.ctx.set("foo", "bar");
-			});
-			strictEqual(extract("foo"), undefined);
-			testCtx.use(() => {
-				strictEqual(extract("foo"), "bar");
-			});
 		});
 	});
 });

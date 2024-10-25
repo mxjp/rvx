@@ -1,4 +1,4 @@
-import { extract, wrapContext } from "./context.js";
+import { Context } from "./context.js";
 import { ClassValue, EventListener, HTML, StyleValue, XMLNS } from "./element-common.js";
 import { appendContent, setAttr, setClass, setStyle, TagNameMap } from "./internals.js";
 import { Expression, watch } from "./signals.js";
@@ -39,7 +39,7 @@ export type EventArgs<E extends Event> = [
 export function createElement<K extends keyof TagNameMap>(tagName: K, attrs: Attributes<TagNameMap[K]>, content: unknown): TagNameMap[K];
 export function createElement<E extends Element>(tagName: string, attrs: Attributes<E>, content: unknown): E;
 export function createElement(tagName: string, attrs: Attributes<TagNameMap[keyof TagNameMap]>, content: unknown): Element {
-	const elem = document.createElementNS(extract(XMLNS) ?? HTML, tagName);
+	const elem = document.createElementNS(XMLNS.current ?? HTML, tagName);
 	for (const name in attrs) {
 		const value = attrs[name];
 		if (value !== undefined) {
@@ -52,7 +52,7 @@ export function createElement(tagName: string, attrs: Attributes<TagNameMap[keyo
 				} else {
 					listener = value as EventListener<Event>;
 				}
-				elem.addEventListener(name.slice(3), wrapContext(listener), options);
+				elem.addEventListener(name.slice(3), Context.capture(listener), options);
 			} else if (name.startsWith("prop:")) {
 				const prop = name.slice(5);
 				watch(value, value => (elem as any)[prop] = value);

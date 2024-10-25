@@ -1,4 +1,4 @@
-import { ContextKey, extract } from "../core/context.js";
+import { Context } from "../core/context.js";
 import { teardown } from "../core/lifecycle.js";
 import { sig, watch } from "../core/signals.js";
 
@@ -132,14 +132,14 @@ export class Tasks {
 	 * Create a new tasks instance using the {@link extract current} instance as parent.
 	 */
 	static fork(options?: TasksOptions): Tasks {
-		return new Tasks(extract(TASKS), options);
+		return new Tasks(TASKS.current, options);
 	}
 }
 
 /**
- * Context key for the current {@link Tasks} instance.
+ * Context for the current {@link Tasks} instance.
  */
-export const TASKS = Symbol.for("rvx:tasks") as ContextKey<Tasks>;
+export const TASKS = new Context<Tasks>;
 
 /**
  * Check if there are any pending tasks in the current tasks instance.
@@ -154,7 +154,7 @@ export const TASKS = Symbol.for("rvx:tasks") as ContextKey<Tasks>;
  * ```
  */
 export function isSelfPending(): boolean {
-	return extract(TASKS)?.selfPending ?? false;
+	return TASKS.current?.selfPending ?? false;
 }
 
 /**
@@ -170,7 +170,7 @@ export function isSelfPending(): boolean {
  * ```
  */
 export function isPending(): boolean {
-	return extract(TASKS)?.pending ?? false;
+	return TASKS.current?.pending ?? false;
 }
 
 /**
@@ -192,7 +192,7 @@ export function isPending(): boolean {
  * ```
  */
 export function setPending(): void {
-	extract(TASKS)?.setPending();
+	TASKS.current?.setPending();
 }
 
 /**
@@ -203,5 +203,5 @@ export function setPending(): void {
  * @param source The async function or promise to wait for.
  */
 export function waitFor(source: TaskSource): void {
-	extract(TASKS)?.waitFor(source);
+	TASKS.current?.waitFor(source);
 }

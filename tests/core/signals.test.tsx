@@ -1,7 +1,7 @@
 import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
 
-import { batch, capture, effect, extract, get, inject, isTracking, map, memo, optionalString, sig, string, teardown, TeardownHook, track, trigger, TriggerPipe, uncapture, untrack, watch, watchUpdates } from "rvx";
+import { batch, capture, Context, effect, get, isTracking, map, memo, optionalString, sig, string, teardown, TeardownHook, track, trigger, TriggerPipe, uncapture, untrack, watch, watchUpdates } from "rvx";
 
 import { assertEvents, lifecycleEvent, withMsg } from "../common.js";
 
@@ -586,18 +586,21 @@ await suite("signals", async () => {
 		await test("context", () => {
 			const events: unknown[] = [];
 			const signal = sig(1);
-			inject("test", 42, () => {
+
+			const ctx = new Context();
+			ctx.inject(42, () => {
 				uncapture(() => watch(() => {
 					strictEqual(isTracking(), true);
-					events.push(`e${extract("test")}`);
+					events.push(`e${ctx.current}`);
 					strictEqual(isTracking(), true);
 					signal.access();
 				}, () => {
-					events.push(`c${extract("test")}`);
+					events.push(`c${ctx.current}`);
 				}));
 			});
+
 			assertEvents(events, ["e42", "c42"]);
-			inject("test", 7, () => {
+			ctx.inject(7, () => {
 				signal.notify();
 			});
 			assertEvents(events, ["e42", "c42"]);

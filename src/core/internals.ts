@@ -1,4 +1,3 @@
-import type { ReadonlyContext } from "./context.js";
 import { type ClassValue, NODE, NodeTarget, type StyleValue } from "./element-common.js";
 import type { TeardownHook } from "./lifecycle.js";
 import { Expression, get, watch } from "./signals.js";
@@ -8,11 +7,6 @@ import { View } from "./view.js";
  * The next suffix for generating unique ids in the current thread.
  */
 export const NEXT_ID: { value: number | bigint } = { value: 0 };
-
-/**
- * A stack where the last item is the current context.
- */
-export const CONTEXT_STACK: (ReadonlyContext | undefined)[] = [];
 
 /**
  * A stack where the last item may be an array which teardown hooks are captured in.

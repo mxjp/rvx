@@ -1,7 +1,7 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 
-import { createElement, extract, inject, NODE, sig, StyleMap, uncapture } from "rvx";
+import { Context, createElement, NODE, sig, StyleMap, uncapture } from "rvx";
 import { e } from "rvx/builder";
 
 import { assertEvents } from "../common.js";
@@ -38,11 +38,12 @@ await suite("element", async () => {
 			await test("events", () => {
 				const events: unknown[] = [];
 
-				const elem = inject("foo", "bar", () => {
+				const ctx = new Context<string>();
+				const elem = ctx.inject("bar", () => {
 					return jsx
 						? <div
 							on:click={event => {
-								strictEqual(extract("foo"), "bar");
+								strictEqual(ctx.current, "bar");
 								// Don't remove, only for testing the type:
 								// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 								const _: MouseEvent = event;
@@ -50,7 +51,7 @@ await suite("element", async () => {
 							}}
 							on:custom-event={[
 								(event: CustomEvent) => {
-									strictEqual(extract("foo"), "bar");
+									strictEqual(ctx.current, "bar");
 									events.push(event);
 								},
 								{ capture: true },
@@ -58,14 +59,14 @@ await suite("element", async () => {
 						/> as HTMLElement
 						: e("div")
 							.on("click", event => {
-								strictEqual(extract("foo"), "bar");
+								strictEqual(ctx.current, "bar");
 								// Don't remove, only for testing the type:
 								// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 								const _: MouseEvent = event;
 								events.push(event);
 							})
 							.on("custom-event", event => {
-								strictEqual(extract("foo"), "bar");
+								strictEqual(ctx.current, "bar");
 								events.push(event);
 							}, { capture: true })
 							.elem;

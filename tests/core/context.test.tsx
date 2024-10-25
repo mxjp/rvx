@@ -1,96 +1,128 @@
-import { strictEqual, throws } from "node:assert";
+import { strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-
-import { ContextKey, deriveContext, extract, Inject, inject } from "rvx";
-
-import { withMsg } from "../common.js";
+import { Context, ContextEntry } from "rvx";
 
 await suite("context", async () => {
-	await test("nesting", () => {
-		strictEqual(extract("foo"), undefined);
+	await test("inject", () => {
+		const ctx = new Context<number>();
+		strictEqual(ctx.current, undefined);
+		strictEqual(ctx.inject(1, () => {
+			strictEqual(ctx.current, 1);
 
-		inject("foo", "bar", () => {
-			strictEqual(extract("foo"), "bar");
+			ctx.inject(2, () => {
+				strictEqual(ctx.current, 2);
 
-			deriveContext(context => {
-				strictEqual(extract("foo"), "bar");
-				strictEqual(context.get("foo"), "bar");
-				context.set("foo", "baz");
-				strictEqual(extract("foo"), "baz");
+				ctx.inject(undefined, () => {
+					strictEqual(ctx.current, undefined);
+				});
 			});
 
-			strictEqual(extract("foo"), "bar");
-		});
-
-		strictEqual(extract("foo"), undefined);
+			return 42;
+		}), 42);
 	});
 
-	await suite("typed keys", async () => {
-		await test("usage", () => {
-			const KEY_A = Symbol("a") as ContextKey<number>;
-			const KEY_B = Symbol("b") as ContextKey<string>;
-			deriveContext(context => {
-				context.set(KEY_A, 42);
-				context.set(KEY_B, "test");
+	await suite("snapshot", async () => {
+		await test("external reentry", () => {
+			const a = new Context<number>();
+			const b = new Context<number>();
 
-				const a: number | undefined = extract(KEY_A);
-				strictEqual(a, 42);
+			let snapshot!: ContextEntry;
 
-				const b: string | undefined = extract(KEY_B);
-				strictEqual(b, "test");
+			a.inject(1, () => {
+				strictEqual(a.current, 1);
+				snapshot = Context.capture();
+			});
+
+			strictEqual(a.current, undefined);
+			snapshot(() => {
+				strictEqual(a.current, 1);
+				strictEqual(b.current, undefined);
+			});
+			strictEqual(a.current, undefined);
+
+			b.inject(2, () => {
+				strictEqual(a.current, undefined);
+				strictEqual(b.current, 2);
+
+				strictEqual(a.current, undefined);
+				snapshot(() => {
+					strictEqual(a.current, 1);
+					strictEqual(b.current, undefined);
+				});
+				strictEqual(a.current, undefined);
 			});
 		});
 
-		await test("inject undefined", () => {
-			const KEY = Symbol("b") as ContextKey<string>;
-			deriveContext(context => {
-				context.set(KEY, undefined);
-				strictEqual(extract(KEY), undefined);
-			});
-			inject(KEY, undefined, () => {
-				strictEqual(extract(KEY), undefined);
-			});
-			<Inject key={KEY} value={undefined}>
-				{() => {
-					strictEqual(extract(KEY), undefined);
-				}}
-			</Inject>;
-		});
-	});
+		await test("nested reentry", () => {
+			const a = new Context<number>();
+			const b = new Context<number>();
 
-	await suite("error handling", async () => {
-		await test("inject", () => {
-			strictEqual(extract("foo"), undefined);
-			inject("foo", "bar", () => {
-				strictEqual(extract("foo"), "bar");
-				throws(() => {
-					inject("foo", "baz", () => {
-						strictEqual(extract("foo"), "baz");
-						throw new Error("test");
+			a.inject(1, () => {
+				strictEqual(a.current, 1);
+
+				const snapshot = Context.capture();
+				snapshot(() => {
+					strictEqual(a.current, 1);
+					strictEqual(b.current, undefined);
+				});
+
+				b.inject(2, () => {
+					snapshot(() => {
+						strictEqual(a.current, 1);
+						strictEqual(b.current, undefined);
 					});
-				}, withMsg("test"));
-				strictEqual(extract("foo"), "bar");
+
+					strictEqual(a.current, 1);
+					strictEqual(b.current, 2);
+
+					snapshot(() => {
+						a.inject(3, () => {
+							strictEqual(a.current, 3);
+							strictEqual(b.current, undefined);
+							b.inject(4, () => {
+								strictEqual(a.current, 3);
+								strictEqual(b.current, 4);
+								snapshot(() => {
+									strictEqual(a.current, 1);
+									strictEqual(b.current, undefined);
+								});
+							});
+						});
+
+						snapshot(() => {
+							strictEqual(a.current, 1);
+							strictEqual(b.current, undefined);
+						});
+					});
+
+					snapshot(() => {
+						strictEqual(a.current, 1);
+						strictEqual(b.current, undefined);
+					});
+				});
+
+				snapshot(() => {
+					strictEqual(a.current, 1);
+					strictEqual(b.current, undefined);
+				});
 			});
-			strictEqual(extract("foo"), undefined);
 		});
 
-		await test("deriveContext", async () => {
-			strictEqual(extract("foo"), undefined);
-			deriveContext(outer => {
-				outer.set("foo", "bar");
-				strictEqual(extract("foo"), "bar");
-				throws(() => {
-					deriveContext(inner => {
-						inner.set("foo", "baz");
-						outer.set("bar", "boo");
-						strictEqual(extract("foo"), "baz");
-						throw new Error("test");
-					});
-				}, withMsg("test"));
-				strictEqual(extract("foo"), "bar");
-				strictEqual(extract("bar"), "boo");
+		await test("inert snapshot", () => {
+			const snapshot = Context.capture();
+			strictEqual(snapshot(() => 42), 42);
+		});
+
+		await test("snapshot callback", () => {
+			const ctx = new Context<number>();
+			let snapshot!: (a: number, b: number) => number;
+			ctx.inject(2, () => {
+				snapshot = Context.capture((a: number, b: number) => {
+					return ctx.current! * a * b;
+				});
+				strictEqual(snapshot(3, 4), 24);
 			});
-			strictEqual(extract("foo"), undefined);
+			strictEqual(snapshot(5, 6), 60);
 		});
 	});
 });

@@ -1,4 +1,4 @@
-import { ContextKey } from "../core/context.js";
+import { Context } from "../core/context.js";
 
 /**
  * Represents a path with optional query parameters that may change over time.
@@ -57,6 +57,6 @@ export interface Router {
 export type QueryInit = ConstructorParameters<typeof URLSearchParams>[0];
 
 /**
- * Context key for the current {@link Router} instance.
+ * Context for the current router.
  */
-export const ROUTER = Symbol.for("rvx:router") as ContextKey<Router>;
+export const ROUTER = new Context<Router>();

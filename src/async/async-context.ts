@@ -1,4 +1,4 @@
-import { ContextKey, extract } from "../core/context.js";
+import { Context } from "../core/context.js";
 import { sig } from "../core/signals.js";
 
 /**
@@ -80,7 +80,7 @@ export class AsyncContext {
 	 * Create a new async context using the {@link extract current} context as parent.
 	 */
 	static fork(): AsyncContext {
-		return new AsyncContext(extract(ASYNC));
+		return new AsyncContext(ASYNC.current);
 	}
 }
 
@@ -97,6 +97,6 @@ export class AsyncError extends Error {
 }
 
 /**
- * Context key for the current {@link AsyncContext}.
+ * Context for the current {@link AsyncContext}.
  */
-export const ASYNC = Symbol.for("rvx:async") as ContextKey<AsyncContext>;
+export const ASYNC = new Context<AsyncContext>();
