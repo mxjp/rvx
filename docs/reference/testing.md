@@ -32,7 +32,7 @@ Rvx provides a lightweight wrapper for running small synchronous tests that take
 	```jsx
 	import { runTest, querySelector } from "rvx/test";
 
-	runTest(ctx => {
+	runTest(() => {
 		const count = sig(0);
 		const view = mount(
 			document.body,
@@ -47,7 +47,7 @@ Rvx provides a lightweight wrapper for running small synchronous tests that take
 	```jsx
 	import { runTest, querySelector } from "./rvx.js";
 
-	runTest(ctx => {
+	runTest(() => {
 		const count = sig(0);
 		const view = mount(
 			document.body,
