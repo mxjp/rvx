@@ -8,10 +8,16 @@ const _capture = <T>(context: Context<T>): ContextState<T> => {
 	};
 };
 
+/**
+ * A context for implicitly passing values along the call stack.
+ */
 export class Context<T> {
 	#stack: (T | undefined)[] = [];
 	#windowId = 0;
 
+	/**
+	 * Get the current value for this context.
+	 */
 	get current(): T | undefined {
 		if (this.#windowId === WINDOWS.length) {
 			const stack = this.#stack;
@@ -19,6 +25,14 @@ export class Context<T> {
 		}
 	}
 
+	/**
+	 * Run a function while injecting the specified value for this context.
+	 *
+	 * @param value The value to inject.
+	 * @param fn The function to run.
+	 * @param args The function arguments.
+	 * @returns The function's return value.
+	 */
 	inject<F extends (...args: any) => any>(value: T | undefined, fn: F, ...args: Parameters<F>): ReturnType<F> {
 		const window = WINDOWS[WINDOWS.length - 1];
 		const stack = this.#stack;
@@ -35,10 +49,21 @@ export class Context<T> {
 		}
 	}
 
+	/**
+	 * Shorthand for creating a context-value pair for this context.
+	 */
 	with(value: T | undefined): ContextState<T> {
 		return { context: this, value };
 	}
 
+	/**
+	 * Run a function in a new context window (ignoring all current contexts) while injecting the specified states.
+	 *
+	 * @param states The states to inject.
+	 * @param fn The function to run.
+	 * @param args The function arguments.
+	 * @returns The function's return value.
+	 */
 	static window<F extends (...args: any) => any>(states: ContextState<unknown>[], fn: F, ...args: Parameters<F>): ReturnType<F> {
 		try {
 			WINDOWS.push([]);
@@ -48,6 +73,14 @@ export class Context<T> {
 		}
 	}
 
+	/**
+	 * Run a function while injecting the specified states.
+	 *
+	 * @param states The states to inject.
+	 * @param fn The function to run.
+	 * @param args The function arguments.
+	 * @returns The function's return value.
+	 */
 	static inject<F extends (...args: any) => any>(states: ContextState<unknown>[], fn: F, ...args: Parameters<F>): ReturnType<F> {
 		const active: ActiveState<unknown>[] = [];
 		const windowId = WINDOWS.length;
@@ -71,6 +104,12 @@ export class Context<T> {
 		}
 	}
 
+	/**
+	 * Capture all current context states and wrap a function to always run with only these states injected.
+	 *
+	 * @param fn The function to wrap.
+	 * @returns The wrapped function.
+	 */
 	static wrap<T extends (...args: any) => any>(fn: T): T {
 		const states = WINDOWS[WINDOWS.length - 1].map(_capture);
 		return ((...args) => Context.window<any>(states, fn, ...args)) as T;
@@ -87,6 +126,9 @@ export interface ContextState<T> {
 	value: T | undefined;
 }
 
+/**
+ * Component for injecting context values while rendering.
+ */
 export function Inject<T>(props: {
 	/** The context to inject into. */
 	context: Context<T>;

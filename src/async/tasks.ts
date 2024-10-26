@@ -180,9 +180,9 @@ export function isPending(): boolean {
  *
  * @example
  * ```tsx
- * import { inject, TASKS, Tasks, capture, setPending, isPending } from "rvx";
+ * import { TASKS, Tasks, capture, setPending, isPending } from "rvx";
  *
- * inject(TASKS, new Tasks(), () => {
+ * TASKS.inject(new Tasks(), () => {
  *   isPending(); // => false
  *   const stop = capture(setPending);
  *   isPending(); // => true
