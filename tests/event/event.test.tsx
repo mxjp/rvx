@@ -1,11 +1,12 @@
 import { throws } from "node:assert";
 import test, { suite } from "node:test";
 
-import { capture, Emitter, uncapture } from "rvx";
+import { capture, uncapture } from "rvx";
+import { Emitter } from "rvx/event";
 
 import { assertEvents, withMsg } from "../common.js";
 
-await suite("events", async () => {
+await suite("event", async () => {
 	await test("usage", () => {
 		const events: unknown[] = [];
 		const emitter = new Emitter<[foo: string, bar: number]>();

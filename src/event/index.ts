@@ -1,4 +1,4 @@
-import { teardown } from "./lifecycle.js";
+import { teardown } from "../core/lifecycle.js";
 
 export interface EventFn<T extends unknown[]> {
 	(...args: T): void;
@@ -16,7 +16,7 @@ export interface Event<T extends unknown[]> {
  *
  * @example
  * ```tsx
- * import { Emitter } from "rvx";
+ * import { Emitter } from "rvx/event";
  *
  * const emitter = new Emitter<[address: string, port: number]>();
  *
@@ -40,6 +40,8 @@ export class Emitter<T extends unknown[]> {
 
 	/**
 	 * Emit this event.
+	 *
+	 * Note, that listeners will run immediately in the current context.
 	 */
 	emit(...args: T): void {
 		this.#listeners.forEach(fn => fn(...args));

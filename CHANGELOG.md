@@ -4,6 +4,7 @@
 + **Breaking:** Replaced the entire context API.
 + **Breaking:** Rename `isolate` to `teardownOnError`.
 + **Breaking:** Moved `uniqueId` and `UseUniqueId` to `rvx/id`.
+* **Breaking:** Moved event system to `rvx/event`.
 
 ## 16.2
 + Allow `undefined` in context values.
