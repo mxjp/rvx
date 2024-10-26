@@ -19,7 +19,7 @@ async function renderToString(root: () => unknown): Promise<string> {
 			const host = <div /> as Element;
 
 			// Render into the host element:
-			const view = render(<Inject key={ASYNC} value={context}>{root}</Inject>);
+			const view = render(<Inject context={ASYNC} value={context}>{root}</Inject>);
 			host.appendChild(view.take());
 
 			// Wait for all "<Async>" parts:
