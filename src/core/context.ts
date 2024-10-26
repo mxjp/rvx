@@ -1,112 +1,105 @@
 
-const ACTIVE: Context<unknown>[] = [];
-let SNAPSHOT = 0;
+const WINDOWS: Context<unknown>[][] = [[]];
 
-const _snapshot = <T>(context: Context<T>): ContextSnapshot<T> => {
+const _capture = <T>(context: Context<T>): ContextState<T> => {
 	return {
 		context: context,
 		value: context.current,
 	};
 };
 
-/**
- * A context for implicitly passing values down the call stack.
- */
 export class Context<T> {
 	#stack: (T | undefined)[] = [];
-	#snapshot = 0;
+	#windowId = 0;
 
-	/**
-	 * Get the current value of this context.
-	 */
 	get current(): T | undefined {
-		if (SNAPSHOT === this.#snapshot) {
+		if (this.#windowId === WINDOWS.length) {
 			const stack = this.#stack;
 			return stack[stack.length - 1];
 		}
 	}
 
-	/**
-	 * Run a function with the specified value for this context.
-	 */
-	inject<R>(value: T | undefined, fn: () => R): R {
+	inject<F extends (...args: any) => any>(value: T | undefined, fn: F, ...args: Parameters<F>): ReturnType<F> {
+		const window = WINDOWS[WINDOWS.length - 1];
 		const stack = this.#stack;
-		const outer = this.#snapshot;
+		const parent = this.#windowId;
 		try {
-			ACTIVE.push(this);
+			this.#windowId = WINDOWS.length;
+			window.push(this);
 			stack.push(value);
-			this.#snapshot = SNAPSHOT;
-			return fn();
+			return fn(...args);
 		} finally {
-			this.#snapshot = outer;
 			stack.pop();
-			ACTIVE.pop();
+			window.pop();
+			this.#windowId = parent;
 		}
 	}
 
-	/**
-	 * Create a snapshot of this context using the specified value.
-	 */
-	with(value: T | undefined): ContextSnapshot<T> {
+	with(value: T | undefined): ContextState<T> {
 		return { context: this, value };
 	}
 
-	static enter<F extends (...args: any) => any>(snapshots: ContextSnapshot<unknown>[], fn: F, ...args: Parameters<F>): ReturnType<F> {
+	static window<F extends (...args: any) => any>(states: ContextState<unknown>[], fn: F, ...args: Parameters<F>): ReturnType<F> {
 		try {
-			for (let i = 0; i < snapshots.length; i++) {
-				const snapshot = snapshots[i];
-				snapshot.context.#snapshot++;
-				snapshot.context.#stack.push(snapshot.value);
-			}
-			SNAPSHOT++;
-			return fn(...args);
+			WINDOWS.push([]);
+			return this.inject<F>(states, fn, ...args);
 		} finally {
-			SNAPSHOT--;
-			for (let i = 0; i < snapshots.length; i++) {
-				const snapshot = snapshots[i];
-				snapshot.context.#snapshot--;
-				snapshots[i].context.#stack.pop();
-			}
+			WINDOWS.pop();
 		}
-	};
-
-	/**
-	 * Capture a snapshot of the current context for entering that context somewhere else.
-	 *
-	 * @returns A function to enter the captured context.
-	 */
-	static capture(): ContextSnapshot<unknown>[] {
-		return ACTIVE.map<ContextSnapshot<unknown>>(_snapshot);
 	}
 
-	/**
-	 * Capture a snapshot of the current context and wrap the specified function to always run in that context.
-	 *
-	 * @param fn The function to wrap.
-	 * @returns The wrapped function.
-	 */
+	static inject<F extends (...args: any) => any>(states: ContextState<unknown>[], fn: F, ...args: Parameters<F>): ReturnType<F> {
+		const active: ActiveState<unknown>[] = [];
+		const windowId = WINDOWS.length;
+		const window = WINDOWS[windowId - 1];
+		for (let i = 0; i < states.length; i++) {
+			const { context, value } = states[i];
+			active.push({ c: context, p: context.#windowId });
+			context.#windowId = windowId;
+			context.#stack.push(value);
+			window.push(context);
+		}
+		try {
+			return fn(...args);
+		} finally {
+			for (let i = 0; i < active.length; i++) {
+				const { c: context, p: parent } = active[i];
+				context.#windowId = parent;
+				context.#stack.pop();
+				window.pop();
+			}
+		}
+	}
+
 	static wrap<T extends (...args: any) => any>(fn: T): T {
-		const snapshots = ACTIVE.map<ContextSnapshot<unknown>>(_snapshot);
-		return ((...args) => this.enter<any>(snapshots, fn, ...args)) as T;
+		const states = WINDOWS[WINDOWS.length - 1].map(_capture);
+		return ((...args) => Context.window<any>(states, fn, ...args)) as T;
 	}
 }
 
-export interface ContextSnapshot<T> {
-	readonly context: Context<T>;
-	readonly value: T | undefined;
+interface ActiveState<T> {
+	c: Context<T>;
+	p: number;
+}
+
+export interface ContextState<T> {
+	context: Context<T>;
+	value: T | undefined;
 }
 
 export function Inject<T>(props: {
+	/** The context to inject into. */
 	context: Context<T>;
+	/** The value to inject. */
 	value: T | undefined;
 	children: () => unknown;
-}): unknown {
-	return props.context.inject(props.value, props.children);
-}
-
-export function Enter<T>(props: {
-	context: ContextSnapshot<unknown>[];
+} | {
+	/** The context states to inject. */
+	states: ContextState<unknown>[];
 	children: () => unknown;
 }): unknown {
-	return Context.enter(props.context, props.children);
+	if ("context" in props) {
+		return props.context.inject(props.value, props.children);
+	}
+	return Context.inject(props.states, props.children);
 }
