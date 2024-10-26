@@ -293,8 +293,8 @@ export function watch<T>(expr: Expression<T>, fn: (value: T) => void): void {
 		let value: T;
 		let disposed = false;
 		let dispose: TeardownHook | undefined;
-		const runExpr = Context.capture(() => value = get(expr));
-		const runFn = Context.capture(() => fn(value));
+		const runExpr = Context.wrap(() => value = get(expr));
+		const runFn = Context.wrap(() => fn(value));
 		const entry = _unfold(() => {
 			if (disposed) {
 				return;
@@ -354,7 +354,7 @@ export function watchUpdates<T>(expr: Expression<T>, fn: (value: T) => void): T 
 export function effect(fn: () => void): void {
 	let disposed = false;
 	let dispose: TeardownHook | undefined;
-	const runFn = Context.capture(fn);
+	const runFn = Context.wrap(fn);
 	const entry = _unfold(() => {
 		if (disposed) {
 			return;
@@ -516,7 +516,7 @@ export interface TriggerPipe {
  * @returns The pipe to evaluate expressions.
  */
 export function trigger(fn: () => void): TriggerPipe {
-	const hookFn = Context.capture(() => {
+	const hookFn = Context.wrap(() => {
 		clear();
 		fn();
 	});

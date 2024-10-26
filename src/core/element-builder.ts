@@ -17,7 +17,7 @@ export class ElementBuilder<E extends Element> implements NodeTarget {
 	on<K extends keyof HTMLElementEventMap>(name: K, listener: EventListener<HTMLElementEventMap[K]>, options?: AddEventListenerOptions): this;
 	on<E extends Event>(name: string, listener: EventListener<E>, options?: AddEventListenerOptions): this;
 	on(name: string, listener: EventListener<Event>, options?: AddEventListenerOptions): this {
-		this.elem.addEventListener(name, Context.capture(listener), options);
+		this.elem.addEventListener(name, Context.wrap(listener), options);
 		return this;
 	}
 

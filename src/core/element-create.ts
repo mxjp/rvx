@@ -52,7 +52,7 @@ export function createElement(tagName: string, attrs: Attributes<TagNameMap[keyo
 				} else {
 					listener = value as EventListener<Event>;
 				}
-				elem.addEventListener(name.slice(3), Context.capture(listener), options);
+				elem.addEventListener(name.slice(3), Context.wrap(listener), options);
 			} else if (name.startsWith("prop:")) {
 				const prop = name.slice(5);
 				watch(value, value => (elem as any)[prop] = value);

@@ -2,14 +2,12 @@
 const ACTIVE: Context<unknown>[] = [];
 let SNAPSHOT = 0;
 
-const _entry: ContextEntry = <T>(fn: () => T) => fn();
-
-/**
- * A function to enter another context.
- *
- * @param fn The function to run in the other context.
- */
-export type ContextEntry = <R>(fn: () => R) => R;
+const _snapshot = <T>(context: Context<T>): ContextSnapshot<T> => {
+	return {
+		context: context,
+		value: context.current,
+	};
+};
 
 /**
  * A context for implicitly passing values down the call stack.
@@ -47,11 +45,39 @@ export class Context<T> {
 	}
 
 	/**
+	 * Create a snapshot of this context using the specified value.
+	 */
+	with(value: T | undefined): ContextSnapshot<T> {
+		return { context: this, value };
+	}
+
+	static enter<F extends (...args: any) => any>(snapshots: ContextSnapshot<unknown>[], fn: F, ...args: Parameters<F>): ReturnType<F> {
+		try {
+			for (let i = 0; i < snapshots.length; i++) {
+				const snapshot = snapshots[i];
+				snapshot.context.#snapshot++;
+				snapshot.context.#stack.push(snapshot.value);
+			}
+			SNAPSHOT++;
+			return fn(...args);
+		} finally {
+			SNAPSHOT--;
+			for (let i = 0; i < snapshots.length; i++) {
+				const snapshot = snapshots[i];
+				snapshot.context.#snapshot--;
+				snapshots[i].context.#stack.pop();
+			}
+		}
+	};
+
+	/**
 	 * Capture a snapshot of the current context for entering that context somewhere else.
 	 *
 	 * @returns A function to enter the captured context.
 	 */
-	static capture(): ContextEntry;
+	static capture(): ContextSnapshot<unknown>[] {
+		return ACTIVE.map<ContextSnapshot<unknown>>(_snapshot);
+	}
 
 	/**
 	 * Capture a snapshot of the current context and wrap the specified function to always run in that context.
@@ -59,32 +85,28 @@ export class Context<T> {
 	 * @param fn The function to wrap.
 	 * @returns The wrapped function.
 	 */
-	static capture<F extends (...args: any) => any>(fn: F): F;
-
-	static capture(fn: (...args: any) => any = _entry): (...args: any) => any {
-		const snapshots = ACTIVE.map<Snapshot<unknown>>(c => ({ c, v: c.current }));
-		return (...args) => {
-			try {
-				for (let i = 0; i < snapshots.length; i++) {
-					const snapshot = snapshots[i];
-					snapshot.c.#snapshot++;
-					snapshot.c.#stack.push(snapshot.v);
-				}
-				SNAPSHOT++;
-				return fn(...args);
-			} finally {
-				SNAPSHOT--;
-				for (let i = 0; i < snapshots.length; i++) {
-					const snapshot = snapshots[i];
-					snapshot.c.#snapshot--;
-					snapshots[i].c.#stack.pop();
-				}
-			}
-		};
+	static wrap<T extends (...args: any) => any>(fn: T): T {
+		const snapshots = ACTIVE.map<ContextSnapshot<unknown>>(_snapshot);
+		return ((...args) => this.enter<any>(snapshots, fn, ...args)) as T;
 	}
 }
 
-interface Snapshot<T> {
-	c: Context<T>;
-	v: T;
+export interface ContextSnapshot<T> {
+	readonly context: Context<T>;
+	readonly value: T | undefined;
+}
+
+export function Inject<T>(props: {
+	context: Context<T>;
+	value: T | undefined;
+	children: () => unknown;
+}): unknown {
+	return props.context.inject(props.value, props.children);
+}
+
+export function Enter<T>(props: {
+	context: ContextSnapshot<unknown>[];
+	children: () => unknown;
+}): unknown {
+	return Context.enter(props.context, props.children);
 }

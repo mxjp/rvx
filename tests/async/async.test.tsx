@@ -1,7 +1,7 @@
 import { strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 
-import { uncapture } from "rvx";
+import { Inject, uncapture } from "rvx";
 import { ASYNC, Async, AsyncContext } from "rvx/async";
 
 import { assertEvents, future, text } from "../common.js";
@@ -12,7 +12,9 @@ await suite("async/async", async () => {
 		const [promise, resolve] = future();
 		const ac = new AsyncContext();
 		const root = uncapture(() => <div>
-			{ASYNC.inject(ac, () => <Async source={promise} />)}
+			<Inject context={ASYNC} value={ac}>
+				{() => <Async source={promise} />}
+			</Inject>
 		</div>) as HTMLElement;
 		strictEqual(text(root), "");
 		const complete = ac.complete().then(() => {
@@ -30,7 +32,9 @@ await suite("async/async", async () => {
 		const [promise,, reject] = future();
 		const ac = new AsyncContext();
 		const root = uncapture(() => <div>
-			{ASYNC.inject(ac, () => <Async source={promise} />)}
+			<Inject context={ASYNC} value={ac}>
+				{() => <Async source={promise} />}
+			</Inject>
 		</div>) as HTMLElement;
 		strictEqual(text(root), "");
 		const complete = ac.complete().catch(error => {

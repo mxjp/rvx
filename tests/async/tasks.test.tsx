@@ -112,12 +112,12 @@ await suite("async/tasks", async () => {
 			strictEqual(isSelfPending(), true);
 
 			return Promise.resolve()
-				.then(Context.capture(() => {
+				.then(Context.wrap(() => {
 					strictEqual(isPending(), true);
 					strictEqual(isSelfPending(), true);
 				}))
 				.then(resolveA)
-				.then(Context.capture(() => {
+				.then(Context.wrap(() => {
 					strictEqual(isPending(), false);
 					strictEqual(isSelfPending(), false);
 				}));

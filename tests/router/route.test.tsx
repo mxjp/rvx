@@ -1,7 +1,7 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 
-import { sig, uncapture, watch } from "rvx";
+import { Inject, sig, uncapture, watch } from "rvx";
 import { ChildRouter, matchRoute, Route, ROUTER, Routes, watchRoutes } from "rvx/router";
 
 import { assertEvents, lifecycleEvent, text } from "../common.js";
@@ -110,16 +110,16 @@ await suite("router/route", async () => {
 		await test("matching", () => {
 			const router = new TestRouter();
 			const root = uncapture(() => <div>
-				{ROUTER.inject(router, () => {
-					return <Routes routes={[
+				<Inject context={ROUTER} value={router}>
+					{() => <Routes routes={[
 						{ match: "/", content: () => <>a</> },
 						{ match: "/b", content: () => <>b</> },
 						{ match: "/b/", content: () => <>c</> },
 						{ match: /^\/d-(\d+)(\/|$)/, content: props => {
 							return <>d:{(props.params as RegExpExecArray)[1]}</>;
 						} },
-					]} />;
-				})}
+					]} />}
+				</Inject>
 			</div>) as HTMLDivElement;
 			strictEqual(text(root), "a");
 			for (const [path, expectedText] of [
@@ -138,8 +138,8 @@ await suite("router/route", async () => {
 			const events: unknown[] = [];
 			const router = new TestRouter();
 			uncapture(() => <div>
-				{ROUTER.inject(router, () => {
-					return <Routes routes={[
+				<Inject context={ROUTER} value={router}>
+					{() => <Routes routes={[
 						{ match: "/", content: () => lifecycleEvent(events, "a") },
 						{ match: "/b", content: () => lifecycleEvent(events, "b") },
 						{ match: "/c/", content: () => {
@@ -148,8 +148,8 @@ await suite("router/route", async () => {
 							strictEqual(child instanceof ChildRouter, true);
 							watch(() => child!.path, path => events.push(path));
 						} },
-					]} />;
-				})}
+					]} />}
+				</Inject>
 			</div>) as HTMLDivElement;
 			assertEvents(events, ["s:a"]);
 			router.push("/b");

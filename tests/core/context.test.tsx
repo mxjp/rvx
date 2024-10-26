@@ -1,6 +1,6 @@
 import { strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { Context, ContextEntry } from "rvx";
+import { Context, ContextSnapshot, Enter, Inject } from "rvx";
 
 await suite("context", async () => {
 	await test("inject", () => {
@@ -26,15 +26,15 @@ await suite("context", async () => {
 			const a = new Context<number>();
 			const b = new Context<number>();
 
-			let snapshot!: ContextEntry;
+			let snapshots!: ContextSnapshot<unknown>[];
 
 			a.inject(1, () => {
 				strictEqual(a.current, 1);
-				snapshot = Context.capture();
+				snapshots = Context.capture();
 			});
 
 			strictEqual(a.current, undefined);
-			snapshot(() => {
+			Context.enter(snapshots, () => {
 				strictEqual(a.current, 1);
 				strictEqual(b.current, undefined);
 			});
@@ -45,7 +45,7 @@ await suite("context", async () => {
 				strictEqual(b.current, 2);
 
 				strictEqual(a.current, undefined);
-				snapshot(() => {
+				Context.enter(snapshots, () => {
 					strictEqual(a.current, 1);
 					strictEqual(b.current, undefined);
 				});
@@ -60,14 +60,14 @@ await suite("context", async () => {
 			a.inject(1, () => {
 				strictEqual(a.current, 1);
 
-				const snapshot = Context.capture();
-				snapshot(() => {
+				const snapshots = Context.capture();
+				Context.enter(snapshots, () => {
 					strictEqual(a.current, 1);
 					strictEqual(b.current, undefined);
 				});
 
 				b.inject(2, () => {
-					snapshot(() => {
+					Context.enter(snapshots, () => {
 						strictEqual(a.current, 1);
 						strictEqual(b.current, undefined);
 					});
@@ -75,33 +75,33 @@ await suite("context", async () => {
 					strictEqual(a.current, 1);
 					strictEqual(b.current, 2);
 
-					snapshot(() => {
+					Context.enter(snapshots, () => {
 						a.inject(3, () => {
 							strictEqual(a.current, 3);
 							strictEqual(b.current, undefined);
 							b.inject(4, () => {
 								strictEqual(a.current, 3);
 								strictEqual(b.current, 4);
-								snapshot(() => {
+								Context.enter(snapshots, () => {
 									strictEqual(a.current, 1);
 									strictEqual(b.current, undefined);
 								});
 							});
 						});
 
-						snapshot(() => {
+						Context.enter(snapshots, () => {
 							strictEqual(a.current, 1);
 							strictEqual(b.current, undefined);
 						});
 					});
 
-					snapshot(() => {
+					Context.enter(snapshots, () => {
 						strictEqual(a.current, 1);
 						strictEqual(b.current, undefined);
 					});
 				});
 
-				snapshot(() => {
+				Context.enter(snapshots, () => {
 					strictEqual(a.current, 1);
 					strictEqual(b.current, undefined);
 				});
@@ -109,20 +109,59 @@ await suite("context", async () => {
 		});
 
 		await test("inert snapshot", () => {
-			const snapshot = Context.capture();
-			strictEqual(snapshot(() => 42), 42);
+			const snapshots = Context.capture();
+			strictEqual(Context.enter(snapshots, () => 42), 42);
 		});
 
-		await test("snapshot callback", () => {
+		await test("wrap", () => {
 			const ctx = new Context<number>();
 			let snapshot!: (a: number, b: number) => number;
 			ctx.inject(2, () => {
-				snapshot = Context.capture((a: number, b: number) => {
+				snapshot = Context.wrap((a: number, b: number) => {
 					return ctx.current! * a * b;
 				});
 				strictEqual(snapshot(3, 4), 24);
 			});
 			strictEqual(snapshot(5, 6), 60);
+		});
+
+		await test("enter, with", () => {
+			const a = new Context<number>();
+			const b = new Context<number>();
+			Context.enter([
+				a.with(1),
+				b.with(2),
+			], () => {
+				strictEqual(a.current, 1);
+				strictEqual(b.current, 2);
+			});
+		});
+
+		await test("Inject", () => {
+			const ctx = new Context<number>();
+			const result = <Inject context={ctx} value={77}>
+				{() => {
+					strictEqual(ctx.current, 77);
+					return 42;
+				}}
+			</Inject>;
+			strictEqual(result, 42);
+		});
+
+		await test("Enter", () => {
+			const a = new Context<number>();
+			const b = new Context<number>();
+			const result = <Enter context={[
+				a.with(1),
+				b.with(2),
+			]}>
+				{() => {
+					strictEqual(a.current, 1);
+					strictEqual(b.current, 2);
+					return 42;
+				}}
+			</Enter>;
+			strictEqual(result, 42);
 		});
 	});
 });
