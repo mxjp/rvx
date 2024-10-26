@@ -1,5 +1,8 @@
 # Changelog
 
+## 17.0
++ **Breaking:** Replaced the entire context API.
+
 ## 16.2
 + Allow `undefined` in context values.
 
