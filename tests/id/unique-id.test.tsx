@@ -1,9 +1,9 @@
 import { strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 
-import { uniqueId } from "rvx";
+import { uniqueId } from "rvx/id";
 
-import { NEXT_ID } from "../../dist/es/core/internals.js";
+import { NEXT_ID } from "../../dist/es/id/internals.js";
 
 await suite("uniqueId", async () => {
 	await test("initial usage", () => {

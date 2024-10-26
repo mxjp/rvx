@@ -1,4 +1,4 @@
-import { Component } from "./component.js";
+import { Component } from "../core/component.js";
 import { NEXT_ID } from "./internals.js";
 
 /**

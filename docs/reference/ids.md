@@ -5,7 +5,7 @@ Allocate an ID that is unique in the current thread.
 
 === "JSX"
 	```jsx
-	import { uniqueId } from "rvx";
+	import { uniqueId } from "rvx/id";
 
 	const id = uniqueId();
 
@@ -35,7 +35,7 @@ A component for allocating a unique id using [`uniqueId`](#uniqueid).
 
 === "JSX"
 	```jsx
-	import { UseUniqueId } from "rvx";
+	import { UseUniqueId } from "rvx/id";
 
 	<UseUniqueId>
 		{id => <>

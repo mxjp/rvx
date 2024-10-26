@@ -51,6 +51,10 @@
 			"types": "./dist/es/element/index.d.ts",
 			"default": "./dist/es/element/index.js"
 		},
+		"./id": {
+			"types": "./dist/es/id/index.d.ts",
+			"default": "./dist/es/id/index.js"
+		},
 		"./router": {
 			"types": "./dist/es/router/index.d.ts",
 			"default": "./dist/es/router/index.js"
@@ -70,7 +74,7 @@
 		"build:types": "tsc -p tsconfig-types.json",
 		"build:tests": "tsc -p tests/tsconfig.json",
 		"build:bundle:core": "node scripts/bundle.js -m core/index-builder -o dist/rvx",
-		"build:bundle:all": "node scripts/bundle.js -m async core/index-all element router store test -o dist/rvx.all",
+		"build:bundle:all": "node scripts/bundle.js -m async core/index-all element id router store test -o dist/rvx.all",
 		"start": "mx-parallel npm:start:*",
 		"start:es": "tsc -p tsconfig-es.json -w --preserveWatchOutput",
 		"start:types": "tsc -p tsconfig-types.json -w --preserveWatchOutput",
