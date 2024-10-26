@@ -5,6 +5,8 @@ hide:
 
 # Reference Overview
 
+## Rvx Core
+
 <div class="grid cards" markdown>
 
 - ## [Lifecycle](./lifecycle.md)
@@ -29,6 +31,8 @@ hide:
 
 ---
 
+## Extra Modules
+
 <div class="grid cards" markdown>
 
 - ### [Routing](./routing.md)
@@ -45,5 +49,11 @@ hide:
 
 - ### [Async Utilities](./async-utilities/async.md)
 	Utilities for async rendering, abort controllers, promises, etc.
+
+- ### [Unique IDs](./ids.md)
+	Create small unique IDs for DOM elements.
+
+- ### [Event System](./events.md)
+	A tiny synchronous event system.
 
 </div>
