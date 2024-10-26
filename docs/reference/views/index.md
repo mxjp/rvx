@@ -121,7 +121,8 @@ The example below appends an element every time an event is fired:
 
 === "JSX"
 	```jsx
-	import { View, Event, Emitter } from "rvx";
+	import { View, Event } from "rvx";
+	import { Emitter } from "rvx/event";
 
 	function LogEvents(props: { messages: Event<[string]> }) {
 		return new View((setBoundary, self) => {
