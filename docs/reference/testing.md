@@ -26,7 +26,7 @@ Testing rvx based applications is usually very simple because all of it's signal
 Note, that the `assert` function used on this page are not included in rvx.
 
 ## Synchronous Tests
-Rvx provides a lightweight wrapper for running small synchronous tests that provides a [context](./context.md) and takes care of calling [teardown hooks](./lifecycle.md) after the test.
+Rvx provides a lightweight wrapper for running small synchronous tests that takes care of calling [teardown hooks](./lifecycle.md) after the test.
 
 === "JSX"
 	```jsx
@@ -59,17 +59,7 @@ Rvx provides a lightweight wrapper for running small synchronous tests that prov
 	```
 
 ## Asynchronous Tests
-Almost all rvx APIs rely on the synchronous call stack. E.g. extracting values from the current [context](./context.md) will not work after awaiting something:
-
-```jsx
-inject("foo", "bar", async () => {
-	extract("foo"); // => "bar"
-	await something();
-	extract("foo"); // => undefined
-});
-```
-
-There is a wrapper for async tests that allows you to run small synchronous parts of your test with a shared [context](./context.md), an [async context](./async-utilities/async.md#tracking-completion). After the test, this will run [teardown hooks](./lifecycle.md) registered during **"use(..)"** calls and wait for any pending tasks tracked in the async context.
+There is a wrapper for async tests that allows you to run small synchronous parts of your test with a shared [async context](./async-utilities/async.md#tracking-completion). After the test, this will run [teardown hooks](./lifecycle.md) registered during any **"use(..)"** calls and wait for any pending tasks tracked in the async context.
 
 The example below shows a test that asserts that asynchronously loaded content is displayed correctly:
 
@@ -79,7 +69,7 @@ The example below shows a test that asserts that asynchronously loaded content i
 	import { Async } from "rvx/async";
 	import { runAsyncTest, querySelector } from "rvx/test";
 
-	await runAsyncTest(async ({ ctx, asyncCtx, use }) => {
+	await runAsyncTest(async ({ asyncCtx, use }) => {
 		const view = use(() => {
 			return mount(
 				document.body,
@@ -107,7 +97,7 @@ The example below shows a test that asserts that asynchronously loaded content i
 	```jsx
 	import { mount, Async, runAsyncTest, querySelector, e } from "./rvx.js";
 
-	await runAsyncTest(async ({ ctx, asyncCtx, use }) => {
+	await runAsyncTest(async ({ asyncCtx, use }) => {
 		const view = use(() => {
 			return mount(
 				document.body,

@@ -12,7 +12,7 @@ You can either implement your own router using the `Router` interface or use one
 	import { Inject } from "rvx";
 	import { ROUTER, HistoryRouter } from "rvx/router";
 
-	<Inject key={ROUTER} value={new HistoryRouter()}>
+	<Inject context={ROUTER} value={new HistoryRouter()}>
 		{() => <>
 			Everything in here has access to the history router.
 		</>}
@@ -21,9 +21,9 @@ You can either implement your own router using the `Router` interface or use one
 
 === "No Build"
 	```jsx
-	import { inject, ROUTER, HistoryRouter } from "./rvx.js";
+	import { ROUTER, HistoryRouter } from "./rvx.js";
 
-	inject(ROUTER, new HistoryRouter(), () => [
+	ROUTER.inject(new HistoryRouter(), () => [
 		"Everything in here has access to the history router."
 	])
 	```
@@ -35,7 +35,7 @@ The `Routes` component can be used to render content based on the current path.
 	import { Inject } from "rvx";
 	import { ROUTER, HistoryRouter, Routes } from "rvx/router";
 
-	<Inject key={ROUTER} value={new HistoryRouter()}>
+	<Inject context={ROUTER} value={new HistoryRouter()}>
 		{() => <>
 			<Routes routes={[
 				{ match: "/", content: () => "Home" },
@@ -52,9 +52,9 @@ The `Routes` component can be used to render content based on the current path.
 
 === "No Build"
 	```jsx
-	import { inject, ROUTER, HistoryRouter, Routes } from "./rvx.js";
+	import { ROUTER, HistoryRouter, Routes } from "./rvx.js";
 
-	inject(ROUTER, new HistoryRouter(), () => [
+	ROUTER.inject(new HistoryRouter(), () => [
 		Routes({
 			routes: [
 				{ match: "/", content: () => "Home" },
@@ -228,7 +228,7 @@ The example below renders text for the paths `/, /foo/bar, /foo/baz`:
 	import { Inject, extract } from "rvx";
 	import { ROUTER, HistoryRouter, Routes } from "rvx/router";
 
-	<Inject key={ROUTER} value={new HistoryRouter()}>
+	<Inject context={ROUTER} value={new HistoryRouter()}>
 		{() => <>
 			<Routes routes={[
 				{ match: "/", content: () => "Home" },
@@ -246,9 +246,9 @@ The example below renders text for the paths `/, /foo/bar, /foo/baz`:
 
 === "No Build"
 	```jsx
-	import { inject, extract, ROUTER, HistoryRouter, Routes } from "./rvx.js";
+	import { extract, ROUTER, HistoryRouter, Routes } from "./rvx.js";
 
-	inject(ROUTER, new HistoryRouter(), () => [
+	ROUTER.inject(new HistoryRouter(), () => [
 		Routes({
 			routes: [
 				{ match: "/", content: () => "Home" },

@@ -14,7 +14,7 @@ hide:
 	Signals are objects with a value that can be watched for changes.
 
 - ## [Context](./context.md)
-	The context API transparently passes key value pairs down the call stack.
+	The context API implicitly passes values along the call stack.
 
 - ## [Elements](./elements.md)
 	Create elements with JSX or the element builder API.

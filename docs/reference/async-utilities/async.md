@@ -65,7 +65,7 @@ To wait for async parts in a specific context to complete, you can use `AsyncCon
 
 	const ctx = new AsyncContext();
 
-	<Inject key={ASYNC} value={ctx}>
+	<Inject context={ASYNC} value={ctx}>
 		{() => <Async>...</Async>}
 	</Inject>
 
@@ -78,11 +78,11 @@ To wait for async parts in a specific context to complete, you can use `AsyncCon
 
 === "No Build"
 	```jsx
-	import { inject, ASYNC, Async, AsyncContext } from "./rvx.js";
+	import { ASYNC, Async, AsyncContext } from "./rvx.js";
 
 	const ctx = new AsyncContext();
 
-	inject(ASYNC, ctx, () => {
+	ASYNC.inject(ctx, () => {
 		return Async({ ... });
 	})
 
@@ -103,7 +103,7 @@ When there are multiple async parts in the same place, tracking can be used to h
 
 	const innerCtx = new AsyncContext();
 	const inner = movable(
-		<Inject key={ASYNC} value={innerCtx}>
+		<Inject context={ASYNC} value={innerCtx}>
 			{() => <>
 				<Async>...</Async>
 				<Async>...</Async>
@@ -119,10 +119,10 @@ When there are multiple async parts in the same place, tracking can be used to h
 
 === "No Build"
 	```jsx
-	import { inject, sig, movable, ASYNC, Async, AsyncContext } from "./rvx.js";
+	import { sig, movable, ASYNC, Async, AsyncContext } from "./rvx.js";
 
 	const innerCtx = new AsyncContext();
-	const inner = movable(inject(ASYNC, innerCtx, () => [
+	const inner = movable(ASYNC.inject(innerCtx, () => [
 		Async({ ... }),
 		Async({ ... }),
 		Async({ ... }),

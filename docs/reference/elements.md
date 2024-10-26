@@ -368,16 +368,16 @@ The namespace URI for new elements can be [injected](context.md).
 	```jsx
 	import { Inject, XMLNS, SVG } from "rvx";
 
-	<Inject key={XMLNS} value={SVG}>
+	<Inject context={XMLNS} value={SVG}>
 		{() => <svg viewBox="0 0 100 100">...</svg>}
 	</Inject>
 	```
 
 === "No Build"
 	```jsx
-	import { inject, XMLNS, SVG } from "./rvx.js";
+	import { XMLNS, SVG } from "./rvx.js";
 
-	inject(XMLNS, SVG, () => {
+	XMLNS.inject(SVG, () => {
 		return e("svg").set("viewBox", "0 0 100 100").append(...)
 	})
 	```
