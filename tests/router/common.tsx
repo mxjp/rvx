@@ -1,10 +1,10 @@
 import { batch, sig } from "rvx";
-import { normalize, QueryInit, Router } from "rvx/router";
+import { formatQuery, normalize, Query, QueryInit, Router } from "rvx/router";
 
 export class TestRouter implements Router {
 	#events: unknown[];
 	#path = sig(normalize(""));
-	#query = sig<URLSearchParams | undefined>(undefined);
+	#query = sig<Query | undefined>(undefined);
 
 	constructor(events?: unknown[]) {
 		this.#events = events ?? [];
@@ -22,14 +22,14 @@ export class TestRouter implements Router {
 		return this.#path.value;
 	}
 
-	get query(): URLSearchParams | undefined {
+	get query(): Query | undefined {
 		return this.#query.value;
 	}
 
 	#push(path: string, query?: QueryInit): void {
 		batch(() => {
 			this.#path.value = normalize(path);
-			this.#query.value = query ? new URLSearchParams(query) : undefined;
+			this.#query.value = query === undefined ? undefined : new Query(formatQuery(query));
 		});
 	}
 

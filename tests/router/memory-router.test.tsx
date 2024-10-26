@@ -15,7 +15,7 @@ await suite("router/memory router", async () => {
 
 		uncapture(() => {
 			watch(() => [router.path, router.query] as const, ([path, query]) => {
-				events.push([path, query?.toString()]);
+				events.push([path, query?.raw]);
 			});
 		});
 
@@ -44,6 +44,6 @@ await suite("router/memory router", async () => {
 		}));
 
 		strictEqual(router.path, "/foo/bar/");
-		strictEqual(router.query?.toString(), "foo=1&bar=2");
+		strictEqual(router.query?.raw, "foo=1&bar=2");
 	});
 });

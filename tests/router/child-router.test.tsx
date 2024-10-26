@@ -19,11 +19,11 @@ await test("router/child router", async () => {
 	strictEqual(child.root, root);
 	strictEqual(child.parent, root);
 
-	uncapture(() => watch(() => [child.path, child.query], ([path, query]) => {
+	uncapture(() => watch(() => [child.path, child.query] as const, ([path, query]) => {
 		events.push([
 			"update",
 			path,
-			query?.toString(),
+			query?.raw,
 		]);
 	}));
 	assertEvents(events, [["update", "", undefined]]);

@@ -5,6 +5,7 @@
 + **Breaking:** Rename `isolate` to `teardownOnError`.
 + **Breaking:** Moved `uniqueId` and `UseUniqueId` to `rvx/id`.
 * **Breaking:** Moved event system to `rvx/event`.
++ **Breaking:** Replaced `URLSearchParams` in `rvx/router` with a `Query` object for lazy parsing.
 
 ## 16.2
 + Allow `undefined` in context values.

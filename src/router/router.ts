@@ -1,4 +1,5 @@
 import { Context } from "../core/context.js";
+import { Query, QueryInit } from "./query.js";
 
 /**
  * Represents a path with optional query parameters that may change over time.
@@ -22,7 +23,7 @@ export interface Router {
 	/**
 	 * Reactively get the search parameters in this context.
 	 */
-	get query(): URLSearchParams | undefined;
+	get query(): Query | undefined;
 
 	/**
 	 * Navigate to the specified path within the path this router is mounted in.
@@ -53,8 +54,6 @@ export interface Router {
 	 */
 	replace(path: string, query?: QueryInit): void;
 }
-
-export type QueryInit = ConstructorParameters<typeof URLSearchParams>[0];
 
 /**
  * Context for the current router.

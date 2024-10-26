@@ -1,6 +1,7 @@
 import { Expression, get } from "../core/signals.js";
 import { join } from "./path.js";
-import { QueryInit, Router } from "./router.js";
+import { Query, QueryInit } from "./query.js";
+import { Router } from "./router.js";
 
 /**
  * A router that is located at a specific path and navigates within that path.
@@ -35,7 +36,7 @@ export class ChildRouter implements Router {
 		return get(this.#path);
 	}
 
-	get query(): URLSearchParams | undefined {
+	get query(): Query | undefined {
 		return this.#parent.query;
 	}
 

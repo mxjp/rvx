@@ -1,7 +1,8 @@
 import { teardown } from "../core/lifecycle.js";
 import { batch, sig } from "../core/signals.js";
 import { normalize } from "./path.js";
-import { QueryInit, Router } from "./router.js";
+import { Query, QueryInit } from "./query.js";
+import { Router } from "./router.js";
 
 export interface HashRouterOptions {
 	/**
@@ -19,7 +20,7 @@ export interface HashRouterOptions {
  */
 export class HashRouter implements Router {
 	#path = sig<string>(undefined!);
-	#query = sig<URLSearchParams | undefined>(undefined);
+	#query = sig<Query | undefined>(undefined);
 
 	constructor(options?: HashRouterOptions) {
 		const parseEvents = options?.parseEvents ?? ["hashchange"];
@@ -39,7 +40,7 @@ export class HashRouter implements Router {
 				this.#query.value = undefined;
 			} else {
 				this.#path.value = normalize(hash.slice(0, queryStart));
-				this.#query.value = new URLSearchParams(hash.slice(queryStart + 1));
+				this.#query.value = new Query(hash.slice(queryStart + 1));
 			}
 		});
 	};
@@ -56,12 +57,12 @@ export class HashRouter implements Router {
 		return this.#path.value;
 	}
 
-	get query(): URLSearchParams | undefined {
+	get query(): Query | undefined {
 		return this.#query.value;
 	}
 
 	push(path: string, query?: QueryInit): void {
-		location.hash = `#${normalize(path)}${query === undefined ? "" : `?${new URLSearchParams(query)}`}`;
+		location.hash = `#${normalize(path)}${query === undefined ? "" : `?${typeof query === "string" ? query : new URLSearchParams(query)}`}`;
 	}
 
 	replace(path: string, query?: QueryInit): void {

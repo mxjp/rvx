@@ -27,7 +27,7 @@ await test("router/history router", () => {
 
 	uncapture(() => {
 		watch(() => [router.path, router.query] as const, ([path, query]) => {
-			events.push([path, query?.toString()]);
+			events.push([path, query?.raw]);
 		});
 	});
 

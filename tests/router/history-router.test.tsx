@@ -49,7 +49,7 @@ await suite("router/history router", async () => {
 
 		uncapture(() => {
 			watch(() => [router.path, router.query] as const, ([path, query]) => {
-				events.push([path, query?.toString()]);
+				events.push([path, query?.raw]);
 			});
 		});
 

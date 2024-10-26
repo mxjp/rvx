@@ -1,7 +1,8 @@
 import { teardown } from "../core/lifecycle.js";
 import { batch, sig } from "../core/signals.js";
 import { join, relative } from "./path.js";
-import { QueryInit, Router } from "./router.js";
+import { formatQuery, Query, QueryInit } from "./query.js";
+import { Router } from "./router.js";
 
 export interface HistoryRouterOptions {
 	/**
@@ -25,7 +26,7 @@ export interface HistoryRouterOptions {
 export class HistoryRouter implements Router {
 	#basePath: string;
 	#path = sig<string>(undefined!);
-	#query = sig<URLSearchParams | undefined>(undefined!);
+	#query = sig<Query | undefined>(undefined!);
 
 	constructor(options?: HistoryRouterOptions) {
 		this.#basePath = options?.basePath ?? "";
@@ -41,14 +42,14 @@ export class HistoryRouter implements Router {
 		batch(() => {
 			this.#path.value = relative(this.#basePath, location.pathname);
 			const query = location.search.slice(1);
-			this.#query.value = query ? new URLSearchParams(query) : undefined;
+			this.#query.value = query ? new Query(query) : undefined;
 		});
 	};
 
 	#format(path: string, query?: QueryInit): string {
 		let href = join(this.#basePath, path) || "/";
 		if (query !== undefined) {
-			href += "?" + new URLSearchParams(query).toString();
+			href += "?" + formatQuery(query);
 		}
 		return href;
 	}
@@ -65,7 +66,7 @@ export class HistoryRouter implements Router {
 		return this.#path.value;
 	}
 
-	get query(): URLSearchParams | undefined {
+	get query(): Query | undefined {
 		return this.#query.value;
 	}
 
