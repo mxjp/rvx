@@ -24,7 +24,7 @@ export class MemoryRouter implements Router {
 
 	constructor(options?: MemoryRouterOptions) {
 		this.#path.value = normalize(options?.path ?? "");
-		this.#query.value = options?.query === undefined ? undefined : new Query(formatQuery(options.query));
+		this.#query.value = Query.from(options?.query);
 	}
 
 	get root(): Router {
@@ -46,7 +46,7 @@ export class MemoryRouter implements Router {
 	push(path: string, query?: QueryInit): void {
 		batch(() => {
 			this.#path.value = normalize(path);
-			this.#query.value = query === undefined ? undefined : new Query(formatQuery(query));
+			this.#query.value = Query.from(query);
 		});
 	}
 

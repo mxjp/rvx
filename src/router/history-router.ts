@@ -41,8 +41,7 @@ export class HistoryRouter implements Router {
 	#parse = () => {
 		batch(() => {
 			this.#path.value = relative(this.#basePath, location.pathname);
-			const query = location.search.slice(1);
-			this.#query.value = query ? new Query(query) : undefined;
+			this.#query.value = location.search.length > 0 ? new Query(location.search.slice(1)) : undefined;
 		});
 	};
 

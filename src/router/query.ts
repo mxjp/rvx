@@ -6,8 +6,20 @@ export class Query {
 	#raw: string;
 	#params: URLSearchParams | undefined;
 
-	constructor(raw: string) {
+	constructor(raw: string, params?: URLSearchParams) {
 		this.#raw = raw;
+		this.#params = params;
+	}
+
+	static from(init: QueryInit): Query | undefined {
+		if (init === undefined) {
+			return undefined;
+		}
+		if (typeof init === "string") {
+			return new Query(init);
+		}
+		const params = new URLSearchParams(init);
+		return new Query(params.toString(), params);
 	}
 
 	get raw() {
