@@ -77,7 +77,7 @@ export class AsyncContext {
 	}
 
 	/**
-	 * Create a new async context using the {@link extract current} context as parent.
+	 * Create a new async context using the current context as parent.
 	 */
 	static fork(): AsyncContext {
 		return new AsyncContext(ASYNC.current);

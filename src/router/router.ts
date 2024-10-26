@@ -33,10 +33,9 @@ export interface Router {
 	 *
 	 * @example
 	 * ```tsx
-	 * import { extract } from "rvx";
 	 * import { ROUTER } from "rvx/router";
 	 *
-	 * extract(ROUTER)!.root.push("/home");
+	 * ROUTER.current!.root.push("/home");
 	 * ```
 	 */
 	push(path: string, query?: QueryInit): void;
@@ -46,10 +45,9 @@ export interface Router {
 	 *
 	 * @example
 	 * ```tsx
-	 * import { extract } from "rvx";
 	 * import { ROUTER } from "rvx/router";
 	 *
-	 * extract(ROUTER)!.root.replace("/home");
+	 * ROUTER.current!.root.replace("/home");
 	 * ```
 	 */
 	replace(path: string, query?: QueryInit): void;

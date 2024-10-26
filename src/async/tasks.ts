@@ -129,7 +129,7 @@ export class Tasks {
 	}
 
 	/**
-	 * Create a new tasks instance using the {@link extract current} instance as parent.
+	 * Create a new tasks instance using the current instance as parent.
 	 */
 	static fork(options?: TasksOptions): Tasks {
 		return new Tasks(TASKS.current, options);

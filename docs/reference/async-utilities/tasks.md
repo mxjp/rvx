@@ -65,7 +65,7 @@ The task system keeps track of pending tasks in a specific context. This is mean
 
 + The child context is also considered pending if the parent has any pending tasks.
 + The parent tasks instance is unaffected by it's children.
-+ `Tasks.fork` is a shorthand for `new Tasks(extract(TASKS))`.
++ `Tasks.fork` is a shorthand for `new Tasks(TASKS.current)`.
 
 ## Error Handling
 Any errors thrown by tasks will result in unhandled rejections but will not affect the task system in any other way.
