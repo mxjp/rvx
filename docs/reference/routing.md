@@ -193,11 +193,10 @@ Routers implement a **push** function for regular navigation and a **replace** f
 
 === "JSX"
 	```jsx
-	import { extract } from "rvx";
 	import { ROUTER } from "rvx/router";
 
 	function ExamplePage() {
-		const router = extract(ROUTER).root;
+		const router = ROUTER.current!.root;
 		return <button on:click={() => {
 			router.push("/some-path");
 		}}>Navigate</button>;
@@ -206,10 +205,10 @@ Routers implement a **push** function for regular navigation and a **replace** f
 
 === "No Build"
 	```jsx
-	import { extract, ROUTER, e } from "./rvx.js";
+	import { ROUTER, e } from "./rvx.js";
 
 	function ExamplePage() {
-		const router = extract(ROUTER).root;
+		const router = ROUTER.current.root;
 		return e("button").on("click", () => {
 			router.push("/some-path");
 		}).append("Navigate");
@@ -225,7 +224,7 @@ The example below renders text for the paths `/, /foo/bar, /foo/baz`:
 
 === "JSX"
 	```jsx
-	import { Inject, extract } from "rvx";
+	import { Inject } from "rvx";
 	import { ROUTER, HistoryRouter, Routes } from "rvx/router";
 
 	<Inject context={ROUTER} value={new HistoryRouter()}>
@@ -233,7 +232,10 @@ The example below renders text for the paths `/, /foo/bar, /foo/baz`:
 			<Routes routes={[
 				{ match: "/", content: () => "Home" },
 				{ match: "/foo/", content: () => {
-					const innerRouter = extract(ROUTER);
+
+					// This is a ChildRouter:
+					ROUTER.current;
+
 					return <Routes routes={[
 						{ match: "/bar", content: () => "Bar" },
 						{ match: "/baz", content: () => "Baz" },
@@ -246,14 +248,17 @@ The example below renders text for the paths `/, /foo/bar, /foo/baz`:
 
 === "No Build"
 	```jsx
-	import { extract, ROUTER, HistoryRouter, Routes } from "./rvx.js";
+	import { ROUTER, HistoryRouter, Routes } from "./rvx.js";
 
 	ROUTER.inject(new HistoryRouter(), () => [
 		Routes({
 			routes: [
 				{ match: "/", content: () => "Home" },
 				{ match: "/foo/", content: () => {
-					const innerRouter = extract(ROUTER);
+
+					// This is a ChildRouter:
+					ROUTER.current;
+
 					return Routes({
 						routes: [
 							{ match: "/bar", content: () => "Bar" },
