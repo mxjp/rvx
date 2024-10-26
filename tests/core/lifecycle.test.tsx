@@ -1,8 +1,6 @@
 import { fail, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-
-import { capture, captureSelf, isolate, teardown, TeardownHook, uncapture } from "rvx";
-
+import { capture, captureSelf, teardown, TeardownHook, teardownOnError, uncapture } from "rvx";
 import { assertEvents, withMsg } from "../common.js";
 
 await suite("lifecycle", async () => {
@@ -86,12 +84,12 @@ await suite("lifecycle", async () => {
 		});
 	});
 
-	await suite("isolate", async () => {
+	await suite("teardownOnError", async () => {
 		await test("no error", () => {
 			const events: unknown[] = [];
 			const dispose = capture(() => {
 				teardown(() => events.push(0));
-				isolate(() => {
+				teardownOnError(() => {
 					teardown(() => events.push(1));
 					teardown(() => events.push(2));
 				});
@@ -108,15 +106,15 @@ await suite("lifecycle", async () => {
 			const dispose = capture(() => {
 				try {
 					teardown(() => events.push(0));
-					isolate(() => {
-						events.push("isolate");
+					teardownOnError(() => {
+						events.push("test");
 						teardown(() => events.push(1));
 						teardown(() => events.push(2));
 						throw new Error("error");
 					});
 					fail("unreachable");
 				} catch (error) {
-					assertEvents(events, ["isolate", 2, 1]);
+					assertEvents(events, ["test", 2, 1]);
 					events.push((error as Error).message);
 				}
 			});

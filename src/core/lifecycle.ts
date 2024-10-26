@@ -96,7 +96,7 @@ export function nocapture<T>(fn: () => T): T {
 }
 
 /**
- * Run a function within an error isolation boundary.
+ * Run a function within a lifecycle isolation boundary.
  *
  * + If an error is thrown, teardown hooks are immediately called in reverse registration order and the error is re-thrown.
  * + If no error is thrown, teardown hooks are registered in the outer context.
@@ -104,7 +104,7 @@ export function nocapture<T>(fn: () => T): T {
  * @param fn The function to run.
  * @returns The function's return value.
  */
-export function isolate<T>(fn: () => T): T {
+export function teardownOnError<T>(fn: () => T): T {
 	let value!: T;
 	teardown(capture(() => {
 		value = fn();

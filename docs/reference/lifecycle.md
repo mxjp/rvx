@@ -134,17 +134,17 @@ There are some places where registering teardown hooks is very likely a mistake.
 	});
 	```
 
-## `isolate`
-Run a function within an error isolation boundary.
+## `teardownOnError`
+Run a function within a lifecycle boundary.
 
 + If an error is thrown, teardown hooks are immediately called in reverse registration order and the error is re-thrown.
 + If no error is thrown, this behaves as if teardown hooks were registered in the outer context.
 
 === "JSX"
 	```jsx
-	import { isolate } from "rvx";
+	import { teardownOnError } from "rvx";
 
-	isolate(() => {
+	teardownOnError(() => {
 		teardown(() => doSomeCleanup());
 		throw new Error("something went wrong");
 	});
@@ -152,16 +152,16 @@ Run a function within an error isolation boundary.
 
 === "No Build"
 	```jsx
-	import { isolate } from "./rvx.js";
+	import { teardownOnError } from "./rvx.js";
 
-	isolate(() => {
+	teardownOnError(() => {
 		teardown(() => doSomeCleanup());
 		throw new Error("something went wrong");
 	});
 	```
 
 ## Nesting
-Calls to `capture`, `captureSelf`, `uncapture`, `nocapture` and `isolate` can be arbitrarily nested:
+Calls to `capture`, `captureSelf`, `uncapture`, `nocapture` and `teardownOnError` can be arbitrarily nested:
 
 === "JSX"
 	```jsx

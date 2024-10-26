@@ -35,7 +35,7 @@ capture(() => {
 Lifecycle hooks are automatically captured in:
 + `capture`
 + `captureSelf`
-+ `isolate`
++ `teardownOnError`
 + `watch` (excluding the expression)
 + `watchUpdates` (excluding the expression)
 + `effect`
@@ -48,14 +48,14 @@ If you need some kind of error boundary, you can use a component like in the exa
 
 === "JSX"
 	```jsx
-	import { isolate } from "rvx";
+	import { teardownOnError } from "rvx";
 
 	function TryRender(props: {
 		onError: (error: unknown) => unknown;
 		children: () => unknown;
 	}) {
 		try {
-			return isolate(props.children);
+			return teardownOnError(props.children);
 		} catch (error) {
 			console.error(error);
 			return props.onError(error);
@@ -72,14 +72,14 @@ If you need some kind of error boundary, you can use a component like in the exa
 
 === "No Build"
 	```jsx
-	import { isolate } from "./rvx.js";
+	import { teardownOnError } from "./rvx.js";
 
 	function TryRender(props: {
 		onError: (error: unknown) => unknown;
 		children: () => unknown;
 	}) {
 		try {
-			return isolate(props.children);
+			return teardownOnError(props.children);
 		} catch (error) {
 			console.error(error);
 			return props.onError(error);
