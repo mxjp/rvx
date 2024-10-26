@@ -1,15 +1,16 @@
 # Context
-Contexts can be used to implicitly pass static key value pairs along the call stack.
-
-Contexts automatically work with synchronous code & all rvx APIs.
+Contexts can be used to implicitly pass values along the call stack and other rvx APIs.
 
 === "JSX"
 	```jsx
 	import { Context } from "rvx";
 
+	// Create a context:
 	const MESSAGE = new Context<string>();
 
+	// Inject a value for the context while running a function:
 	MESSAGE.inject("Hello World!", () => {
+		// Access the current value:
 		MESSAGE.current; // "Hello World!"
 	});
 	```
@@ -18,14 +19,17 @@ Contexts automatically work with synchronous code & all rvx APIs.
 	```jsx
 	import { Context } from "./rvx.js";
 
+	// Create a context:
 	const MESSAGE = new Context();
 
+	// Inject a value for the context while running a function:
 	MESSAGE.inject("Hello World!", () => {
+		// Access the current value:
 		MESSAGE.current; // "Hello World!"
 	});
 	```
 
-To inject multiple contexts, use `Context.inject`:
+You can also inject values for multiple contexts at once:
 
 === "JSX"
 	```jsx
@@ -92,7 +96,7 @@ When rendering content, you can use the `<Inject>` component with JSX or the fun
 	```
 
 ## Async Code
-Since contexts rely on the synchronous call stack, they don't work with async code:
+Since contexts rely on the synchronous call stack, they don't automatically work with async code:
 
 === "JSX"
 	```jsx
