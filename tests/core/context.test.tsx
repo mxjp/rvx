@@ -133,6 +133,17 @@ await suite("context", async () => {
 		});
 	});
 
+	await test("nested window overwrite unwinding", () => {
+		const ctx = new Context<number>();
+		ctx.inject(1, () => {
+			strictEqual(ctx.current, 1);
+			Context.window([ctx.with(2), ctx.with(3)], () => {
+				strictEqual(ctx.current, 3);
+			});
+			strictEqual(ctx.current, 1);
+		});
+	});
+
 	await suite("wrap", async () => {
 		await test("empty context", () => {
 			const ctx = new Context<number>();
@@ -203,6 +214,26 @@ await suite("context", async () => {
 			fn();
 			ctx.inject(42, fn);
 			Context.inject([ctx.with(77)], fn);
+		});
+
+		await test("nested overwrite unwinding", () => {
+			const ctx = new Context<number>();
+			ctx.inject(1, () => {
+				ctx.inject(2, () => {
+					const fn = Context.wrap(() => {
+						strictEqual(ctx.current, 2);
+					});
+
+					fn();
+					strictEqual(ctx.current, 2);
+
+					Context.window([ctx.with(3), ctx.with(4)], () => {
+						strictEqual(ctx.current, 4);
+						fn();
+						strictEqual(ctx.current, 4);
+					});
+				});
+			});
 		});
 	});
 

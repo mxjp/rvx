@@ -95,7 +95,7 @@ export class Context<T> {
 		try {
 			return fn(...args);
 		} finally {
-			for (let i = 0; i < active.length; i++) {
+			for (let i = active.length - 1; i >= 0; i--) {
 				const { c: context, p: parent } = active[i];
 				context.#windowId = parent;
 				context.#stack.pop();
