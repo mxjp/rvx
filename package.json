@@ -18,7 +18,7 @@
 		"async"
 	],
 	"license": "MIT",
-	"version": "17.0.0",
+	"version": "17.0.1",
 	"type": "module",
 	"main": "./dist/es/core/index-jsx.js",
 	"sideEffects": false,
