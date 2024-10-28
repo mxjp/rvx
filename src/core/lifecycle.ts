@@ -2,9 +2,14 @@ import { TEARDOWN_STACK } from "./internals.js";
 import { NOOP, TeardownFrame, useStack } from "./internals.js";
 
 /**
- * A function that can be called to dispose something.
+ * A function that is called to dispose something.
  */
 export type TeardownHook = () => void;
+
+/**
+ * A function that is called after something has been synchronously created. E.g. after rendering a tree of elements.
+ */
+export type CreatedHook = () => void;
 
 /**
  * Internal utility to dispose the specified hooks in reverse order.
@@ -113,7 +118,7 @@ export function teardownOnError<T>(fn: () => T): T {
 }
 
 /**
- * Register a teardown hook.
+ * Register a teardown hook to be called when the current lifecycle is disposed.
  *
  * This has no effect if teardown hooks are not captured in the current context.
  *
@@ -122,4 +127,22 @@ export function teardownOnError<T>(fn: () => T): T {
  */
 export function teardown(hook: TeardownHook): void {
 	TEARDOWN_STACK[TEARDOWN_STACK.length - 1]?.push(hook);
+}
+
+/**
+ * Register a function to be called as a microtask.
+ *
+ * If the current lifecycle is disposed immediately, the hook is never called.
+ *
+ * @param hook The hook to queue.
+ * @throws An error if teardown hooks are {@link nocapture explicitly un-supported}.
+ */
+export function created(hook: CreatedHook): void {
+	let active = true;
+	teardown(() => active = false);
+	queueMicrotask(() => {
+		if (active) {
+			hook();
+		}
+	});
 }

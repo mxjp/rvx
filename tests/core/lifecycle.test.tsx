@@ -1,6 +1,6 @@
 import { fail, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { capture, captureSelf, teardown, TeardownHook, teardownOnError, uncapture } from "rvx";
+import { capture, captureSelf, created, nocapture, teardown, TeardownHook, teardownOnError, uncapture } from "rvx";
 import { assertEvents, withMsg } from "../common.js";
 
 await suite("lifecycle", async () => {
@@ -304,6 +304,96 @@ await suite("lifecycle", async () => {
 					throw new Error("b");
 				});
 			}, withMsg("a"));
+		});
+	});
+
+	await suite("created", async () => {
+		await test("regular usage", async () => {
+			const events: unknown[] = [];
+			uncapture(() => {
+				queueMicrotask(() => {
+					events.push("before");
+				});
+				created(() => {
+					events.push("a");
+				});
+				created(() => {
+					events.push("b");
+				});
+				queueMicrotask(() => {
+					events.push("after");
+				});
+			});
+			assertEvents(events, []);
+			await Promise.resolve();
+			assertEvents(events, ["before", "a", "b", "after"]);
+		});
+
+		await test("immediate disposal", async () => {
+			const events: unknown[] = [];
+			capture(() => {
+				queueMicrotask(() => {
+					events.push("before");
+				});
+				created(() => {
+					events.push("created");
+				});
+				queueMicrotask(() => {
+					events.push("after");
+				});
+			})();
+			assertEvents(events, []);
+			await Promise.resolve();
+			assertEvents(events, ["before", "after"]);
+		});
+
+		await test("nocapture context", async () => {
+			const events: unknown[] = [];
+
+			queueMicrotask(() => {
+				events.push("before");
+			});
+			nocapture(() => {
+				throws(() => {
+					created(() => {
+						events.push("created");
+					});
+				}, error => {
+					return error instanceof Error && error.message === "G0";
+				});
+			});
+			queueMicrotask(() => {
+				events.push("after");
+			});
+
+			assertEvents(events, []);
+			await Promise.resolve();
+			assertEvents(events, ["before", "after"]);
+		});
+
+		await test("error disposal", async () => {
+			const events: unknown[] = [];
+
+			queueMicrotask(() => {
+				events.push("before");
+			});
+			throws(() => {
+				capture(() => {
+					created(() => {
+						events.push("created");
+					});
+					throw new Error("test");
+				});
+			}, error => {
+				return error instanceof Error && error.message === "test";
+			});
+			queueMicrotask(() => {
+				events.push("after");
+			});
+
+			assertEvents(events, []);
+			await Promise.resolve();
+			assertEvents(events, ["before", "after"]);
 		});
 	});
 });
