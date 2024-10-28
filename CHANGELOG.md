@@ -1,5 +1,8 @@
 # Changelog
 
+## 17.1
++ Add `Reactive` utility type.
+
 ## 17.0
 + **Breaking:** Replaced the entire context API.
 + **Breaking:** Rename `isolate` to `teardownOnError`.

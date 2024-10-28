@@ -567,7 +567,7 @@ counter.notify();
 If you need deeply reactive objects, you can use the [store API](./store.md).
 
 ### Static Values
-The value of signals or expressions can always be accessed in a non reactive ways:
+The value of signals or expressions can always be used in a non reactive ways:
 
 === "JSX"
 	```jsx
@@ -587,7 +587,7 @@ The value of signals or expressions can always be accessed in a non reactive way
 	get(count);
 	```
 
-For signal accesses to be reactive, they need to be done in a function call:
+For accesses to be reactive, you need to use a signal directly or access it's value ina function:
 
 === "JSX"
 	```jsx

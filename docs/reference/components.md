@@ -114,6 +114,28 @@ By default, all component properties are static. To accept reactive inputs, use 
 	Counter({ count: () => count.value })
 	```
 
+In cases where static values never make sense, you can use `Reactive` instead of the `Expression` type to disallow static values:
+
+=== "JSX"
+	```jsx
+	import { Reactive } from "rvx";
+
+	function Counter(props: { value: Reactive<number>; }) {
+		return <>Current count: {props.value}</>;
+	}
+	```
+
+=== "No Build"
+	```jsx
+	/**
+	 * @param {object} props
+	 * @param {import("./rvx.js").Reactive<number>} props.value
+	 */
+	function Counter(props) {
+		return ["Current count: ", props.value];
+	}
+	```
+
 ### Signals
 To support data flow in both directions, you can use [signals](signals.md) as properties.
 
