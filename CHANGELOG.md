@@ -1,5 +1,8 @@
 # Changelog
 
+## 17.2
++ Add `created` lifecycle hook.
+
 ## 17.1
 + Add `Reactive` utility type.
 
