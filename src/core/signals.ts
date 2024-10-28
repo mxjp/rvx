@@ -224,6 +224,13 @@ export type Expression<T> = T | Signal<T> | (() => T);
 export type ExpressionResult<T> = T extends Expression<infer R> ? R : never;
 
 /**
+ * Utility type for expressions that should never be static values.
+ *
+ * This can be used instead of the {@link Expression} type in places where accepting static values doesn't make sense.
+ */
+export type Reactive<T> = Signal<T> | (() => T);
+
+/**
  * Internal utility to unfold potential recursion into a sequence.
  */
 const _unfold = (hook: NotifyHook): NotifyHook => {
