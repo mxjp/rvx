@@ -3,20 +3,37 @@
 # Introduction
 To develop a rvx application locally, you need a recent version of [NodeJS](https://nodejs.org/) or any other compatible JavaScript runtime.
 
-You can use the commands below to setup a minimal rvx project using [Vite](https://vitejs.dev/) and [TypeScript](https://www.typescriptlang.org/):
-```bash
-# Create a "my-app" directory from rvx's "vite-ts" template project:
-npx degit mxjp/rvx/templates/vite-ts my-app
+You can use the commands below to setup a minimal rvx project using [Vite](https://vitejs.dev/) or [Webpack](https://webpack.js.org/) and [TypeScript](https://www.typescriptlang.org/):
 
-# Move into "my-app":
-cd my-app
+=== "Vite"
+	```bash
+	# Create a "my-app" directory from rvx's "vite-ts" template project:
+	npx degit mxjp/rvx/templates/vite-ts my-app
 
-# Install dependencies:
-npm install
+	# Move into "my-app":
+	cd my-app
 
-# Start a development server:
-npm start
-```
+	# Install dependencies:
+	npm install
+
+	# Start a development server:
+	npm start
+	```
+
+=== "Webpack"
+	```bash
+	# Create a "my-app" directory from rvx's "webpack-ts" template project:
+	npx degit mxjp/rvx/templates/webpack-ts my-app
+
+	# Move into "my-app":
+	cd my-app
+
+	# Install dependencies:
+	npm install
+
+	# Start a development server:
+	npm start
+	```
 
 ## Entry Point
 After setting up the quick start template, you can find the main entry point in `src/main.tsx`:
@@ -61,10 +78,12 @@ mount(
 	</>
 );
 ```
+
 To replace a signal value, you can set the `value` property:
 ```jsx
 count.value = 1;
 ```
+
 To update an object, you can use the `update` function.
 ```jsx
 const values = sig([7, 42]);
@@ -135,7 +154,7 @@ The `For` component repeats content for each unique item in an iterable:
 ```jsx
 import { mount, sig, For } from "rvx";
 
-const values = sig([]);
+const values = sig<number[]>([]);
 
 mount(
 	document.body,
@@ -153,7 +172,7 @@ mount(
 );
 ```
 
-In addition to `Show` and `For`, rvx provides some more view types you can find in the API documentation or you can implement your own views for special use cases.
+In addition to `Show` and `For`, rvx provides some more view types you can find [here](./reference/views/index.md) or you can implement your own views for special use cases.
 
 ## Components
 Components in rvx are just functions that return arbitrary content. They are called once when the component is rendered.
@@ -226,3 +245,7 @@ function Message(props: { children?: unknown; }) {
 
 <Message>Hello World!</Message>;
 ```
+
+---
+
+From here, you can take a look at [the reference](./reference/index.md) to get an overview of what's possible.
