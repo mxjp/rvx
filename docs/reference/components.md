@@ -348,12 +348,28 @@ In case of the `class` and `style` attributes, you can use an array as value to 
 	```
 
 ## Lifecycle Hooks
-Since components are just functions, you can register [teardown hooks](./lifecycle.md) to be called when your component is disposed.
-```jsx
-function Timer() {
-	const elapsed = sig(0);
-	const timer = setInterval(() => { elapsed.value++ }, 1000);
-	teardown(() => clearInterval(timer));
-	return elapsed;
-}
-```
+[Lifecycle hooks](./lifecycle.md) are supported in components:
+
+=== "JSX"
+	```jsx
+	import { teardown } from "rvx";
+
+	function Timer() {
+		const elapsed = sig(0);
+		const timer = setInterval(() => { elapsed.value++ }, 1000);
+		teardown(() => clearInterval(timer));
+		return elapsed;
+	}
+	```
+
+=== "No Build"
+	```jsx
+	import { teardown } from "./rvx.js";
+
+	function Timer() {
+		const elapsed = sig(0);
+		const timer = setInterval(() => { elapsed.value++ }, 1000);
+		teardown(() => clearInterval(timer));
+		return elapsed;
+	}
+	```

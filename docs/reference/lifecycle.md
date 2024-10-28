@@ -1,5 +1,12 @@
 # Lifecycle
-Teardown hooks are the only lifecycle hook in rvx. They can be used to run logic when the lifecycle context they have been registered in is disposed.
+Lifecycle hooks allow you to run code after something has been created or when something is disposed.
+
+Currently, there are two types of lifecycle hooks:
+
++ [**Teardown**](#teardown) hooks run to dispose something.
++ [**Created**](#created) hooks run as a microtask after something has been created.
+
+The lifecycle of any synchronous code can be manually managed using [`capture`](#capture), [`captureSelf`](#capture) and [`teardownOnError`](#teardownonerror).
 
 ## `teardown`
 Register a hook to be called when the current lifecycle is disposed:
@@ -27,6 +34,41 @@ Register a hook to be called when the current lifecycle is disposed:
 	```
 
 Calling `teardown` outside of any functions listed below has no effect and "leaks" the teardown hook. When running tests, this behavior can be [configured](./testing.md#leak-detection) to log leaks or to throw an error.
+
+## `created`
+Register a hook to be called as a microtask.
+
+=== "JSX"
+	```jsx
+	import { created } from "rvx";
+
+	function ExampleComponent() {
+		const heading = <h1>Hello World!</h1>;
+
+		created(() => {
+			console.log(heading.isConnected);
+		});
+
+		return heading;
+	}
+	```
+
+=== "No Build"
+	```jsx
+	import { created, e } from "./rvx.js";
+
+	function ExampleComponent() {
+		const heading = e("h1").append("Hello World!");
+
+		created(() => {
+			console.log(heading.isConnected);
+		});
+
+		return heading;
+	}
+	```
+
+If the current lifecycle is disposed immediately, the hook is never called. This also includes cases where the lifecycle has been disposed due to an error.
 
 ## `capture`
 Capture teardown hooks during a function call:
@@ -112,25 +154,31 @@ To explicitly leak teardown hooks, the `uncapture` function can be used. Code ru
 	```
 
 ## `nocapture`
-There are some places where registering teardown hooks is very likely a mistake. E.g. inside of [expressions](signals.md#expressions). Trying to register teardown hooks during an `nocapture` call will throw an error:
+There are some places where registering teardown hooks is very likely a mistake. E.g. inside of [expressions](signals.md#expressions). Trying to register lifecycle hooks during a `nocapture` call will throw an error:
 
 === "JSX"
 	```jsx
-	import { nocapture } from "rvx";
+	import { nocapture, teardown, created } from "rvx";
 
 	nocapture(() => {
 		// This will throw an error:
 		teardown(() => { ... });
+
+		// This will throw an error:
+		created(() => { ... });
 	});
 	```
 
 === "No Build"
 	```jsx
-	import { nocapture } from "./rvx.js";
+	import { nocapture, teardown, created } from "./rvx.js";
 
 	nocapture(() => {
 		// This will throw an error:
 		teardown(() => { ... });
+
+		// This will throw an error:
+		created(() => { ... });
 	});
 	```
 
