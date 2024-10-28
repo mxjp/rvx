@@ -17,7 +17,7 @@ export interface RvxElementOptions {
 	 * When to render this element's content.
 	 *
 	 * + `on-connect` - Default. Render when this element is connected.
-	 * + `manual` - Render only when `.init()` is called.
+	 * + `manual` - Render only when `.start()` is called.
 	 */
 	start?: StartTrigger;
 
@@ -52,7 +52,7 @@ export abstract class RvxElement extends HTMLElement {
 	}
 
 	/**
-	 * Called to render the content of this element on this element.
+	 * Called to render the content of this element.
 	 *
 	 * @returns The content to attach to this element or the shadow root if it exists.
 	 */
