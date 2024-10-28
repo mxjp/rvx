@@ -118,6 +118,69 @@ The `reflect` function can be used to get a signal that reflects an attribute va
 	customElements.define("example-counter", ExampleCounter);
 	```
 
+## Lifecycle
+By default, the content is rendered when the component is connected to the DOM and disposed when it's disconnected.
+
+This default behavior can be disabled:
+```jsx
+class ExampleElement extends RvxElement {
+	constructor() {
+		super({
+			// Disable automatic rendering when connected:
+			start: "manual",
+			// Disable automatic disposal when disconnected:
+			dispose: "manual",
+		});
+	}
+}
+```
+
+You can always start or dispose the component manually:
+
+=== "JSX"
+	```jsx
+	const elem = <example-element /> as ExampleElement;
+
+	// Start rendering the component:
+	elem.start();
+
+	// Dispose the component:
+	elem.dispose();
+	```
+
+=== "No Build"
+	```jsx
+	const elem = e("example-element");
+
+	// Start rendering the component:
+	elem.start();
+
+	// Dispose the component:
+	elem.dispose();
+	```
+
+Note, that components can be started and disposed multiple times.
+
+## Shadow DOM
+By default, content returned from the `render` function is attached to an open shadow root.
+
+This behavior can be changed with the following options:
+```jsx
+class ExampleElement extends RvxElement {
+	constructor() {
+		super({
+			// Don't create a shadow root and attach content to the element directly:
+			shadow: false,
+
+			// Specify options for creating the shadow root:
+			shadow: {
+				mode: "open",
+			},
+		});
+	}
+}
+```
+
 ## Manual Implementation
 Due to it's simple lifecycle system, you can also implement web components manually:
 
@@ -135,14 +198,11 @@ Due to it's simple lifecycle system, you can also implement web components manua
 
 		connectedCallback() {
 			this.#dispose = capture(() => {
-				// Create and append content to the shadow root:
-				const view = mount(
+				// Create and append content to the shadow root until disposed:
+				mount(
 					this.shadowRoot,
 					<h1>Hello World!</h1>,
 				);
-
-				// Remove content from the shadow root when disposed:
-				teardown(() => view.detach());
 			});
 		}
 
