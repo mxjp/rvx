@@ -209,7 +209,7 @@ Run a function within a lifecycle boundary.
 	```
 
 ## Nesting
-Calls to `capture`, `captureSelf`, `uncapture`, `nocapture` and `teardownOnError` can be arbitrarily nested:
+Any lifecycle related API calls can be arbitrarily nested unless documented otherwise:
 
 === "JSX"
 	```jsx
@@ -254,7 +254,7 @@ Calls to `capture`, `captureSelf`, `uncapture`, `nocapture` and `teardownOnError
 	```
 
 ## Repetitive Disposal
-By default, lifecycle hooks can be called multiple times and primitives like [`capture`](#capture) and [`captureSelf`](#captureself) don't provide any logic for preventing multiple calls.
+By default, teardown hooks can be called multiple times and primitives like [`capture`](#capture) and [`captureSelf`](#captureself) don't provide any logic for preventing multiple calls.
 
 ```jsx
 const dispose = capture(() => {
