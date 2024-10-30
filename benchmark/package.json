@@ -1,0 +1,8 @@
+{
+	"type": "module",
+	"dependencies": {
+		"express": "^4.21.1",
+		"playwright": "^1.48.2",
+		"yargs-parser": "^21.1.1"
+	}
+}

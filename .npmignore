@@ -3,12 +3,13 @@
 /.github
 /.gitignore
 /assets
+/benchmark
 /build
 /DEVELOPMENT.md
 /docs_out
+/docs/assets
 /docs/examples
 /docs/stylesheets
-/docs/assets
 /examples
 /mkdocs*
 /package-lock.json

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>rvx benchmarks!</title>
+	</head>
+	<body>
+		<script type="module">
+			const START_SAMPLE_SIZE = 10;
+			const TARGET_DURATION = 250;
+			const MIN_DURATION = 200;
+			const MIN_SAMPLES = 5;
+			const MAX_SAMPLE_TRIES = 20;
+
+			globalThis[Symbol.for("rvx:benchmark")] = async args => {
+				const benchmark = await import(`./benchmarks/${args.benchmark}`);
+				const multiplier = benchmark.multiplier ?? 1;
+
+				const snapshots = await Promise.all(args.snapshots.map(s => import(`./snapshots/${s}`)));
+
+				const entries = snapshots.map(s => {
+					return {
+						cycle: benchmark.create(s),
+						size: START_SAMPLE_SIZE,
+						samples: [],
+					};
+				});
+
+				let tries = 0;
+				while (entries.some(e => e.samples.length < MIN_SAMPLES)) {
+					if (++tries > MAX_SAMPLE_TRIES) {
+						throw new Error("max sample tries exceeded");
+					}
+					for (let e = 0; e < entries.length; e++) {
+						const { cycle, size, samples } = entries[e];
+
+						const start = performance.now();
+						for (let i = 0; i < size; i++) {
+							cycle();
+						}
+						const end = performance.now();
+						const duration = end - start;
+
+						if (duration > MIN_DURATION) {
+							samples.push({ duration, size: size * multiplier });
+						}
+
+						entries[e].size = Math.round(size * Math.min(TARGET_DURATION / duration, 2));
+						if (entries[e].size < 1) {
+							throw new Error("sample took too long");
+						}
+					}
+				}
+
+				return {
+					entries: entries.map(e => e.samples),
+					tries,
+				};
+			};
+		</script>
+	</body>
+</html>

@@ -5,6 +5,5 @@
 /docs/examples
 /examples/node_modules
 /node_modules
-/perf/node_modules
 /tests_out
 /venv
