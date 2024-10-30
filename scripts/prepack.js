@@ -12,6 +12,8 @@ writeFileSync(packageJsonFilename, JSON.stringify(packageJson, null, "\t") + "\n
 for (const path in packageJson.exports) {
 	const info = packageJson.exports[path];
 	if (path !== "." && info?.default?.endsWith?.(".js")) {
-		writeFileSync(join(root, path + ".d.ts"), `export * from ${JSON.stringify(info.default)};\n`);
+		const code = `export * from ${JSON.stringify(info.default)};\n`;
+		writeFileSync(join(root, path + ".js"), code);
+		writeFileSync(join(root, path + ".d.ts"), code);
 	}
 }
