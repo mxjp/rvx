@@ -7,15 +7,14 @@
 		"url": "https://github.com/mxjp/rvx"
 	},
 	"keywords": [
-		"reactive",
-		"ui",
-		"context",
 		"declarative",
-		"signals",
 		"jsx",
-		"web-components",
-		"router",
-		"async"
+		"low-level",
+		"no-build",
+		"reactive",
+		"signals",
+		"synchronous",
+		"web-components"
 	],
 	"license": "MIT",
 	"version": "17.2.1",
