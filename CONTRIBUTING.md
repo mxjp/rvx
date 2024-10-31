@@ -3,6 +3,10 @@ Contributions are generally welcome. If you have any questions, suggestions or f
 
 ## Project Structure
 ```bash
+
+# Benchmark utilities
+benchmark/
+
 # Compiled modules & bundles:
 dist/
 	es/ # Compiled ES modules & type definitions.
@@ -73,4 +77,22 @@ npm run build --prefix examples
 
 # Build the documentation:
 mkdocs build --site-dir docs_out
+```
+
+## Running benchmarks
+The benchmark setup runs a set of benchmarks from `benchmark/src/benchmarks` against one or more bundled snapshots of rvx in the same browsing context.
+
+```bash
+cd benchmark
+
+# Install dependencies.
+npm ci
+npx playwright install
+
+# Build & bundle a snapshot of the current source code:
+# This creates a "base" snapshot or an "update" snapshot if base already exists.
+node ./snapshot.js
+
+# Run benchmarks against existing snapshots:
+node ./run.js --headless
 ```
