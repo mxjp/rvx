@@ -99,6 +99,7 @@ git clone https://github.com/mxjp/rvx
 cd rvx
 
 npm ci
+npm run build
 node scripts/bundle.js [...args]
 
 # Bundle "core" and "async" into "./custom.js", "./custom.min.js" and "./custom.d.ts":
