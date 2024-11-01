@@ -38,6 +38,9 @@ This is a signal based frontend framework.
 	);
 	```
 
+## Stability
+This is an early in-development version with [frequent breaking changes](https://github.com/mxjp/rvx/blob/main/CHANGELOG.md)
+
 ## Goals & Motivation
 
 ### Precise API
