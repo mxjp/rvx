@@ -35,17 +35,7 @@ export function Async<T>(props: {
 	rejected?: (value: unknown) => unknown;
 }): View {
 	const { source, pending, children, rejected } = props;
-
-	const state = sig<{
-		type: "pending";
-		value: undefined;
-	} | {
-		type: "resolved";
-		value: T;
-	} | {
-		type: "rejected";
-		value: unknown;
-	}>({ type: "pending", value: undefined });
+	const state = sig({ type: 0, value: undefined as unknown });
 
 	let promise: Promise<T>;
 	if (typeof source === "function") {
@@ -56,9 +46,9 @@ export function Async<T>(props: {
 
 	const ac = ASYNC.current;
 	promise.then(value => {
-		state.value = { type: "resolved", value };
+		state.value = { type: 1, value };
 	}, (value: unknown) => {
-		state.value = { type: "rejected", value };
+		state.value = { type: 2, value };
 		if (ac === undefined && rejected === undefined) {
 			void Promise.reject(value);
 		}
@@ -68,12 +58,12 @@ export function Async<T>(props: {
 	return Nest({
 		children: () => {
 			switch (state.value.type) {
-				case "pending": return pending;
-				case "resolved": {
+				case 0: return pending;
+				case 1: {
 					const { value } = state.value;
-					return children ? (() => children(value)) : undefined;
+					return children ? (() => children(value as T)) : undefined;
 				}
-				case "rejected": {
+				case 2: {
 					const { value } = state.value;
 					return rejected ? (() => rejected(value)) : undefined;
 				}
