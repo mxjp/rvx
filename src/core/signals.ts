@@ -82,7 +82,7 @@ export class Signal<T> {
 	/**
 	 * Update the current value in place.
 	 *
-	 * @param fn A function to update the value. If false is returned, dependants are not notified.
+	 * @param fn A function to update the value. If false is returned, observers are not notified.
 	 *
 	 * @example
 	 * ```tsx
@@ -107,7 +107,7 @@ export class Signal<T> {
 	}
 
 	/**
-	 * Check if this signal has any active dependants.
+	 * Check if this signal has any active observers.
 	 */
 	get active(): boolean {
 		return this.#hooks.size > 0;
@@ -123,7 +123,9 @@ export class Signal<T> {
 	}
 
 	/**
-	 * Manually notify dependants.
+	 * Manually notify observers.
+	 *
+	 * During batches, notifications are deferred.
 	 */
 	notify(): void {
 		if (BATCH === undefined) {
@@ -414,7 +416,7 @@ export function batch<T>(fn: () => T): T {
 /**
  * Watch an expression and create a function to reactively access it's latest result.
  *
- * This is similar to {@link lazy}, but the expression is always evaluated and then updates it's dependants.
+ * This is similar to {@link lazy}, but the expression is always evaluated and then updates it's observers.
  *
  * @param expr The expression to watch.
  * @returns A function to access the latest result.

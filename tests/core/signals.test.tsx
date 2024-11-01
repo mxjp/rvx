@@ -972,7 +972,7 @@ await suite("signals", async () => {
 		for (const useBatch of [false, true]) {
 			const batchType = useBatch ? "batch" : "non-batch";
 
-			await test(`${batchType} + memos + non-memos in same dependant`, () => {
+			await test(`${batchType} + memos + non-memos in same observer`, () => {
 				const events: unknown[] = [];
 				const signal = sig(1);
 				const computed = uncapture(() => memo(() => signal.value * 2));
@@ -991,7 +991,7 @@ await suite("signals", async () => {
 				assertEvents(events, useBatch ? [[2, 4]] : [[2, 4], [2, 4]]);
 			});
 
-			await test(`${batchType} + memos + non-memos in distinct dependants`, () => {
+			await test(`${batchType} + memos + non-memos in distinct observers`, () => {
 				const events: unknown[] = [];
 				const signal = sig(1);
 				const computed = uncapture(() => memo(() => signal.value * 2));

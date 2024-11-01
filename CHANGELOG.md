@@ -35,7 +35,7 @@
 + **Breaking:** Removed `lazy` and `trigger`.
 + **Breaking:** Removed `sequential` param from `watch`, `watchUpdates` and `effect`. Immediate recusrive side effects are now always unfolded into a sequence.
 + **Breaking:** Batches now also run immediate follow up side effects in the same batch until no more updates are queued.
-+ **Breaking:** Batch processing now stops if an error occurs, but the linking between signals and unnotified dependants will remain.
++ **Breaking:** Batch processing now stops if an error occurs, but the linking between signals and unnotified observers will remain.
 + Fix potential memory leak with signals that are never updated.
 + Improve batch stack memory usage.
 + Improve signal access tracking memory usage & performance.

@@ -58,7 +58,7 @@ export class ProbeMap<K, V> {
 	}
 
 	/**
-	 * Update a key-value pair and notify it's dependants.
+	 * Update a key-value pair and notify potential observers.
 	 */
 	update(key: K, value: V): void {
 		const probe = this.#probes.get(key);

@@ -28,7 +28,7 @@ The current value can be accessed or updated using the `value` property:
 count.value++;
 ```
 
-To deeply change a value and then notify the signal dependants, use the `update` function:
+To deeply change a value and then notify the signal observers, use the `update` function:
 ```jsx
 const items = sig(["a", "b"]);
 
@@ -47,7 +47,7 @@ count.notify();
 ```
 
 ## Equality
-By default, setting a signal's `value` property only notifies it's dependants if the value is not the same.
+By default, setting a signal's `value` property only notifies it's observers if the value is not the same.
 ```jsx
 const count = sig(42);
 // This does nothing since the value is already 42:
@@ -520,7 +520,7 @@ Observers like [`watch`](#watch) and [`trigger`](#trigger), signals and teardown
 ## Troubleshooting
 For signal based reactivity to work, the following is required:
 
-+ The value in a signal must be replaced, or the signal must notify dependants using `notify` or `update`.
++ The value in a signal must be replaced, or the signal must notify observers using `notify` or `update`.
 + The place where the value is used must be able to access the signal by calling a function.
 
 ### Deep Updates
@@ -548,7 +548,7 @@ counter.update(value => {
 // Replace the entire value:
 counter.value = { count: 1 };
 
-// Manually notify dependants:
+// Manually notify observers:
 counter.value.count++;
 counter.notify();
 ```

@@ -55,7 +55,8 @@ import { sig } from "rvx";
 // Create a signal with the initial value 0:
 const count = sig(0);
 ```
-When a signal is used directly or it's value is accessed through a function call, the signal can notify it's dependants when the value changes:
+
+When a signal is used directly or it's value is accessed through a function call, the signal can notify it's observers when the value changes:
 ```jsx
 import { mount, sig } from "rvx";
 
@@ -88,7 +89,7 @@ To update an object, you can use the `update` function.
 ```jsx
 const values = sig([7, 42]);
 
-// This will modify the inner value and then notify dependants:
+// This will modify the inner value and then notify observers:
 values.update(values => {
 	values.push(77);
 });
