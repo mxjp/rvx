@@ -11,6 +11,7 @@ const root = join(fileURLToPath(import.meta.url), "../..");
 const args = parseArgs(process.argv.slice(2), {
 	array: ["modules"],
 	string: ["modules", "output"],
+	boolean: ["readable", "minified", "types", "license"],
 	alias: {
 		modules: "m",
 		output: "o",
@@ -48,7 +49,9 @@ await writeFile(join(build, `${entryBase}.js`), entryContent);
 await writeFile(join(build, `${entryBase}.d.ts`), entryContent);
 
 const license = await readFile(join(root, "LICENSE"), "utf-8");
-const banner = `/*!\n${license}*/`;
+const banner = (args.license ?? true) ? [{
+	banner: `/*!\n${license}*/`,
+}] : [];
 
 const format = {
 	generateBundle(_options, bundle) {
@@ -71,25 +74,28 @@ const format = {
 		logLevel: "silent",
 		input: join(build, `${entryBase}.js`),
 	});
-	await bundle.write({
-		format: "es",
-		file: join(root, output + ".js"),
-		plugins: [
-			{ banner },
-			format,
-		],
-	});
-	await bundle.write({
-		format: "es",
-		file: join(root, output + ".min.js"),
-		plugins: [
-			terser(),
-			{ banner },
-		],
-	});
+	if (args.readable ?? true) {
+		await bundle.write({
+			format: "es",
+			file: join(root, output + ".js"),
+			plugins: [
+				banner,
+				format,
+			],
+		});
+	}
+	if (args.minified ?? true) {
+		await bundle.write({
+			format: "es",
+			file: join(root, output + ".min.js"),
+			plugins: [
+				terser(),
+			],
+		});
+	}
 }
 
-{
+if (args.types ?? true) {
 	const bundle = await rollup({
 		logLevel: "silent",
 		input: join(build, `${entryBase}.d.ts`),
@@ -97,7 +103,7 @@ const format = {
 			dts({
 				tsconfig: join(root, "tsconfig-types.json"),
 			}),
-			{ banner },
+			banner,
 			format,
 		],
 	});
