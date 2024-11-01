@@ -23,23 +23,8 @@ interface AccessHook {
 	(hooks: Set<NotifyHook>): void;
 }
 
-/**
- * A function used in signals to determine if the signal should update during a value assignment.
- */
-export interface SignalEqualsFn<T> {
-	/**
-	 * @param previous The previous value.
-	 * @param current The current value.
-	 * @returns False to update.
-	 */
-	(previous: T, current: T): boolean;
-}
-
 const notify = (fn: NotifyHook) => fn();
 const queueBatch = (fn: NotifyHook) => BATCH!.add(fn);
-
-const SIGNAL_EQUALS_DEFAULT: SignalEqualsFn<unknown> = Object.is;
-const SIGNAL_EQUALS_DISABLED: SignalEqualsFn<unknown> = () => false;
 
 /**
  * Represents a value that changes over time.
@@ -50,24 +35,15 @@ export class Signal<T> {
 	 */
 	#value: T;
 
-	/**
-	 * * A function to determine if the signal should update during a value assignment.
-	 */
-	#equals: SignalEqualsFn<T>;
-
 	#hooks = new Set<NotifyHook>();
 
 	/**
 	 * Create a new signal.
 	 *
 	 * @param value The initial value.
-	 * @param equals True to skip updates when an assigned value is strictly equal to the previous one or a function to determine of the values are equal. Default is true.
 	 */
-	constructor(value: T, equals: SignalEqualsFn<T> | boolean = true) {
+	constructor(value: T) {
 		this.#value = value;
-		this.#equals = typeof equals === "function"
-			? equals
-			: (equals ? SIGNAL_EQUALS_DEFAULT : SIGNAL_EQUALS_DISABLED);
 	}
 
 	/**
@@ -80,6 +56,8 @@ export class Signal<T> {
 
 	/**
 	 * Set the current value.
+	 *
+	 * If the new value is the same as the previous one, no observers are notified.
 	 *
 	 * @example
 	 * ```tsx
@@ -95,7 +73,7 @@ export class Signal<T> {
 	 * ```
 	 */
 	set value(value: T) {
-		if (!this.#equals(this.#value, value)) {
+		if (!Object.is(this.#value, value)) {
 			this.#value = value;
 			this.notify();
 		}
@@ -180,13 +158,12 @@ export class Signal<T> {
  * Create a new signal.
  *
  * @param value The initial value.
- * @param equals True to skip updates when an assigned value is strictly equal to the previous one or a function to determine if the values are equal. Default is true.
  * @returns The signal.
  */
 export function sig(): Signal<void>;
-export function sig<T>(value: T, equals?: SignalEqualsFn<T> | boolean): Signal<T>;
-export function sig<T>(value?: T, equals?: SignalEqualsFn<T> | boolean): Signal<T> {
-	return new Signal<T>(value!, equals);
+export function sig<T>(value: T): Signal<T>;
+export function sig(value?: unknown): Signal<unknown> {
+	return new Signal(value);
 }
 
 /**
@@ -440,7 +417,6 @@ export function batch<T>(fn: () => T): T {
  * This is similar to {@link lazy}, but the expression is always evaluated and then updates it's dependants.
  *
  * @param expr The expression to watch.
- * @param equals True to skip updates when a result is strictly equal to the previous one or a function to determine if the results are equal. Default is true.
  * @returns A function to access the latest result.
  *
  * @example
@@ -456,8 +432,8 @@ export function batch<T>(fn: () => T): T {
  * });
  * ```
  */
-export function memo<T>(expr: Expression<T>, equals?: SignalEqualsFn<T> | boolean): () => T {
-	const signal = sig<T>(undefined!, equals);
+export function memo<T>(expr: Expression<T>): () => T {
+	const signal = sig<T>(undefined!);
 	watch(expr, value => signal.value = value);
 	return () => signal.value;
 }

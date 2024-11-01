@@ -455,7 +455,7 @@ await suite("view", async () => {
 	await test("Show", () => {
 		const events: unknown[] = [];
 
-		const signal = sig(0, false);
+		const signal = sig(0);
 
 		const view = uncapture(() => {
 			return <Show when={signal} else={() => {
@@ -491,6 +491,9 @@ await suite("view", async () => {
 			assertEvents(events, ["-1", "+2", "e2"]);
 
 			signal.value = 2;
+			assertEvents(events, []);
+
+			signal.notify();
 			strictEqual(text(view.take()), "2");
 			assertEvents(events, ["e2"]);
 		})();
@@ -504,6 +507,9 @@ await suite("view", async () => {
 			assertEvents(events, ["e0"]);
 
 			signal.value = 0;
+			assertEvents(events, []);
+
+			signal.notify();
 			strictEqual(text(view.take()), "f");
 			assertEvents(events, ["e0"]);
 		})();

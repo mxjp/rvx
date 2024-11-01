@@ -1,4 +1,4 @@
-import { isTracking, Signal, SignalEqualsFn } from "../core/signals.js";
+import { isTracking, Signal } from "../core/signals.js";
 
 /**
  * A signal for tracking accesses to values that may not exist.
@@ -11,10 +11,9 @@ export class ProbeSignal<T> extends Signal<T> {
 	 *
 	 * @param onDisposable A function to call when it is guaranteed that this signal is no longer watched.
 	 * @param value The initial value.
-	 * @param equals True to skip updates when an assigned value is strictly equal to the previous one or a function to determine of the values are equal. Default is true.
 	 */
-	constructor(onDisposable: () => void, value: T, equals?: boolean | SignalEqualsFn<T>) {
-		super(value, equals);
+	constructor(onDisposable: () => void, value: T) {
+		super(value);
 		this.#onDisposable = onDisposable;
 	}
 
