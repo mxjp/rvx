@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { spawn, spawnSync } from "node:child_process";
-import { access, copyFile, mkdir } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { spawn } from "node:child_process";
+import { access, mkdir } from "node:fs/promises";
+import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import yargsParser from "yargs-parser";
 
@@ -11,25 +11,20 @@ const snapshots = join(ctx, "src/snapshots");
 
 const args = yargsParser(process.argv.slice(2));
 
-if (args.build ?? true) {
-	await Promise.all([
-		exec(repo, "npm run build:es"),
-		exec(repo, "npm run build:types"),
-	]);
-}
-if (args.bundle ?? true) {
-	await exec(repo, "npm run build:bundle:all");
-}
-
 await mkdir(snapshots, { recursive: true });
-
 const baseExists = await access(join(snapshots, "base.js")).then(() => true, () => false);
 const name = args.name ?? (baseExists ? "update" : "base");
 if (typeof name !== "string" || !/^[a-z0-9\-]+$/.test(name)) {
 	throw new Error("invalid name");
 }
 
-await copyFile(join(repo, "dist/rvx.all.js"), join(snapshots, `${name}.js`));
+if (args.build ?? true) {
+	await exec(repo, "npm run build:es");
+}
+
+if (args.bundle ?? true) {
+	await exec(repo, `node scripts/bundle.js --no-minified --no-types --no-license -m core/index-all core/jsx/r17 -o ${join(relative(repo, snapshots), name)}`);
+}
 
 function exec(cwd, command) {
 	return new Promise((resolve, reject) => {

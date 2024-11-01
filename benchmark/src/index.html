@@ -22,7 +22,7 @@
 				const entries = snapshots.map(s => {
 					return {
 						cycle: benchmark.create(s),
-						size: START_SAMPLE_SIZE,
+						size: benchmark.startSampleSize ?? START_SAMPLE_SIZE,
 						samples: [],
 					};
 				});
