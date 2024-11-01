@@ -17,7 +17,7 @@
 		"web-components"
 	],
 	"license": "MIT",
-	"version": "17.2.2",
+	"version": "17.2.3",
 	"type": "module",
 	"main": "./dist/es/core/index-jsx.js",
 	"sideEffects": false,
