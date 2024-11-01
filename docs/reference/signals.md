@@ -54,17 +54,6 @@ const count = sig(42);
 count.value = 42;
 ```
 
-The default equality check can be disabled:
-```jsx
-sig(42, false);
-```
-
-By providing a function, a custom equality check can be used:
-```jsx
-// This is the default behavior:
-sig(42, (a, b) => Object.is(a, b));
-```
-
 ## Expressions
 In rvx, an `Expression` can be a static value, a signal or a function that accesses signals.
 ```jsx
