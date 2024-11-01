@@ -114,7 +114,7 @@ Rvx doesn't require a build system. You can choose between an element builder AP
 	```
 
 ### Lightweight
-The entire rvx core module has a size of [~4KB gzipped](https://bundlephobia.com/package/rvx) and almost everything is tree-shakeable, so you only pay for what you need.
+The entire rvx core module has a size of about 4 to 5KB when minified & gzipped and almost everything is tree-shakeable, so you only pay for what you need.
 
 ### Strongly Typed Reactivity
 When using rvx with TypeScript, the fact which component properties may be reactive is [encoded in the type system](./reference/components.md#expressions). This allows developers to know what to expect of a component and eliminates weird caveats when accessing properties from a component's props argument.
