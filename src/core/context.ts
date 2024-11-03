@@ -10,6 +10,8 @@ const _capture = <T>(context: Context<T>): ContextState<T> => {
 
 /**
  * A context for implicitly passing values along the call stack.
+ *
+ * If you need a global default value, use {@link DefaultContext} instead.
  */
 export class Context<T> {
 	#stack: (T | undefined)[] = [];
@@ -67,7 +69,7 @@ export class Context<T> {
 	static window<F extends (...args: any) => any>(states: ContextState<unknown>[], fn: F, ...args: Parameters<F>): ReturnType<F> {
 		try {
 			WINDOWS.push([]);
-			return this.inject<F>(states, fn, ...args);
+			return Context.inject<F>(states, fn, ...args);
 		} finally {
 			WINDOWS.pop();
 		}
@@ -113,6 +115,27 @@ export class Context<T> {
 	static wrap<T extends (...args: any) => any>(fn: T): T {
 		const states = WINDOWS[WINDOWS.length - 1].map(_capture);
 		return ((...args) => Context.window<any>(states, fn, ...args)) as T;
+	}
+}
+
+/**
+ * A {@link Context context} with a default value.
+ */
+export class DefaultContext<T> extends Context<T> {
+	/**
+	 * Get or set the default value.
+	 *
+	 * This is used if the {@link current} value is `null` or `undefined`.
+	 */
+	default: T;
+
+	constructor(value: T) {
+		super();
+		this.default = value;
+	}
+
+	get current(): T {
+		return super.current ?? this.default;
 	}
 }
 
