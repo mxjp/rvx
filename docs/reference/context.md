@@ -61,6 +61,37 @@ You can also inject values for multiple contexts at once:
 	});
 	```
 
+## Default Values
+Contexts return `undefined` as the current value if nothing is injected.
+
+If you need a global default value, you can use a `DefaultContext` instead:
+
+=== "JSX"
+	```jsx
+	import { DefaultContext } from "rvx";
+
+	const CONTEXT = new DefaultContext(42);
+
+	CONTEXT.current; // 42
+
+	CONTEXT.inject(77, () => {
+		CONTEXT.current; // 77
+	});
+	```
+
+=== "No Build"
+	```jsx
+	import { DefaultContext } from "./rvx.js";
+
+	const CONTEXT = new DefaultContext(42);
+
+	CONTEXT.current; // 42
+
+	CONTEXT.inject(77, () => {
+		CONTEXT.current; // 77
+	});
+	```
+
 ## Components
 When rendering content, you can use the `<Inject>` component with JSX or the functions specified above:
 

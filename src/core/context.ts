@@ -129,9 +129,12 @@ export class DefaultContext<T> extends Context<T> {
 	 */
 	default: T;
 
-	constructor(value: T) {
+	/**
+	 * @param defaultValue The default value. This is used if the {@link current} value is `null` or `undefined`.
+	 */
+	constructor(defaultValue: T) {
 		super();
-		this.default = value;
+		this.default = defaultValue;
 	}
 
 	get current(): T {

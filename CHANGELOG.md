@@ -1,5 +1,8 @@
 # Changelog
 
+## 18.1
++ Add `DefaultContext` utility.
+
 ## 18.0
 + **Breaking:** Removed custom equality check from `Signal`, `sig`, `ProbeSignal` and `memo`.
 
