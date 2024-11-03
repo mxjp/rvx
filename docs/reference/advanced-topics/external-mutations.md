@@ -23,9 +23,9 @@ In the example below, updating `someSignal` will overwrite only the `"alt"` attr
 	```
 
 ### `class`
-When any signal used in the `class` attribute is updated, all classes are overwritten. This also removes other classes that have been added manually.
+When any signal used in the `class` attribute is updated, only the affected tokens are added or removed.
 
-In the example below, updating `someSignal` will restore `"foo"`, remove `"bar"` and set, whatever is in `someSignal`:
+In the example below, updating `someSignal` has no effect on other tokens.
 
 === "JSX"
 	```jsx

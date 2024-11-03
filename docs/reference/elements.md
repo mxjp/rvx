@@ -116,7 +116,7 @@ Note, that the rules specified above apply to all attributes including aria attr
 	```
 
 ## Classes
-The `class` attribute can be any combination of strings, arrays and objects with boolean [expressions](signals.md#expressions) to determine which classes are added. `undefined`, `null` and `false` is ignored.
+The `class` attribute can be any combination of class tokens, arrays and objects with boolean [expressions](signals.md#expressions) to determine which classes are added. `undefined`, `null` and `false` is ignored.
 
 === "JSX"
 	```jsx
@@ -153,8 +153,6 @@ The `class` attribute can be any combination of strings, arrays and objects with
 	```jsx
 	e("div").set("class", "example")
 	```
-
-Note, that all expressions used in the class attribute are evaluated for every signal update. To avoid expensive computations, use [`memo`](./signals.md#memo) if needed.
 
 ## Styles
 The **style** attribute can be any combination of arrays, objects and [expressions](signals.md#expressions).
@@ -203,7 +201,7 @@ Properties use the same casing as in css.
 	e("div").set("style", "color: red;");
 	```
 
-Note, that properties that are no longer specified after a signal update are not reset automatically to keep the current implementation simple. When properties are specified multiple times, the last one is used.
+Note, that properties that are no longer specified after a signal update are not reset automatically to keep the current implementation simple. When properties are specified multiple times, the last one has priority used.
 
 ## References
 
