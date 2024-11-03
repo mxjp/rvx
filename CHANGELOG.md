@@ -1,5 +1,8 @@
 # Changelog
 
+## 18.2
++ Implement atomic updates for `class` attributes.
+
 ## 18.1
 + Add `DefaultContext` utility.
 
