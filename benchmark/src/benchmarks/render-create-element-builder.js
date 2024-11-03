@@ -7,10 +7,7 @@ export function create({ e }) {
 		e("div")
 			.set("title", "Hello World!")
 			.set("key", "some-key")
-			.class({
-				"foo": () => true,
-				"bar": true,
-			})
+			.class(["foo", "bar"])
 			.style({
 				"color": "red",
 				"width": () => "100px",

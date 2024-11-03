@@ -6,10 +6,7 @@ export function create({ jsx }) {
 	return () => {
 		jsx("div", {
 			title: "Hello World!",
-			class: {
-				"foo": () => true,
-				"bar": true,
-			},
+			class: ["foo", "bar"],
 			style: {
 				"color": "red",
 				"width": () => "100px",

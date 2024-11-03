@@ -1,7 +1,7 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 
-import { Context, createElement, NODE, sig, StyleMap, uncapture } from "rvx";
+import { capture, ClassValue, Context, createElement, ExpressionResult, NODE, sig, Signal, StyleMap, uncapture } from "rvx";
 import { e } from "rvx/builder";
 
 import { assertEvents } from "../common.js";
@@ -84,14 +84,14 @@ await suite("element", async () => {
 					return jsx
 						? <div
 							foo="bar"
-							class="a b"
+							class={["a", "b"]}
 							data-bar="baz"
 							attr:data-baz="boo"
 							prop:title="example"
 						/> as HTMLElement
 						: e("div")
 							.set("foo", "bar")
-							.class("a b")
+							.class(["a", "b"])
 							.set("data-bar", "baz")
 							.set("data-baz", "boo")
 							.prop("title", "example")
@@ -129,41 +129,140 @@ await suite("element", async () => {
 				strictEqual(elem.getAttribute("test-attr"), null);
 			});
 
-			await test("class attribute", () => {
-				const a = sig("a");
-				const d = sig(false);
-				const elem = uncapture(() => {
-					return jsx
-						? <div class={() => [
-							a.value,
-							"b",
-							undefined,
-							null,
-							false,
-							{
-								c: true,
-								d,
-							},
-						]} /> as HTMLElement
-						: e("div")
-							.class(() => [
-								a.value,
-								"b",
-								undefined,
-								null,
-								false,
-								{
-									c: true,
-									d,
-								},
-							])
-							.elem;
+			await suite("class attribute", async () => {
+				function assertClass(target: HTMLElement, classList: string[]) {
+					deepStrictEqual(Array.from(target.classList).sort(), classList.sort());
+				}
+
+				function createElem(value: ClassValue) {
+					const elem = uncapture(() => {
+						return jsx
+							? <div class={value} /> as HTMLElement
+							: e("div").class(value).elem;
+					});
+					return elem;
+				}
+
+				await test("normal usage", () => {
+					const a = sig("a");
+					const d = sig(false);
+					const elem = createElem(() => [
+						a.value,
+						"b",
+						undefined,
+						null,
+						false,
+						{
+							c: true,
+							d,
+						},
+					]);
+					assertClass(elem, ["a", "b", "c"]);
+					a.value = "foo";
+					assertClass(elem, ["foo", "b", "c"]);
+					d.value = true;
+					assertClass(elem, ["foo", "b", "c", "d"]);
 				});
-				deepStrictEqual(Array.from(elem.classList), ["a", "b", "c"]);
-				a.value = "foo";
-				deepStrictEqual(Array.from(elem.classList), ["foo", "b", "c"]);
-				d.value = true;
-				deepStrictEqual(Array.from(elem.classList), ["foo", "b", "c", "d"]);
+
+				await test("initial values", () => {
+					assertClass(createElem("test"), ["test"]);
+					assertClass(createElem(["a", "b"]), ["a", "b"]);
+					assertClass(createElem([["a", "b"]]), ["a", "b"]);
+					assertClass(createElem([["a"], "b"]), ["a", "b"]);
+					assertClass(createElem([["a"], { b: true }]), ["a", "b"]);
+					assertClass(createElem([["a"], [{ b: true }]]), ["a", "b"]);
+					assertClass(createElem([["a", "b"], { b: true }]), ["a", "b"]);
+					assertClass(createElem([["a", () => "b"]]), ["a", "b"]);
+					assertClass(createElem([["a", () => "b"], () => ({ c: () => true })]), ["a", "b", "c"]);
+				});
+
+				await test("top level updates", () => {
+					const signal = sig<ExpressionResult<ClassValue>>(undefined);
+					const elem = createElem(signal);
+					assertClass(elem, []);
+
+					signal.value = "a";
+					assertClass(elem, ["a"]);
+
+					signal.value = ["b", "c"];
+					assertClass(elem, ["b", "c"]);
+
+					signal.value = { "d": true, "e": false };
+					assertClass(elem, ["d"]);
+
+					signal.value = ["f", "d"];
+					assertClass(elem, ["d", "f"]);
+
+					signal.value = "f";
+					assertClass(elem, ["f"]);
+
+					signal.value = null;
+					assertClass(elem, []);
+				});
+
+				await test("nested updates", () => {
+					const signal = sig<ExpressionResult<ClassValue>>(undefined);
+					const elem = createElem(["a", signal, "b"]);
+					assertClass(elem, ["a", "b"]);
+
+					signal.value = "c";
+					assertClass(elem, ["a", "b", "c"]);
+
+					signal.value = ["a", "d"];
+					assertClass(elem, ["a", "b", "d"]);
+
+					const nestedA = sig(false);
+					const nestedC = sig(true);
+					signal.value = { "a": nestedA, "c": nestedC };
+					assertClass(elem, ["a", "b", "c"]);
+
+					nestedA.value = true;
+					assertClass(elem, ["a", "b", "c"]);
+
+					nestedC.value = false;
+					assertClass(elem, ["a", "b"]);
+
+					nestedA.value = false;
+					assertClass(elem, ["a", "b"]);
+
+					nestedC.value = true;
+					assertClass(elem, ["a", "b", "c"]);
+
+					nestedC.notify();
+					assertClass(elem, ["a", "b", "c"]);
+
+					signal.value = "e";
+					assertClass(elem, ["a", "b", "e"]);
+
+					signal.value = "c";
+					assertClass(elem, ["a", "b", "c"]);
+					nestedC.value = false;
+					assertClass(elem, ["a", "b", "c"]);
+
+					signal.value = [["a", "b", "c"], ["b", "d"]];
+					assertClass(elem, ["a", "b", "c", "d"]);
+				});
+
+				await test("teardown", () => {
+					let elem!: HTMLElement;
+					const signalA = sig(["c"]);
+					const signalB = sig(false);
+					const value: ClassValue = ["a", { b: true }, signalA, () => ({ d: signalB })];
+					const dispose = capture(() => {
+						elem = jsx
+							? <div class={value} /> as HTMLElement
+							: e("div").class(value).elem;
+					});
+					assertClass(elem, ["a", "b", "c"]);
+					signalA.value = ["e"];
+					signalB.value = true;
+					assertClass(elem, ["a", "b", "e", "d"]);
+					dispose();
+					assertClass(elem, ["a", "b", "e", "d"]);
+					signalA.value = ["f"];
+					signalB.value = false;
+					assertClass(elem, ["a", "b", "e", "d"]);
+				});
 			});
 
 			await test("style attribute", () => {

@@ -1,5 +1,5 @@
 import { type ClassValue, NODE, NodeTarget, type StyleValue } from "./element-common.js";
-import { type TeardownHook } from "./lifecycle.js";
+import { teardown, type TeardownHook } from "./lifecycle.js";
 import { Expression, get, watch } from "./signals.js";
 import { View } from "./view.js";
 
@@ -103,30 +103,95 @@ export function setAttr(elem: Element, name: string, value: Expression<unknown>)
 	});
 }
 
-function getClassTokens(value: ClassValue): string {
-	value = get(value);
-	if (typeof value === "string") {
-		return value;
-	} else if (value) {
-		let tokens = "";
-		if (Array.isArray(value)) {
-			for (let i = 0; i < value.length; i++) {
-				tokens += getClassTokens(value[i]) + " ";
+class ClassBucket {
+	entries: { t: string, c: number, a: boolean }[] = [];
+	target: DOMTokenList;
+
+	constructor(target: DOMTokenList) {
+		this.target = target;
+	}
+
+	add(token: string): void {
+		const entries = this.entries;
+		for (let i = 0; i < entries.length; i++) {
+			if (entries[i].t === token) {
+				entries[i].c++;
+				return;
 			}
-		} else {
-			for (const key in value) {
-				if (get(value[key])) {
-					tokens += key + " ";
+		}
+		entries.push({ t: token, c: 1, a: false });
+	}
+
+	remove(token: string): void {
+		const entries = this.entries;
+		for (let i = 0; i < this.entries.length; i++) {
+			if (entries[i].t === token) {
+				entries[i].c--;
+				return;
+			}
+		}
+	}
+
+	flush(): void {
+		const add: string[] = [];
+		const remove: string[] = [];
+		this.entries = this.entries.filter(entry => {
+			if (entry.c === 0) {
+				remove.push(entry.t);
+				return false;
+			} else if (!entry.a) {
+				add.push(entry.t);
+				entry.a = true;
+			}
+			return true;
+		});
+		if (add.length > 0) {
+			this.target.add(...add);
+		}
+		if (remove.length > 0) {
+			this.target.remove(...remove);
+		}
+	}
+}
+
+function watchClass(value: ClassValue, bucket: ClassBucket, flush: boolean): void {
+	watch(value, value => {
+		if (typeof value === "string") {
+			bucket.add(value);
+			teardown(() => {
+				bucket.remove(value);
+			});
+		} else if (value) {
+			if (Array.isArray(value)) {
+				for (let i = 0; i < value.length; i++) {
+					watchClass(value[i], bucket, false);
+				}
+			} else {
+				for (const token in value) {
+					watch(value[token], enable => {
+						if (enable) {
+							bucket.add(token);
+							teardown(() => {
+								bucket.remove(token);
+							});
+						}
+						if (flush) {
+							bucket.flush();
+						}
+					});
 				}
 			}
 		}
-		return tokens;
-	}
-	return "";
+		if (flush) {
+			bucket.flush();
+		} else {
+			flush = true;
+		}
+	});
 }
 
 export function setClass(elem: Element, value: ClassValue): void {
-	watch(() => getClassTokens(value), tokens => elem.setAttribute("class", tokens));
+	watchClass(value, new ClassBucket(elem.classList), true);
 }
 
 type StyleHandler = (name: string, value: unknown) => void;
