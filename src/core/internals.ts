@@ -1,5 +1,5 @@
 import { type ClassValue, NODE, NodeTarget, type StyleValue } from "./element-common.js";
-import type { TeardownHook } from "./lifecycle.js";
+import { type TeardownHook } from "./lifecycle.js";
 import { Expression, get, watch } from "./signals.js";
 import { View } from "./view.js";
 
