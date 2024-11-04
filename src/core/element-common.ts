@@ -50,3 +50,43 @@ export const NODE = Symbol.for("rvx:node");
 export interface NodeTarget {
 	[NODE]: Node;
 }
+
+/**
+ * A function that is called immediately when the `ref` jsx attribute is initialized.
+ */
+export type RefFn<T> = (element: T) => void;
+
+/**
+ * Value for the `ref` jsx attribute.
+ */
+export type RefValue<T> = (RefFn<T>) | RefFn<T>[];
+
+/**
+ * Represents an object with jsx element attributes.
+ */
+export type Attributes<T extends Element> = {
+	class?: ClassValue;
+	style?: StyleValue;
+	ref?: RefValue<T>;
+} & {
+	[K in keyof HTMLElementEventMap as `on:${K}`]?: EventListener<HTMLElementEventMap[K]> | EventArgs<HTMLElementEventMap[K]>;
+} & {
+	[K in `prop:${string}`]?: Expression<unknown>;
+} & {
+	[K in `attr:${string}`]?: Expression<unknown>;
+} & {
+	[K in string]?: Expression<unknown>;
+};
+
+/**
+ * Type for specifying a jsx event listener with options.
+ */
+export type EventArgs<E extends Event> = [
+	listener: EventListener<E>,
+	options?: AddEventListenerOptions,
+];
+
+/**
+ * Type used for mapping tag names to element types.
+ */
+export type TagNameMap = HTMLElementTagNameMap & SVGElementTagNameMap & MathMLElementTagNameMap;

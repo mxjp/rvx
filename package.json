@@ -19,12 +19,12 @@
 	"license": "MIT",
 	"version": "18.2.0",
 	"type": "module",
-	"main": "./dist/es/core/index-jsx.js",
+	"main": "./dist/es/core/index.js",
 	"sideEffects": false,
 	"exports": {
 		".": {
-			"types": "./dist/es/core/index-jsx.d.ts",
-			"default": "./dist/es/core/index-jsx.js"
+			"types": "./dist/es/core/index.d.ts",
+			"default": "./dist/es/core/index.js"
 		},
 		"./jsx": {
 			"types": "./dist/es/core/jsx/legacy.d.ts",
@@ -76,8 +76,8 @@
 		"build:es": "tsc -p tsconfig-es.json",
 		"build:types": "tsc -p tsconfig-types.json",
 		"build:tests": "tsc -p tests/tsconfig.json",
-		"build:bundle:core": "node scripts/bundle.js -m core/index-builder -o dist/rvx",
-		"build:bundle:all": "node scripts/bundle.js -m async core/index-all element event id router store test -o dist/rvx.all",
+		"build:bundle:core": "node scripts/bundle.js -m core/index -o dist/rvx",
+		"build:bundle:all": "node scripts/bundle.js -m async core/index element event id router store test -o dist/rvx.all",
 		"start": "mx-parallel npm:start:*",
 		"start:es": "tsc -p tsconfig-es.json -w --preserveWatchOutput",
 		"start:types": "tsc -p tsconfig-types.json -w --preserveWatchOutput",

@@ -23,7 +23,7 @@ if (args.build ?? true) {
 }
 
 if (args.bundle ?? true) {
-	await exec(repo, `node scripts/bundle.js --no-minified --no-types --no-license -m core/index-all core/jsx/r17 -o ${join(relative(repo, snapshots), name)}`);
+	await exec(repo, `node scripts/bundle.js --no-minified --no-types --no-license -m core/index core/jsx/r17 -o ${join(relative(repo, snapshots), name)}`);
 }
 
 function exec(cwd, command) {

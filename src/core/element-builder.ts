@@ -1,6 +1,6 @@
 import { Context } from "./context.js";
-import { ClassValue, EventListener, HTML, NODE, NodeTarget, StyleValue, XMLNS } from "./element-common.js";
-import { appendContent, setAttr, setClass, setStyle, TagNameMap } from "./internals.js";
+import { ClassValue, EventListener, HTML, NODE, NodeTarget, StyleValue, TagNameMap, XMLNS } from "./element-common.js";
+import { appendContent, setAttr, setClass, setStyle } from "./internals.js";
 import { Expression, watch } from "./signals.js";
 
 export class ElementBuilder<E extends Element> implements NodeTarget {

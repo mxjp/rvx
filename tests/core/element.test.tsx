@@ -1,7 +1,7 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 
-import { capture, ClassValue, Context, createElement, ExpressionResult, NODE, sig, Signal, StyleMap, uncapture } from "rvx";
+import { capture, ClassValue, Context, ExpressionResult, NODE, sig, StyleMap, uncapture } from "rvx";
 import { e } from "rvx/builder";
 
 import { assertEvents } from "../common.js";
@@ -496,12 +496,5 @@ await suite("element", async () => {
 	await test("ref native prop", () => {
 		const elem = <div prop:ref="42" /> as HTMLDivElement;
 		strictEqual((elem as any).ref, "42");
-	});
-
-	await test("createElement", () => {
-		strictEqual(createElement("div", {}, undefined).outerHTML, `<div></div>`);
-		strictEqual(createElement("div", { title: "a" }, undefined).outerHTML, `<div title="a"></div>`);
-		strictEqual(createElement("div", {}, "b").outerHTML, `<div>b</div>`);
-		strictEqual(createElement("div", { title: "a" }, "b").outerHTML, `<div title="a">b</div>`);
 	});
 });

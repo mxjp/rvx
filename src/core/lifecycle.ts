@@ -1,5 +1,4 @@
-import { TEARDOWN_STACK } from "./internals.js";
-import { NOOP, TeardownFrame, useStack } from "./internals.js";
+import { NOOP, TEARDOWN_STACK, TeardownFrame, useStack } from "./internals.js";
 
 /**
  * A function that is called to dispose something.

@@ -1,35 +1,10 @@
-import { Context } from "./context.js";
-import { ClassValue, EventListener, HTML, StyleValue, XMLNS } from "./element-common.js";
-import { appendContent, setAttr, setClass, setStyle, TagNameMap } from "./internals.js";
-import { Expression, watch } from "./signals.js";
-
-export type RefFn<T> = (element: T) => void;
-export type RefValue<T> = (RefFn<T>) | RefFn<T>[];
+import { Context } from "../context.js";
+import { Attributes, ClassValue, EventArgs, EventListener, HTML, RefFn, StyleValue, TagNameMap, XMLNS } from "../element-common.js";
+import { appendContent, setAttr, setClass, setStyle } from "../internals.js";
+import { watch } from "../signals.js";
 
 /**
- * Represents an object with element attributes.
- */
-export type Attributes<T extends Element> = {
-	class?: ClassValue;
-	style?: StyleValue;
-	ref?: RefValue<T>;
-} & {
-	[K in keyof HTMLElementEventMap as `on:${K}`]?: EventListener<HTMLElementEventMap[K]> | EventArgs<HTMLElementEventMap[K]>;
-} & {
-	[K in `prop:${string}`]?: Expression<unknown>;
-} & {
-	[K in `attr:${string}`]?: Expression<unknown>;
-} & {
-	[K in string]?: Expression<unknown>;
-};
-
-export type EventArgs<E extends Event> = [
-	listener: EventListener<E>,
-	options?: AddEventListenerOptions,
-];
-
-/**
- * Create an element.
+ * Internal function to create a jsx element.
  *
  * @param tagName The tag name.
  * @param attrs The attributes to set.

@@ -1,4 +1,4 @@
-import { createElement } from "../element-create.js";
+import { createElement } from "./internals.js";
 
 export * from "./types.js";
 

@@ -10,8 +10,6 @@ export const TEARDOWN_STACK: (TeardownFrame | undefined)[] = [];
 
 export type Falsy = null | undefined | false | 0 | 0n | "";
 
-export type TagNameMap = HTMLElementTagNameMap & SVGElementTagNameMap & MathMLElementTagNameMap;
-
 /**
  * Represents a stack frame that teardown hooks can be pushed into.
  *

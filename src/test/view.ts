@@ -1,4 +1,4 @@
-import { TagNameMap } from "../core/internals.js";
+import { TagNameMap } from "../core/element-common.js";
 import { View, viewNodes } from "../core/view.js";
 
 /**
