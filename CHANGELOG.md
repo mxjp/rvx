@@ -1,5 +1,10 @@
 # Changelog
 
+## 18.3
++ Optimize initial render performance for the `"class"` attribute.
++ Moved the element builder API to `"rvx"`.
++ **Deprecated:** The `"rvx/builder"` export will be removed in the next major version.
+
 ## 18.2
 + Implement atomic updates for `class` attributes.
 
