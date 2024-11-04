@@ -113,6 +113,9 @@ class ClassBucket {
 		this.#classList = target;
 	}
 
+	/**
+	 * Increment the internal counter for the specified token until the current lifecycle is disposed.
+	 */
 	a(token: string): void {
 		const entries = this.#entries;
 		teardown(() => {
@@ -138,6 +141,9 @@ class ClassBucket {
 		this.#addQueue.push(token);
 	}
 
+	/**
+	 * Flush token additions & removals.
+	 */
 	f(): void {
 		const removeQueue = this.#removeQueue;
 		const addQueue = this.#addQueue;
