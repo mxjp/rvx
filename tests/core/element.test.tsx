@@ -1,8 +1,7 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 
-import { capture, ClassValue, Context, ExpressionResult, NODE, sig, StyleMap, uncapture } from "rvx";
-import { e } from "rvx/builder";
+import { capture, ClassValue, Context, e, ExpressionResult, NODE, sig, StyleMap, uncapture } from "rvx";
 
 import { assertEvents } from "../common.js";
 

@@ -7,8 +7,7 @@ Note, that this example doesn't include any storage error handling or validation
 
 */
 
-import { For, Show, Signal, sig, watch } from "rvx";
-import { e } from "rvx/builder";
+import { For, Show, Signal, e, sig, watch } from "rvx";
 
 const STORAGE_KEY = "rvx-examples:todo-app";
 

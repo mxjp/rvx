@@ -8,7 +8,7 @@ JSX expressions and the element builder API can be used to directly create DOM e
 
 === "No Build"
 	```jsx
-	import { e } from "./rvx.js"; // or "rvx/builder"
+	import { e } from "./rvx.js"; // or "rvx"
 
 	e("div").class("example").append("Hello World!")
 	```

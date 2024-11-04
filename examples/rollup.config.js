@@ -44,8 +44,7 @@ export default defineConfig({
 					}
 
 					return `
-						import { teardown } from "rvx";
-						import { e } from "rvx/builder";
+						import { teardown, e } from "rvx";
 						import { RvxElement } from "rvx/element";
 
 						${imports.join("\n")}
