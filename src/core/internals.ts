@@ -1,6 +1,6 @@
 import { type ClassValue, NODE, NodeTarget, type StyleValue } from "./element-common.js";
 import { teardown, type TeardownHook } from "./lifecycle.js";
-import { Expression, get, watch } from "./signals.js";
+import { Expression, watch } from "./signals.js";
 import { View } from "./view.js";
 
 /**
@@ -104,52 +104,50 @@ export function setAttr(elem: Element, name: string, value: Expression<unknown>)
 }
 
 class ClassBucket {
-	entries: { t: string, c: number, a: boolean }[] = [];
-	target: DOMTokenList;
+	#classList: DOMTokenList;
+	#entries: { t: string, c: number }[] = [];
+	#removeQueue: string[] = [];
+	#addQueue: string[] = [];
 
 	constructor(target: DOMTokenList) {
-		this.target = target;
+		this.#classList = target;
 	}
 
-	add(token: string): void {
-		const entries = this.entries;
-		for (let i = 0; i < entries.length; i++) {
-			if (entries[i].t === token) {
-				entries[i].c++;
-				return;
+	a(token: string): void {
+		const entries = this.#entries;
+		teardown(() => {
+			for (let i = 0; i < entries.length; i++) {
+				const entry = entries[i];
+				if (entry.t === token) {
+					if (--entry.c === 0) {
+						entries.splice(i, 1);
+						this.#removeQueue.push(token);
+					}
+					return;
+				}
 			}
-		}
-		entries.push({ t: token, c: 1, a: false });
-	}
-
-	remove(token: string): void {
-		const entries = this.entries;
-		for (let i = 0; i < this.entries.length; i++) {
-			if (entries[i].t === token) {
-				entries[i].c--;
-				return;
-			}
-		}
-	}
-
-	flush(): void {
-		const add: string[] = [];
-		const remove: string[] = [];
-		this.entries = this.entries.filter(entry => {
-			if (entry.c === 0) {
-				remove.push(entry.t);
-				return false;
-			} else if (!entry.a) {
-				add.push(entry.t);
-				entry.a = true;
-			}
-			return true;
 		});
-		if (add.length > 0) {
-			this.target.add(...add);
+		for (let i = 0; i < entries.length; i++) {
+			const entry = entries[i];
+			if (entry.t === token) {
+				entry.c++;
+				return;
+			}
 		}
-		if (remove.length > 0) {
-			this.target.remove(...remove);
+		entries.push({ t: token, c: 1 });
+		this.#addQueue.push(token);
+	}
+
+	f(): void {
+		const removeQueue = this.#removeQueue;
+		const addQueue = this.#addQueue;
+		if (removeQueue.length > 0) {
+			this.#classList.remove(...removeQueue);
+			removeQueue.length = 0;
+		}
+		if (addQueue.length > 0) {
+			this.#classList.add(...addQueue);
+			addQueue.length = 0;
 		}
 	}
 }
@@ -157,10 +155,7 @@ class ClassBucket {
 function watchClass(value: ClassValue, bucket: ClassBucket, flush: boolean): void {
 	watch(value, value => {
 		if (typeof value === "string") {
-			bucket.add(value);
-			teardown(() => {
-				bucket.remove(value);
-			});
+			bucket.a(value);
 		} else if (value) {
 			if (Array.isArray(value)) {
 				for (let i = 0; i < value.length; i++) {
@@ -170,20 +165,17 @@ function watchClass(value: ClassValue, bucket: ClassBucket, flush: boolean): voi
 				for (const token in value) {
 					watch(value[token], enable => {
 						if (enable) {
-							bucket.add(token);
-							teardown(() => {
-								bucket.remove(token);
-							});
+							bucket.a(token);
 						}
 						if (flush) {
-							bucket.flush();
+							bucket.f();
 						}
 					});
 				}
 			}
 		}
 		if (flush) {
-			bucket.flush();
+			bucket.f();
 		} else {
 			flush = true;
 		}
