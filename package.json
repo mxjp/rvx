@@ -72,16 +72,18 @@
 		}
 	},
 	"scripts": {
-		"build": "mx-parallel npm:build:es npm:build:types && mx-parallel npm:build:bundle:* npm:build:tests",
+		"build": "mx-parallel npm:build:es npm:build:types && mx-parallel npm:build:bundle:* npm:build:tests npm:build:jsx-legacy-runtime-tests",
 		"build:es": "tsc -p tsconfig-es.json",
 		"build:types": "tsc -p tsconfig-types.json",
 		"build:tests": "tsc -p tests/tsconfig.json",
+		"build:jsx-legacy-runtime-tests": "tsc -p tests/jsx-legacy-runtime/tsconfig.json",
 		"build:bundle:core": "node scripts/bundle.js -m core/index -o dist/rvx",
 		"build:bundle:all": "node scripts/bundle.js -m async core/index element event id router store test -o dist/rvx.all",
 		"start": "mx-parallel npm:start:*",
 		"start:es": "tsc -p tsconfig-es.json -w --preserveWatchOutput",
 		"start:types": "tsc -p tsconfig-types.json -w --preserveWatchOutput",
 		"start:tests": "tsc -p tests/tsconfig.json -w --preserveWatchOutput",
+		"start:jsx-legacy-runtime-tests": "tsc -p tests/jsx-legacy-runtime/tsconfig.json -w --preserveWatchOutput",
 		"test": "cd tests_out && node --enable-source-maps --import=./env.js --test",
 		"prepack": "npm run build && npm test && node scripts/prepack.js"
 	},

@@ -1,0 +1,14 @@
+{
+	"extends": "../../tsconfig.json",
+	"compilerOptions": {
+		"rootDir": ".",
+		"outDir": "../../tests_out/jsx-legacy-runtime",
+		"sourceMap": true,
+		"jsx": "react",
+		"jsxFactory": "jsx",
+		"jsxFragmentFactory": "Fragment"
+	},
+	"include": [
+		"."
+	]
+}

@@ -9,5 +9,8 @@
 	},
 	"include": [
 		"."
+	],
+	"exclude": [
+		"./jsx-legacy-runtime"
 	]
 }

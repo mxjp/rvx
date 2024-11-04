@@ -467,6 +467,67 @@ await suite("element", async () => {
 		deepStrictEqual(<>{1}{2}</>, [1, 2]);
 	});
 
+	await test("jsx complex content", () => {
+		const elem = uncapture(() => {
+			return <div>{1}{2}</div> as HTMLElement;
+		});
+		deepStrictEqual(elem.textContent, "12");
+	});
+
+	await test("jsx spread operator", () => {
+		const elem = uncapture(() => {
+			return <div foo="a" {...{ baz: "c" }} bar="b" /> as HTMLElement;
+		});
+		strictEqual(elem.getAttribute("foo"), "a");
+		strictEqual(elem.getAttribute("bar"), "b");
+		strictEqual(elem.getAttribute("baz"), "c");
+	});
+
+	function TestComponent(props: { foo?: string, bar?: number, children?: unknown }) {
+		return props;
+	}
+
+	await test("jsx component", () => {
+		const props = <TestComponent foo="a" bar={1} /> as Parameters<typeof TestComponent>[0];
+		deepStrictEqual(props, { foo: "a", bar: 1 });
+	});
+
+	await test("jsx component without props", () => {
+		const props = <TestComponent /> as Parameters<typeof TestComponent>[0];
+		deepStrictEqual(props, {});
+	});
+
+	await test("jsx implicit component children", () => {
+		const props = <TestComponent foo="a" bar={1}>{2}</TestComponent> as Parameters<typeof TestComponent>[0];
+		deepStrictEqual(props, { foo: "a", bar: 1, children: 2 });
+	});
+
+	await test("jsx implicit component complex children", () => {
+		const props = <TestComponent foo="a" bar={1}>{2}{3}</TestComponent> as Parameters<typeof TestComponent>[0];
+		deepStrictEqual(props, { foo: "a", bar: 1, children: [2, 3] });
+	});
+
+	await test("jsx explicit component children", () => {
+		const props = <TestComponent foo="a" bar={1} children={2} /> as Parameters<typeof TestComponent>[0];
+		deepStrictEqual(props, { foo: "a", bar: 1, children: 2 });
+	});
+
+	await test("jsx element key property", () => {
+		const elem = uncapture(() => {
+			return <div key="foo" bar="baz" /> as HTMLElement;
+		});
+		strictEqual(elem.getAttribute("key"), "foo");
+		strictEqual(elem.getAttribute("bar"), "baz");
+	});
+
+	await test("jsx component key property", () => {
+		function Component(props: { key: number, bar: string }) {
+			return props;
+		}
+		const props = <Component key={42} bar="baz" />;
+		deepStrictEqual(props, { key: 42, bar: "baz" });
+	});
+
 	await test("ref attribute", () => {
 		const events: unknown[] = [];
 		uncapture(() => <div
