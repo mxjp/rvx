@@ -104,13 +104,13 @@ export function setAttr(elem: Element, name: string, value: Expression<unknown>)
 }
 
 class ClassBucket {
-	#classList: DOMTokenList;
+	#target: Element;
 	#entries: { t: string, c: number }[] = [];
 	#removeQueue: string[] = [];
 	#addQueue: string[] = [];
 
-	constructor(target: DOMTokenList) {
-		this.#classList = target;
+	constructor(target: Element) {
+		this.#target = target;
 	}
 
 	/**
@@ -148,11 +148,15 @@ class ClassBucket {
 		const removeQueue = this.#removeQueue;
 		const addQueue = this.#addQueue;
 		if (removeQueue.length > 0) {
-			this.#classList.remove(...removeQueue);
+			this.#target.classList.remove(...removeQueue);
 			removeQueue.length = 0;
 		}
 		if (addQueue.length > 0) {
-			this.#classList.add(...addQueue);
+			if (this.#target.hasAttribute("class")) {
+				this.#target.classList.add(...addQueue);
+			} else {
+				this.#target.setAttribute("class", addQueue.join(" "));
+			}
 			addQueue.length = 0;
 		}
 	}
@@ -189,7 +193,7 @@ function watchClass(value: ClassValue, bucket: ClassBucket, flush: boolean): voi
 }
 
 export function setClass(elem: Element, value: ClassValue): void {
-	watchClass(value, new ClassBucket(elem.classList), true);
+	watchClass(value, new ClassBucket(elem), true);
 }
 
 type StyleHandler = (name: string, value: unknown) => void;

@@ -134,13 +134,48 @@ await suite("element", async () => {
 					deepStrictEqual(Array.from(target.classList).sort(), classList.sort());
 				}
 
-				function createElem(value: ClassValue) {
-					const elem = uncapture(() => {
-						return jsx
-							? <div class={value} /> as HTMLElement
-							: e("div").class(value).elem;
-					});
-					return elem;
+				function createElem(value: ClassValue, events?: unknown[]) {
+					const createElementOriginal = document.createElementNS;
+					try {
+						if (events) {
+							document.createElementNS = ((ns: string, name: string) => {
+								const elem = createElementOriginal.call(document, ns, name);
+								const setAttributeOriginal = elem.setAttribute;
+								elem.setAttribute = (name, value) => {
+									events.push(["setAttribute", name, value]);
+									setAttributeOriginal.call(elem, name, value);
+								};
+								const classList = elem.classList;
+								const addOriginal = classList.add;
+								const removeOriginal = classList.remove;
+								classList.add = (...tokens) => {
+									events.push(["add", ...tokens.toSorted()]);
+									addOriginal.call(classList, ...tokens);
+								};
+								classList.remove = (...tokens) => {
+									events.push(["remove", ...tokens.toSorted()]);
+									removeOriginal.call(classList, ...tokens);
+								};
+								return elem;
+							}) as typeof document.createElementNS;
+						}
+
+						const elem = uncapture(() => {
+							return jsx
+								? <div class={value} /> as HTMLElement
+								: e("div").class(value).elem;
+						});
+						return elem;
+					} finally {
+						document.createElementNS = createElementOriginal;
+					}
+				}
+
+				function assertInitialValue(value: ClassValue, classList: string[]) {
+					const events: unknown[] = [];
+					const elem = createElem(value, events);
+					assertClass(elem, classList);
+					assertEvents(events, [["setAttribute", "class", classList.join(" ")]]);
 				}
 
 				await test("normal usage", () => {
@@ -165,82 +200,133 @@ await suite("element", async () => {
 				});
 
 				await test("initial values", () => {
-					assertClass(createElem("test"), ["test"]);
-					assertClass(createElem(["a", "b"]), ["a", "b"]);
-					assertClass(createElem([["a", "b"]]), ["a", "b"]);
-					assertClass(createElem([["a"], "b"]), ["a", "b"]);
-					assertClass(createElem([["a"], { b: true }]), ["a", "b"]);
-					assertClass(createElem([["a"], [{ b: true }]]), ["a", "b"]);
-					assertClass(createElem([["a", "b"], { b: true }]), ["a", "b"]);
-					assertClass(createElem([["a", () => "b"]]), ["a", "b"]);
-					assertClass(createElem([["a", () => "b"], () => ({ c: () => true })]), ["a", "b", "c"]);
+					assertInitialValue("test", ["test"]);
+					assertInitialValue(["a", "b"], ["a", "b"]);
+					assertInitialValue([["a", "b"]], ["a", "b"]);
+					assertInitialValue([["a"], "b"], ["a", "b"]);
+					assertInitialValue([["a"], { b: true }], ["a", "b"]);
+					assertInitialValue([["a"], [{ b: true }]], ["a", "b"]);
+					assertInitialValue([["a", "b"], { b: true }], ["a", "b"]);
+					assertInitialValue([["a", () => "b"]], ["a", "b"]);
+					assertInitialValue([["a", () => "b"], () => ({ c: () => true })], ["a", "b", "c"]);
 				});
 
 				await test("top level updates", () => {
+					const events: unknown[] = [];
 					const signal = sig<ExpressionResult<ClassValue>>(undefined);
-					const elem = createElem(signal);
+					const elem = createElem(signal, events);
 					assertClass(elem, []);
+					assertEvents(events, []);
 
 					signal.value = "a";
 					assertClass(elem, ["a"]);
+					assertEvents(events, [["setAttribute", "class", "a"]]);
 
 					signal.value = ["b", "c"];
 					assertClass(elem, ["b", "c"]);
+					assertEvents(events, [["remove", "a"], ["add", "b", "c"]]);
 
 					signal.value = { "d": true, "e": false };
 					assertClass(elem, ["d"]);
+					assertEvents(events, [["remove", "b", "c"], ["add", "d"]]);
 
 					signal.value = ["f", "d"];
 					assertClass(elem, ["d", "f"]);
+					// This is not optimal, but a rare edge case:
+					assertEvents(events, [["remove", "d"], ["add", "d", "f"]]);
 
 					signal.value = "f";
 					assertClass(elem, ["f"]);
+					// This is not optimal, but a rare edge case:
+					assertEvents(events, [["remove", "d", "f"], ["add", "f"]]);
 
 					signal.value = null;
 					assertClass(elem, []);
+					assertEvents(events, [["remove", "f"]]);
+				});
+
+				await test("external mutation behavior", () => {
+					const events: unknown[] = [];
+					const signal = sig<ExpressionResult<ClassValue>>(undefined);
+					const elem = createElem(signal, events);
+					assertEvents(events, []);
+					elem.classList.add("a");
+					assertClass(elem, ["a"]);
+					assertEvents(events, [["add", "a"]]);
+
+					signal.value = "b";
+					assertClass(elem, ["a", "b"]);
+					assertEvents(events, [["add", "b"]]);
+
+					elem.classList.remove("b");
+					assertClass(elem, ["a"]);
+					assertEvents(events, [["remove", "b"]]);
+
+					signal.notify();
+					assertClass(elem, ["a", "b"]);
+					// This is not optimal, but a rare edge case:
+					assertEvents(events, [["remove", "b"], ["add", "b"]]);
 				});
 
 				await test("nested updates", () => {
+					const events: unknown[] = [];
 					const signal = sig<ExpressionResult<ClassValue>>(undefined);
-					const elem = createElem(["a", signal, "b"]);
+					const elem = createElem(["a", signal, "b"], events);
 					assertClass(elem, ["a", "b"]);
+					assertEvents(events, [["setAttribute", "class", "a b"]]);
 
 					signal.value = "c";
 					assertClass(elem, ["a", "b", "c"]);
+					assertEvents(events, [["add", "c"]]);
 
 					signal.value = ["a", "d"];
 					assertClass(elem, ["a", "b", "d"]);
+					assertEvents(events, [["remove", "c"], ["add", "d"]]);
 
 					const nestedA = sig(false);
 					const nestedC = sig(true);
 					signal.value = { "a": nestedA, "c": nestedC };
 					assertClass(elem, ["a", "b", "c"]);
+					assertEvents(events, [["remove", "d"], ["add", "c"]]);
 
 					nestedA.value = true;
 					assertClass(elem, ["a", "b", "c"]);
+					assertEvents(events, []);
 
 					nestedC.value = false;
 					assertClass(elem, ["a", "b"]);
+					assertEvents(events, [["remove", "c"]]);
 
 					nestedA.value = false;
 					assertClass(elem, ["a", "b"]);
+					assertEvents(events, []);
 
 					nestedC.value = true;
 					assertClass(elem, ["a", "b", "c"]);
+					assertEvents(events, [["add", "c"]]);
 
 					nestedC.notify();
 					assertClass(elem, ["a", "b", "c"]);
+					// This is not optimal, but a rare edge case:
+					// (This also supports restoration of externally removed classes)
+					assertEvents(events, [["remove", "c"], ["add", "c"]]);
 
 					signal.value = "e";
 					assertClass(elem, ["a", "b", "e"]);
+					assertEvents(events, [["remove", "c"], ["add", "e"]]);
 
 					signal.value = "c";
 					assertClass(elem, ["a", "b", "c"]);
+					assertEvents(events, [["remove", "e"], ["add", "c"]]);
+
 					nestedC.value = false;
 					assertClass(elem, ["a", "b", "c"]);
+					assertEvents(events, []);
 
 					signal.value = [["a", "b", "c"], ["b", "d"]];
 					assertClass(elem, ["a", "b", "c", "d"]);
+					// This is not optimal, but a rare edge case:
+					assertEvents(events, [["remove", "c"], ["add", "c", "d"]]);
 				});
 
 				await test("teardown", () => {
