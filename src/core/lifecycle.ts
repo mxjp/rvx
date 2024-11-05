@@ -42,8 +42,9 @@ export function capture(fn: () => void): TeardownHook {
 }
 
 /**
- * Run a function while capturing teardown hooks that may dispose itself.
+ * Run a function while capturing teardown hooks.
  *
+ * + When disposed before the specified function finishes, teardown hooks are called in reverse registration order immediately after the function finishes.
  * + If an error is thrown by the specified function, teardown hooks are called in reverse registration order and the error is re-thrown.
  * + If an error is thrown by a teardown hook, remaining ones are not called and the error is re-thrown.
  *
@@ -100,7 +101,7 @@ export function nocapture<T>(fn: () => T): T {
 }
 
 /**
- * Run a function within a lifecycle isolation boundary.
+ * Run a function and immediately call teardown hooks if it throws an error.
  *
  * + If an error is thrown, teardown hooks are immediately called in reverse registration order and the error is re-thrown.
  * + If no error is thrown, teardown hooks are registered in the outer context.

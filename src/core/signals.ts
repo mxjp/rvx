@@ -2,8 +2,21 @@ import { Context } from "./context.js";
 import { useStack } from "./internals.js";
 import { capture, nocapture, teardown, TeardownHook } from "./lifecycle.js";
 
+/**
+ * During a {@link batch}, notify hooks are added to this set instead of being called.
+ *
+ * Outside of a batch, this is undefined.
+ */
 let BATCH: Set<NotifyHook> | undefined;
+
+/**
+ * A stack where the top value controls if signal accesses are currently tracked.
+ */
 const TRACKING_STACK: boolean[] = [true];
+
+/**
+ * A stack where the top value is called for each tracked signal access.
+ */
 const ACCESS_STACK: AccessHook[] = [];
 
 /**
@@ -18,12 +31,19 @@ interface NotifyHook {
  */
 interface AccessHook {
 	/**
-	 * @param hooks A set of notify hooks that an observer can attach to.
+	 * @param hooks See `Signal.#hooks`.
 	 */
 	(hooks: Set<NotifyHook>): void;
 }
 
+/**
+ * Internal function to call the specified hook.
+ */
 const notify = (fn: NotifyHook) => fn();
+
+/**
+ * Internal function to add the specified hook to the current batch.
+ */
 const queueBatch = (fn: NotifyHook) => BATCH!.add(fn);
 
 /**
@@ -35,6 +55,12 @@ export class Signal<T> {
 	 */
 	#value: T;
 
+	/**
+	 * A set of hooks that are called in iteration order by this signal to notify it's observers.
+	 *
+	 * + This is cleared before hooks are called.
+	 * + Observers get a permanent reference to this set to manually add or remove themselves.
+	 */
 	#hooks = new Set<NotifyHook>();
 
 	/**
@@ -47,7 +73,7 @@ export class Signal<T> {
 	}
 
 	/**
-	 * Access the current value.
+	 * Reactively access the current value.
 	 */
 	get value(): T {
 		this.access();
@@ -134,6 +160,12 @@ export class Signal<T> {
 			hooks.forEach(notify);
 		} else {
 			this.#hooks.forEach(queueBatch);
+			/*
+				Hooks are not cleared during batches to prevent breaking
+				other observers if an error is thrown during the batch.
+
+				Calls are deduplicated within the batch.
+			*/
 		}
 	}
 
@@ -198,7 +230,7 @@ export function sig(value?: unknown): Signal<unknown> {
 export type Expression<T> = T | Signal<T> | (() => T);
 
 /**
- * Type for the result of an expression.
+ * Utility to get the result type of an expression.
  */
 export type ExpressionResult<T> = T extends Expression<infer R> ? R : never;
 
@@ -231,19 +263,38 @@ const _unfold = (hook: NotifyHook): NotifyHook => {
 	};
 };
 
-const _observer = (hook: NotifyHook) => {
+interface Observer {
+	/**
+	 * The access hook that can be pushed to the {@link ACCESS_STACK} to track signal accesses using this observer.
+	 */
+	a: AccessHook;
+
+	/**
+	 * Detach this observer from all currently accessed signals.
+	 */
+	c: () => void;
+}
+
+/**
+ * Internal utility to create an observer for tracking signal accesses.
+ *
+ * @param hook The notify hook to add to all accessed signals.
+ */
+const _observer = (hook: NotifyHook): Observer => {
+	/** Array of the hook sets of currently accessed signals. This can contain duplicates. */
 	const signals: Set<NotifyHook>[] = [];
-	const sub = (hooks: Set<NotifyHook>): void => {
-		signals.push(hooks);
-		hooks.add(hook);
+	return {
+		c: () => {
+			for (let i = 0; i < signals.length; i++) {
+				signals[i].delete(hook);
+			}
+			signals.length = 0;
+		},
+		a: (hooks: Set<NotifyHook>): void => {
+			signals.push(hooks);
+			hooks.add(hook);
+		},
 	};
-	const clear = () => {
-		for (let i = 0; i < signals.length; i++) {
-			signals[i].delete(hook);
-		}
-		signals.length = 0;
-	};
-	return { clear, sub };
 };
 
 /**
@@ -283,11 +334,13 @@ export function watch<T>(expr: Expression<T>, fn: (value: T) => void): void {
 		const runFn = Context.wrap(() => fn(value));
 		const entry = _unfold(() => {
 			if (disposed) {
+				// This covers an edge case where this observer is notified during a batch and then disposed immediately.
 				return;
 			}
 			try {
 				clear();
-				ACCESS_STACK.push(sub);
+				ACCESS_STACK.push(access);
+				// Default tracking behavior is restored in case this observer is notified during an "untrack" call:
 				TRACKING_STACK.push(true);
 				nocapture(runExpr);
 			} finally {
@@ -297,7 +350,7 @@ export function watch<T>(expr: Expression<T>, fn: (value: T) => void): void {
 			dispose?.();
 			dispose = capture(runFn);
 		});
-		const { clear, sub } = _observer(entry);
+		const { c: clear, a: access } = _observer(entry);
 		teardown(() => {
 			disposed = true;
 			clear();
@@ -343,12 +396,14 @@ export function effect(fn: () => void): void {
 	const runFn = Context.wrap(fn);
 	const entry = _unfold(() => {
 		if (disposed) {
+			// This covers an edge case where this observer is notified during a batch and then disposed immediately.
 			return;
 		}
 		dispose?.();
 		try {
 			clear();
-			ACCESS_STACK.push(sub);
+			ACCESS_STACK.push(access);
+			// Default tracking behavior is restored in case this observer is notified during an "untrack" call:
 			TRACKING_STACK.push(true);
 			dispose = capture(runFn);
 		} finally {
@@ -356,7 +411,7 @@ export function effect(fn: () => void): void {
 			TRACKING_STACK.pop();
 		}
 	});
-	const { clear, sub } = _observer(entry);
+	const { c: clear, a: access } = _observer(entry);
 	teardown(() => {
 		disposed = true;
 		clear();
@@ -401,6 +456,10 @@ export function batch<T>(fn: () => T): T {
 			value = fn();
 			while (batch.size > 0) {
 				batch.forEach(notify => {
+					/*
+						Notify hooks are deleted individually to ensure the correct behavior if calling
+						the hooks adds itself to the batch again due to an immediate side effect.
+					*/
 					batch.delete(notify);
 					notify();
 				});
@@ -486,6 +545,11 @@ export function isTracking(): boolean {
 	return TRACKING_STACK[TRACKING_STACK.length - 1] && ACCESS_STACK[ACCESS_STACK.length - 1]?.length > 0;
 }
 
+/**
+ * A function to evaluate an expression while tracking signal accesses.
+ *
+ * See {@link trigger}.
+ */
 export interface TriggerPipe {
 	<T>(expr: Expression<T>): T;
 }
@@ -505,14 +569,20 @@ export function trigger(fn: () => void): TriggerPipe {
 		clear();
 		fn();
 	});
-	const { clear, sub } = _observer(hookFn);
+	const { c: clear, a: access } = _observer(hookFn);
 	teardown(clear);
 	return <T>(expr: Expression<T>) => {
 		clear();
 		try {
 			const outer = ACCESS_STACK[ACCESS_STACK.length - 1] as AccessHook | undefined;
 			ACCESS_STACK.push(hooks => {
-				sub(hooks);
+				/*
+					Tracking accesses using this observer before any outer ones also
+					guarantees the order in which observers are notified because:
+					+ Hooks in Signal.#hooks are called in iteration order.
+					+ Set iteration order matches the order in which observers add their hooks.
+				*/
+				access(hooks);
 				outer?.(hooks);
 			});
 			return get(expr);
