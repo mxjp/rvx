@@ -1,6 +1,7 @@
 # Changelog
 
 ## 18.3
++ The `NodeTarget` interface is no longer experimental.
 + Optimize initial render performance for the `"class"` attribute.
 + Moved the element builder API to `"rvx"`.
 + **Deprecated:** The `"rvx/builder"` export will be removed in the next major version.

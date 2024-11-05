@@ -40,12 +40,14 @@ export type StyleValue = Expression<undefined | StyleMap | StyleValue[]>;
 export type EventListener<E extends Event> = (event: E) => void;
 
 /**
- * **This is experimental API.**
+ * Symbol for specifying a DOM node that is used as content.
+ *
+ * See {@link NodeTarget}.
  */
 export const NODE = Symbol.for("rvx:node");
 
 /**
- * **This is experimental API.**
+ * If an object used as content has a {@link NODE} property, this node is inserted as content instead.
  */
 export interface NodeTarget {
 	[NODE]: Node;
