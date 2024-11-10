@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { htmlEscapeAppendTo, RvxNode } from "rvx/dom";
+import { htmlEscapeAppendTo, RvxComment, RvxNode, RvxText } from "rvx/dom";
 
 await suite("dom/model", async () => {
 	await test("htmlEscape", () => {
@@ -162,5 +162,38 @@ await suite("dom/model", async () => {
 				{ is: c },
 			]);
 		});
+	});
+
+	await test("node text content", () => {
+		const parent = new RvxNode();
+		parent.appendChild(new RvxText("foo"));
+		parent.appendChild(new RvxComment("bar"));
+		parent.appendChild(new RvxText("baz"));
+		strictEqual(parent.textContent, "foobaz");
+	});
+
+	await test("comment", () => {
+		const node = new RvxComment("foo");
+		strictEqual(node.nodeType, 8);
+		strictEqual(node.textContent, "foo");
+		strictEqual(node.outerHTML, `<!--foo-->`);
+
+		node.textContent = "";
+		strictEqual(node.textContent, "");
+		strictEqual(node.outerHTML, `<!---->`);
+
+		node.textContent = "-->";
+		strictEqual(node.textContent, "-->");
+		strictEqual(node.outerHTML, `<!---->-->`);
+	});
+
+	await test("text", () => {
+		const node = new RvxText("foo");
+		strictEqual(node.nodeType, 3);
+		strictEqual(node.textContent, "foo");
+
+		node.textContent = "\"'<>&";
+		strictEqual(node.textContent, "\"'<>&");
+		strictEqual(node.outerHTML, "&#34;&#39;&lt;&gt;&amp;");
 	});
 });

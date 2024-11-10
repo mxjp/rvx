@@ -149,7 +149,15 @@ export class RvxNode {
 	}
 
 	get textContent(): string {
-		throw new Error("not implemented");
+		let text = "";
+		let node = this.#first;
+		while (node !== null) {
+			if (node.nodeType !== 8) {
+				text += node.textContent;
+			}
+			node = node.#next;
+		}
+		return text;
 	}
 
 	get outerHTML(): string {
@@ -157,4 +165,62 @@ export class RvxNode {
 	}
 }
 
-export class RvxDocumentFragment extends RvxNode {}
+export interface RvxNode {
+	nodeType: number;
+}
+
+export class RvxDocumentFragment extends RvxNode {
+	static {
+		this.prototype.nodeType = 11;
+	}
+}
+
+export class RvxComment extends RvxNode {
+	static {
+		this.prototype.nodeType = 8;
+	}
+
+	#data: string;
+
+	constructor(data: string) {
+		super();
+		this.#data = data;
+	}
+
+	get textContent() {
+		return this.#data;
+	}
+
+	set textContent(data: string) {
+		this.#data = data;
+	}
+
+	[NODE_APPEND_HTML_TO](html: string): string {
+		return html + "<!--" + this.#data + "-->";
+	}
+}
+
+export class RvxText extends RvxNode {
+	static {
+		this.prototype.nodeType = 3;
+	}
+
+	#data: string;
+
+	constructor(data: string) {
+		super();
+		this.#data = data;
+	}
+
+	get textContent() {
+		return this.#data;
+	}
+
+	set textContent(data: string) {
+		this.#data = data;
+	}
+
+	[NODE_APPEND_HTML_TO](html: string): string {
+		return htmlEscapeAppendTo(html, this.#data);
+	}
+}
