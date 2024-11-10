@@ -757,6 +757,124 @@ await suite("dom/model", async () => {
 			});
 		});
 
+		await suite("classList", async () => {
+			await test("basic usage", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.setAttribute("class", "a b");
+				strictEqual(elem.classList.length, 2);
+				elem.classList.add("c", "d");
+				strictEqual(elem.classList.length, 4);
+				strictEqual(elem.getAttribute("class"), "a b c d");
+				strictEqual(elem.classList.length, 4);
+				deepStrictEqual(Array.from(elem.classList), ["a", "b", "c", "d"]);
+				deepStrictEqual(Array.from(elem.classList.values()), ["a", "b", "c", "d"]);
+			});
+
+			await test("init from missing attribute", () => {
+				const elem = new RvxElement(HTML, "div");
+				strictEqual(elem.classList.length, 0);
+				elem.classList.add("test");
+				strictEqual(elem.getAttribute("class"), "test");
+			});
+
+			await test("init from existing attribute", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.setAttribute("class", "a");
+				strictEqual(elem.classList.length, 1);
+				elem.classList.add("b");
+				strictEqual(elem.getAttribute("class"), "a b");
+			});
+
+			await test("invalidate by setAttribute", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.classList.add("a");
+				elem.setAttribute("class", "b");
+				deepStrictEqual(Array.from(elem.classList), ["b"]);
+			});
+
+			await test("invalidate by removeAttribute", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.classList.add("a");
+				elem.removeAttribute("class");
+				deepStrictEqual(Array.from(elem.classList), []);
+			});
+
+			await test("invalidate by add", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.setAttribute("class", "a");
+				strictEqual(elem.getAttribute("class"), "a");
+				elem.classList.add("b");
+				strictEqual(elem.getAttribute("class"), "a b");
+			});
+
+			await test("invalidate by remove", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.setAttribute("class", "a b");
+				strictEqual(elem.getAttribute("class"), "a b");
+				elem.classList.remove("b");
+				strictEqual(elem.getAttribute("class"), "a");
+			});
+
+			await test("invalidate by replace", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.setAttribute("class", "a b c");
+				strictEqual(elem.getAttribute("class"), "a b c");
+				elem.classList.replace("b", "d");
+				strictEqual(elem.getAttribute("class"), "a c d");
+			});
+
+			await test("invalidate by toggle", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.setAttribute("class", "a b c");
+				strictEqual(elem.getAttribute("class"), "a b c");
+				elem.classList.toggle("b");
+				strictEqual(elem.getAttribute("class"), "a c");
+			});
+
+			await test("replace", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.setAttribute("class", "a b");
+				strictEqual(elem.classList.replace("c", "d"), false);
+				deepStrictEqual(Array.from(elem.classList), ["a", "b"]);
+				strictEqual(elem.classList.replace("a", "c"), true);
+				deepStrictEqual(Array.from(elem.classList), ["b", "c"]);
+				strictEqual(elem.classList.replace("a", "c"), false);
+				deepStrictEqual(Array.from(elem.classList), ["b", "c"]);
+			});
+
+			await test("toggle", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.setAttribute("class", "a b");
+				strictEqual(elem.classList.toggle("c"), true);
+				strictEqual(elem.getAttribute("class"), "a b c");
+
+				strictEqual(elem.classList.toggle("c"), false);
+				strictEqual(elem.getAttribute("class"), "a b");
+
+				strictEqual(elem.classList.toggle("c", true), true);
+				strictEqual(elem.getAttribute("class"), "a b c");
+				strictEqual(elem.classList.toggle("c", true), true);
+				strictEqual(elem.getAttribute("class"), "a b c");
+
+				strictEqual(elem.classList.toggle("c", false), false);
+				strictEqual(elem.getAttribute("class"), "a b");
+				strictEqual(elem.classList.toggle("c", false), false);
+				strictEqual(elem.getAttribute("class"), "a b");
+			});
+
+			await test("hasAttribute", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.classList.add("foo");
+				strictEqual(elem.hasAttribute("class"), true);
+			});
+
+			await test("outerHTML", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.classList.add("foo", "bar");
+				strictEqual(elem.outerHTML, "<div class=\"foo bar\"></div>");
+			});
+		});
+
 		await suite("outerHTML", async () => {
 			await test("default", () => {
 				const elem = new RvxElement(HTML, "div");

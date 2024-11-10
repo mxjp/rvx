@@ -455,7 +455,137 @@ export function isVoidTag(xmlns: XMLNS, name: string): boolean {
 	}
 }
 
-type Attrs = Map<string, string>;
+const ATTR_STALE = Symbol("stale");
+const ATTR_INVALIDATE_PARSED = Symbol("invalidateParsed");
+
+type Attrs = Map<string, string | typeof ATTR_STALE>;
+
+export class RvxElementClassList {
+	#attrs: Attrs;
+	#value: string | null = null;
+	#tokens: Set<string> | null = null;
+
+	constructor(attrs: Attrs) {
+		this.#attrs = attrs;
+	}
+
+	get length(): number {
+		return this.#parseTokens().size;
+	}
+
+	get value(): string {
+		if (this.#value === null) {
+			if (this.#tokens === null) {
+				const raw = this.#attrs.get("class");
+				return raw === ATTR_STALE ? "" : (raw ?? "");
+			} else {
+				let value = "";
+				let first = true;
+				for (const token of this.#tokens) {
+					if (first) {
+						value += token;
+						first = false;
+					} else {
+						value = value + " " + token;
+					}
+				}
+				this.#value = value;
+			}
+		}
+		return this.#value;
+	}
+
+	#parseTokens(): Set<string> {
+		if (this.#tokens === null) {
+			const value = this.#attrs.get("class");
+			if (value === undefined || value === ATTR_STALE) {
+				this.#tokens = new Set();
+			} else {
+				this.#tokens = new Set(value.split(" "));
+			}
+		}
+		return this.#tokens;
+	}
+
+	#invalidateValue(): void {
+		this.#value = null;
+		if (this.#tokens?.size === 0) {
+			this.#attrs.delete("class");
+		} else {
+			this.#attrs.set("class", ATTR_STALE);
+		}
+	}
+
+	[ATTR_INVALIDATE_PARSED](): void {
+		this.#tokens = null;
+	}
+
+	add(...tokens: string[]): void {
+		const set = this.#parseTokens();
+		const prevSize = set.size;
+		for (let i = 0; i < tokens.length; i++) {
+			set.add(tokens[i]);
+		}
+		if (set.size !== prevSize) {
+			this.#invalidateValue();
+		}
+	}
+
+	contains(token: string): boolean {
+		return this.#parseTokens().has(token);
+	}
+
+	remove(...tokens: string[]): void {
+		const set = this.#parseTokens();
+		const prevSize = set.size;
+		for (let i = 0; i < tokens.length; i++) {
+			set.delete(tokens[i]);
+		}
+		if (set.size !== prevSize) {
+			this.#invalidateValue();
+		}
+	}
+
+	replace(oldToken: string, newToken: string): boolean {
+		const set = this.#parseTokens();
+		if (set.delete(oldToken)) {
+			set.add(newToken);
+			this.#invalidateValue();
+			return true;
+		}
+		return false;
+	}
+
+	toggle(token: string, force?: boolean): boolean {
+		const set = this.#parseTokens();
+		const prevSize = set.size;
+		let exists = false;
+		if (force === undefined) {
+			if (!set.delete(token)) {
+				set.add(token);
+				exists = true;
+			}
+		} else if (force) {
+			set.add(token);
+			exists = true;
+
+		} else {
+			set.delete(token);
+		}
+		if (set.size !== prevSize) {
+			this.#invalidateValue();
+		}
+		return exists;
+	}
+
+	values(): IterableIterator<string> {
+		return this.#parseTokens()[Symbol.iterator]();
+	}
+
+	[Symbol.iterator](): IterableIterator<string> {
+		return this.#parseTokens()[Symbol.iterator]();
+	}
+}
 
 export class RvxElement extends RvxNode {
 	static {
@@ -467,6 +597,7 @@ export class RvxElement extends RvxNode {
 	#void: boolean | undefined;
 	#tagName: string;
 	#attrs: Attrs = new Map();
+	#classList: RvxElementClassList | null = null;
 
 	constructor(namespaceURI: string, tagName: string) {
 		super();
@@ -497,6 +628,13 @@ export class RvxElement extends RvxNode {
 		return html;
 	}
 
+	get classList(): RvxElementClassList {
+		if (this.#classList === null) {
+			this.#classList = new RvxElementClassList(this.#attrs);
+		}
+		return this.#classList;
+	}
+
 	append(...nodes: (RvxNode | string)[]): void {
 		for (let i = 0; i < nodes.length; i++) {
 			const node = nodes[i];
@@ -510,10 +648,16 @@ export class RvxElement extends RvxNode {
 
 	setAttribute(name: string, value: string): void {
 		this.#attrs.set(name, value);
+		if (name === "class") {
+			this.#classList?.[ATTR_INVALIDATE_PARSED]();
+		}
 	}
 
 	removeAttribute(name: string): void {
 		this.#attrs.delete(name);
+		if (name === "class") {
+			this.#classList?.[ATTR_INVALIDATE_PARSED]();
+		}
 	}
 
 	toggleAttribute(name: string, force?: boolean): void {
@@ -526,14 +670,32 @@ export class RvxElement extends RvxNode {
 				this.#attrs.delete(name);
 			}
 		}
+		if (name === "class") {
+			this.#classList?.[ATTR_INVALIDATE_PARSED]();
+		}
 	}
 
 	getAttribute(name: string): string | null {
-		return this.#attrs.get(name) ?? null;
+		const value = this.#attrs.get(name);
+		if (value === ATTR_STALE) {
+			return this.#resolveStaleAttr(name);
+		}
+		return value ?? null;
 	}
 
 	hasAttribute(name: string): boolean {
 		return this.#attrs.has(name);
+	}
+
+	#resolveStaleAttr(name: string): string {
+		switch (name) {
+			case "class": {
+				const value = this.#classList!.value;
+				this.#attrs.set(name, value);
+				return value;
+			}
+			default: throw new Error("invalid internal state");
+		}
 	}
 
 	#isVoidTag(): boolean {
@@ -542,7 +704,10 @@ export class RvxElement extends RvxNode {
 
 	[NODE_APPEND_HTML_TO](html: string): string {
 		html = html + "<" + this.#tagName;
-		for (const [name, value] of this.#attrs) {
+		for (let [name, value] of this.#attrs) {
+			if (value === ATTR_STALE) {
+				value = this.#resolveStaleAttr(name);
+			}
 			html = htmlEscapeAppendTo(html + " " + name + "=\"", value) + "\"";
 		}
 		if (this.#isVoidTag()) {
