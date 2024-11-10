@@ -12,10 +12,18 @@ export const rvxDocument = {
 	createDocumentFragment() {
 		return new RvxDocumentFragment();
 	},
+
+	createElementNS(namespaceURI: string, tagName: string) {
+		return new RvxElement(namespaceURI, tagName);
+	},
+
+	createElement(tagName: string) {
+		return new RvxElement(HTML, tagName);
+	}
 };
 
 const NODE_LENGTH = Symbol("length");
-const NODE_APPEND_HTML_TO = Symbol("concatHtml");
+const NODE_APPEND_HTML_TO = Symbol("appendHtmlTo");
 
 class NodeListIterator implements Iterator<RvxNode> {
 	#current: RvxNode | null;
@@ -422,6 +430,33 @@ export function resolveNamespaceURI(uri: string): XMLNS {
 	}
 }
 
+export function isVoidTag(xmlns: XMLNS, name: string): boolean {
+	if (xmlns !== XMLNS_HTML) {
+		return false;
+	}
+	switch (name) {
+		case "area":
+		case "base":
+		case "br":
+		case "col":
+		case "embed":
+		case "hr":
+		case "img":
+		case "input":
+		case "link":
+		case "meta":
+		case "param":
+		case "source":
+		case "track":
+		case "wbr":
+			return true;
+		default:
+			return false;
+	}
+}
+
+type Attrs = Map<string, string>;
+
 export class RvxElement extends RvxNode {
 	static {
 		this.prototype.nodeType = 1;
@@ -429,7 +464,9 @@ export class RvxElement extends RvxNode {
 
 	#xmlns: XMLNS;
 	#namespaceURI: string;
+	#void: boolean | undefined;
 	#tagName: string;
+	#attrs: Attrs = new Map();
 
 	constructor(namespaceURI: string, tagName: string) {
 		super();
@@ -448,5 +485,58 @@ export class RvxElement extends RvxNode {
 
 	get namespaceURI(): string {
 		return this.#namespaceURI;
+	}
+
+	setAttribute(name: string, value: string): void {
+		this.#attrs.set(name, value);
+	}
+
+	removeAttribute(name: string): void {
+		this.#attrs.delete(name);
+	}
+
+	toggleAttribute(name: string, force?: boolean): void {
+		const has = this.#attrs.has(name);
+		force ??= !has;
+		if (has !== force) {
+			if (force) {
+				this.#attrs.set(name, "");
+			} else {
+				this.#attrs.delete(name);
+			}
+		}
+	}
+
+	getAttribute(name: string): string | null {
+		return this.#attrs.get(name) ?? null;
+	}
+
+	hasAttribute(name: string): boolean {
+		return this.#attrs.has(name);
+	}
+
+	#isVoidTag(): boolean {
+		return this.#void ?? (this.#void = isVoidTag(this.#xmlns, this.#tagName));
+	}
+
+	[NODE_APPEND_HTML_TO](html: string): string {
+		html = html + "<" + this.#tagName;
+		for (const [name, value] of this.#attrs) {
+			html = htmlEscapeAppendTo(html + " " + name + "=\"", value) + "\"";
+		}
+		if (this.#isVoidTag()) {
+			html += ">";
+		} else if (this.hasChildNodes() || this.#xmlns === XMLNS_HTML) {
+			html += ">";
+			let child = this.firstChild;
+			while (child !== null) {
+				html = child[NODE_APPEND_HTML_TO](html);
+				child = child.nextSibling;
+			}
+			html = html + "</" + this.#tagName + ">";
+		} else {
+			html += "/>";
+		}
+		return html;
 	}
 }
