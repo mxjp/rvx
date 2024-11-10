@@ -1,6 +1,7 @@
 import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { htmlEscapeAppendTo, RvxComment, rvxDocument, RvxDocumentFragment, RvxNode, RvxText } from "rvx/dom";
+import { HTML, MATHML, SVG } from "rvx";
+import { htmlEscapeAppendTo, resolveNamespaceURI, RvxComment, rvxDocument, RvxDocumentFragment, RvxNode, RvxText, XMLNS_HTML, XMLNS_MATHML, XMLNS_SVG } from "rvx/dom";
 
 await suite("dom/model", async () => {
 	await test("htmlEscape", () => {
@@ -629,5 +630,13 @@ await suite("dom/model", async () => {
 			strictEqual(node instanceof RvxDocumentFragment, true);
 			strictEqual(node.childNodes.length, 0);
 		})
+	});
+
+	await test("resolveNamespaceURI", () => {
+		throws(() => resolveNamespaceURI(""));
+		throws(() => resolveNamespaceURI("https://example.com"));
+		strictEqual(resolveNamespaceURI(HTML), XMLNS_HTML);
+		strictEqual(resolveNamespaceURI(SVG), XMLNS_SVG);
+		strictEqual(resolveNamespaceURI(MATHML), XMLNS_MATHML);
 	});
 });

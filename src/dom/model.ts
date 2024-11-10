@@ -1,3 +1,4 @@
+import { HTML, MATHML, SVG } from "../core/element-common.js";
 
 export const rvxDocument = {
 	createTextNode(data: string) {
@@ -343,18 +344,21 @@ export class RvxNode {
 
 export interface RvxNode {
 	nodeType: number;
+	nodeName: string;
 	ownerDocument: typeof rvxDocument;
 }
 
 export class RvxDocumentFragment extends RvxNode {
 	static {
 		this.prototype.nodeType = 11;
+		this.prototype.nodeName = "#document-fragment";
 	}
 }
 
 export class RvxComment extends RvxNode {
 	static {
 		this.prototype.nodeType = 8;
+		this.prototype.nodeName = "#comment";
 	}
 
 	#data: string;
@@ -380,6 +384,7 @@ export class RvxComment extends RvxNode {
 export class RvxText extends RvxNode {
 	static {
 		this.prototype.nodeType = 3;
+		this.prototype.nodeName = "#text";
 	}
 
 	#data: string;
@@ -399,5 +404,49 @@ export class RvxText extends RvxNode {
 
 	[NODE_APPEND_HTML_TO](html: string): string {
 		return htmlEscapeAppendTo(html, this.#data);
+	}
+}
+
+export const XMLNS_HTML = 0;
+export const XMLNS_SVG = 1;
+export const XMLNS_MATHML = 2;
+
+export type XMLNS = typeof XMLNS_HTML | typeof XMLNS_SVG | typeof XMLNS_MATHML;
+
+export function resolveNamespaceURI(uri: string): XMLNS {
+	switch (uri) {
+		case HTML: return XMLNS_HTML;
+		case SVG: return XMLNS_SVG;
+		case MATHML: return XMLNS_MATHML;
+		default: throw new Error("unsupported namespace uri");
+	}
+}
+
+export class RvxElement extends RvxNode {
+	static {
+		this.prototype.nodeType = 1;
+	}
+
+	#xmlns: XMLNS;
+	#namespaceURI: string;
+	#tagName: string;
+
+	constructor(namespaceURI: string, tagName: string) {
+		super();
+		this.#xmlns = resolveNamespaceURI(namespaceURI);
+		this.#namespaceURI = namespaceURI;
+		this.#tagName = tagName;
+	}
+
+	get tagName(): string {
+		return this.#tagName;
+	}
+
+	get nodeName(): string {
+		return this.#tagName;
+	}
+
+	get namespaceURI(): string {
+		return this.#namespaceURI;
 	}
 }
