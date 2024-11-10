@@ -125,6 +125,10 @@ export class RvxNode {
 		throw new Error("not supported");
 	}
 
+	hasChildNodes(): boolean {
+		return this.#length > 0;
+	}
+
 	removeChild(node: RvxNode): RvxNode {
 		if (node.#parent !== this) {
 			throw new Error("node is not a child of this node");

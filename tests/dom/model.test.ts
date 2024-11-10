@@ -46,6 +46,7 @@ await suite("dom/model", async () => {
 				strictEqual(node.lastChild, null);
 			}
 
+			strictEqual(node.hasChildNodes(), children.length > 0);
 			strictEqual(node.childNodes.length, children.length);
 
 			const thisArg = {};
