@@ -214,6 +214,81 @@ export class RvxNode {
 		return node;
 	}
 
+	replaceChild(node: RvxNode, ref: RvxNode): RvxNode {
+		if (ref.#parent !== this) {
+			throw new Error("ref must be a child of this node");
+		}
+		if (node.nodeType === 11) {
+			if (node.#length === 0) {
+				const prev = ref.#prev;
+				const next = ref.#next;
+				if (prev === null) {
+					this.#first = next;
+				} else {
+					prev.#next = next;
+				}
+				if (next === null) {
+					this.#last = prev;
+				} else {
+					next.#prev = prev;
+				}
+				ref.#parent = null;
+				ref.#prev = null;
+				ref.#next = null;
+				this.#length--;
+			} else {
+				const first = node.#first!;
+				const last = node.#last!;
+				const prev = ref.#prev;
+				const next = ref.#next;
+				if (prev === null) {
+					this.#first = first;
+				} else {
+					prev.#next = first;
+					first.#prev = prev;
+				}
+				if (next === null) {
+					this.#last = last;
+				} else {
+					next.#prev = last;
+					last.#next = next;
+				}
+				ref.#parent = null;
+				ref.#prev = null;
+				ref.#next = null;
+				this.#length = this.#length - 1 + node.#length;
+				node.#first = null;
+				node.#last = null;
+				node.#length = 0;
+				let child: RvxNode | null = first;
+				while (child !== null) {
+					child.#parent = this;
+					child = child.#next;
+				}
+			}
+			return ref;
+		}
+		const prev = ref.#prev;
+		const next = ref.#next;
+		if (prev === null) {
+			this.#first = node;
+		} else {
+			prev.#next = node;
+		}
+		if (next === null) {
+			this.#last = node;
+		} else {
+			next.#prev = node;
+		}
+		node.#parent = this;
+		node.#prev = prev;
+		node.#next = next;
+		ref.#parent = null;
+		ref.#prev = null;
+		ref.#next = null;
+		return ref;
+	}
+
 	get textContent(): string {
 		let text = "";
 		let node = this.#first;
