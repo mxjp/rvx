@@ -535,6 +535,43 @@ await suite("dom/model", async () => {
 				{ is: c },
 			]);
 		});
+
+		await test("contains", () => {
+			const root = new RvxNode();
+			const a = new RvxNode();
+			const b = new RvxNode();
+			const c = new RvxNode();
+			const d = new RvxNode();
+			const e = new RvxNode();
+			root.appendChild(a);
+			root.appendChild(b);
+			b.appendChild(c);
+			b.appendChild(d);
+			assertRoot(e, []);
+			assertRoot(root, [
+				{ is: a },
+				{ is: b, children: [
+					{ is: c },
+					{ is: d },
+				] },
+			]);
+			const nodes = [root, a, b, c, d, e];
+			const contains = [
+				/*          root   a      b      c      d      e */
+				/* root */ [ true,  true,  true,  true,  true, false],
+				/* a    */ [false,  true, false, false, false, false],
+				/* b    */ [false, false,  true,  true,  true, false],
+				/* c    */ [false, false, false,  true, false, false],
+				/* d    */ [false, false, false, false,  true, false],
+				/* e    */ [false, false, false, false, false,  true],
+			];
+			for (let y = 0; y < nodes.length; y++) {
+				strictEqual(nodes[y].contains(null), false);
+				for (let x = 0; x < nodes.length; x++) {
+					strictEqual(nodes[y].contains(nodes[x]), contains[y][x]);
+				}
+			}
+		});
 	});
 
 	await test("node text content", () => {

@@ -125,6 +125,19 @@ export class RvxNode {
 		throw new Error("not supported");
 	}
 
+	contains(node: RvxNode | null) {
+		if (node === null) {
+			return false;
+		}
+		do {
+			if (node === this) {
+				return true;
+			}
+			node = node.#parent;
+		} while (node !== null);
+		return false;
+	}
+
 	hasChildNodes(): boolean {
 		return this.#length > 0;
 	}
