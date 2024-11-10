@@ -46,6 +46,10 @@
 			"types": "./dist/es/core/element-builder.d.ts",
 			"default": "./dist/es/core/element-builder.js"
 		},
+		"./dom": {
+			"types": "./dist/es/dom/index.d.ts",
+			"default": "./dist/es/dom/index.js"
+		},
 		"./element": {
 			"types": "./dist/es/element/index.d.ts",
 			"default": "./dist/es/element/index.js"
@@ -84,7 +88,9 @@
 		"start:types": "tsc -p tsconfig-types.json -w --preserveWatchOutput",
 		"start:tests": "tsc -p tests/tsconfig.json -w --preserveWatchOutput",
 		"start:jsx-legacy-runtime-tests": "tsc -p tests/jsx-legacy-runtime/tsconfig.json -w --preserveWatchOutput",
-		"test": "cd tests_out && node --enable-source-maps --import=./env.js --test",
+		"test": "npm run test:dom && npm run test:env-jsdom",
+		"test:dom": "cd tests_out && node --enable-source-maps --test \"dom/**/*.test.js\"",
+		"test:env-jsdom": "cd tests_out && node --enable-source-maps --import=./env-jsdom.js --test \"!(dom)/**/*.test.js\"",
 		"prepack": "npm run build && npm test && node scripts/prepack.js"
 	},
 	"devDependencies": {
