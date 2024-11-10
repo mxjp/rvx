@@ -1,4 +1,18 @@
 
+export const rvxDocument = {
+	createTextNode(data: string) {
+		return new RvxText(data);
+	},
+
+	createComment(data: string) {
+		return new RvxComment(data);
+	},
+
+	createDocumentFragment() {
+		return new RvxDocumentFragment();
+	},
+};
+
 const NODE_LENGTH = Symbol("length");
 const NODE_APPEND_HTML_TO = Symbol("concatHtml");
 
@@ -63,6 +77,10 @@ export function htmlEscapeAppendTo(html: string, data: string) {
 }
 
 export class RvxNode {
+	static {
+		this.prototype.ownerDocument = rvxDocument;
+	}
+
 	#parent: RvxNode | null = null;
 	#first: RvxNode | null = null;
 	#last: RvxNode | null = null;
@@ -308,6 +326,7 @@ export class RvxNode {
 
 export interface RvxNode {
 	nodeType: number;
+	ownerDocument: typeof rvxDocument;
 }
 
 export class RvxDocumentFragment extends RvxNode {
@@ -365,17 +384,3 @@ export class RvxText extends RvxNode {
 		return htmlEscapeAppendTo(html, this.#data);
 	}
 }
-
-export const rvxDocument = {
-	createTextNode(data: string) {
-		return new RvxText(data);
-	},
-
-	createComment(data: string) {
-		return new RvxComment(data);
-	},
-
-	createDocumentFragment() {
-		return new RvxDocumentFragment();
-	},
-};

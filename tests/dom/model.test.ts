@@ -570,6 +570,10 @@ await suite("dom/model", async () => {
 	});
 
 	await suite("document", async () => {
+		await test("owner document", () => {
+			strictEqual(new RvxNode().ownerDocument, rvxDocument);
+		});
+
 		await test("createTextNode", () => {
 			const node = rvxDocument.createTextNode("test");
 			strictEqual(node instanceof RvxText, true);
