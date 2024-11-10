@@ -487,6 +487,27 @@ export class RvxElement extends RvxNode {
 		return this.#namespaceURI;
 	}
 
+	get innerHTML(): string {
+		let html = "";
+		let child = this.firstChild;
+		while (child !== null) {
+			html = child[NODE_APPEND_HTML_TO](html);
+			child = child.nextSibling;
+		}
+		return html;
+	}
+
+	append(...nodes: (RvxNode | string)[]): void {
+		for (let i = 0; i < nodes.length; i++) {
+			const node = nodes[i];
+			if (typeof node === "string") {
+				this.appendChild(new RvxText(node));
+			} else {
+				this.appendChild(node);
+			}
+		}
+	}
+
 	setAttribute(name: string, value: string): void {
 		this.#attrs.set(name, value);
 	}

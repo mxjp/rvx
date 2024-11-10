@@ -1,7 +1,7 @@
 import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
 import { HTML, MATHML, SVG } from "rvx";
-import { htmlEscapeAppendTo, isVoidTag, resolveNamespaceURI, RvxComment, rvxDocument, RvxDocumentFragment, RvxNode, RvxText, XMLNS_HTML, XMLNS_MATHML, XMLNS_SVG } from "rvx/dom";
+import { htmlEscapeAppendTo, isVoidTag, resolveNamespaceURI, RvxComment, rvxDocument, RvxDocumentFragment, RvxElement, RvxNode, RvxText, XMLNS_HTML, XMLNS_MATHML, XMLNS_SVG } from "rvx/dom";
 
 await suite("dom/model", async () => {
 	await test("htmlEscape", () => {
@@ -586,6 +586,7 @@ await suite("dom/model", async () => {
 	await test("comment", () => {
 		const node = new RvxComment("foo");
 		strictEqual(node.nodeType, 8);
+		strictEqual(node.nodeName, "#comment");
 		strictEqual(node.textContent, "foo");
 		strictEqual(node.outerHTML, `<!--foo-->`);
 
@@ -601,6 +602,7 @@ await suite("dom/model", async () => {
 	await test("text", () => {
 		const node = new RvxText("foo");
 		strictEqual(node.nodeType, 3);
+		strictEqual(node.nodeName, "#text");
 		strictEqual(node.textContent, "foo");
 
 		node.textContent = "\"'<>&";
@@ -645,5 +647,169 @@ await suite("dom/model", async () => {
 		strictEqual(isVoidTag(XMLNS_SVG, "br"), false);
 		strictEqual(isVoidTag(XMLNS_MATHML, "br"), false);
 		strictEqual(isVoidTag(XMLNS_HTML, "div"), false);
+	});
+
+	await suite("element", async () => {
+		await test("create", () => {
+			const elem = new RvxElement(HTML, "div");
+			strictEqual(elem.namespaceURI, HTML);
+			strictEqual(elem.nodeName, "div");
+			strictEqual(elem.nodeType, 1);
+			strictEqual(elem.tagName, "div");
+		});
+
+		await test("append", () => {
+			const elem = new RvxElement(HTML, "div");
+			elem.append(
+				"test",
+				new RvxElement(HTML, "br"),
+			);
+			strictEqual(elem.childNodes.length, 2);
+			strictEqual(elem.firstChild instanceof RvxText, true);
+			strictEqual(elem.lastChild instanceof RvxElement, true);
+			strictEqual(elem.innerHTML, "test<br>");
+		});
+
+		await test("innerHTML", () => {
+			const elem = new RvxElement(HTML, "div");
+			strictEqual(elem.innerHTML, "");
+			elem.appendChild(new RvxText("test"));
+			strictEqual(elem.innerHTML, "test");
+			elem.appendChild(new RvxElement(HTML, "br"));
+			strictEqual(elem.innerHTML, "test<br>");
+		});
+
+		await suite("attributes", async () => {
+			await test("usage", () => {
+				const elem = new RvxElement(HTML, "div");
+				strictEqual(elem.hasAttribute("foo"), false);
+				strictEqual(elem.getAttribute("foo"), null);
+				elem.setAttribute("foo", "");
+				strictEqual(elem.hasAttribute("foo"), true);
+				strictEqual(elem.getAttribute("foo"), "");
+				elem.setAttribute("foo", "bar");
+				strictEqual(elem.hasAttribute("foo"), true);
+				strictEqual(elem.getAttribute("foo"), "bar");
+				elem.removeAttribute("foo");
+				strictEqual(elem.hasAttribute("foo"), false);
+				strictEqual(elem.getAttribute("foo"), null);
+			});
+
+			await test("toggle", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.toggleAttribute("foo");
+				strictEqual(elem.hasAttribute("foo"), true);
+				strictEqual(elem.getAttribute("foo"), "");
+				elem.toggleAttribute("foo");
+				strictEqual(elem.hasAttribute("foo"), false);
+				strictEqual(elem.getAttribute("foo"), null);
+				elem.toggleAttribute("foo", true);
+				strictEqual(elem.hasAttribute("foo"), true);
+				strictEqual(elem.getAttribute("foo"), "");
+				elem.toggleAttribute("foo", true);
+				strictEqual(elem.hasAttribute("foo"), true);
+				strictEqual(elem.getAttribute("foo"), "");
+				elem.toggleAttribute("foo", false);
+				strictEqual(elem.hasAttribute("foo"), false);
+				strictEqual(elem.getAttribute("foo"), null);
+				elem.toggleAttribute("foo", false);
+				strictEqual(elem.hasAttribute("foo"), false);
+				strictEqual(elem.getAttribute("foo"), null);
+				elem.setAttribute("foo", "bar");
+				elem.toggleAttribute("foo");
+				strictEqual(elem.hasAttribute("foo"), false);
+				strictEqual(elem.getAttribute("foo"), null);
+			});
+		});
+
+		await suite("outerHTML", async () => {
+			await test("default", () => {
+				const elem = new RvxElement(HTML, "div");
+				strictEqual(elem.outerHTML, "<div></div>");
+			});
+
+			await test("escaped attribute value", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.setAttribute("foo", "\"'<>&");
+				strictEqual(elem.outerHTML, "<div foo=\"&#34;&#39;&lt;&gt;&amp;\"></div>");
+			});
+
+			await test("void tag", () => {
+				const elem = new RvxElement(HTML, "br");
+				strictEqual(elem.outerHTML, "<br>");
+			});
+
+			await test("void tag with ignored children", () => {
+				const elem = new RvxElement(HTML, "br");
+				elem.appendChild(new RvxText("ignored"));
+				strictEqual(elem.outerHTML, "<br>");
+			});
+
+			await test("default with attributes", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.setAttribute("foo", "bar");
+				strictEqual(elem.outerHTML, "<div foo=\"bar\"></div>");
+				elem.setAttribute("bar", "baz");
+				strictEqual(elem.outerHTML, "<div foo=\"bar\" bar=\"baz\"></div>");
+			});
+
+			await test("void tag with attributes", () => {
+				const elem = new RvxElement(HTML, "br");
+				elem.setAttribute("foo", "bar");
+				strictEqual(elem.outerHTML, "<br foo=\"bar\">");
+				elem.setAttribute("bar", "baz");
+				strictEqual(elem.outerHTML, "<br foo=\"bar\" bar=\"baz\">");
+			});
+
+			await test("default with children", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.appendChild(new RvxText("test"));
+				elem.appendChild(new RvxElement(HTML, "br"));
+				strictEqual(elem.outerHTML, "<div>test<br></div>");
+			});
+
+			await test("void tag with ignored children", () => {
+				const elem = new RvxElement(HTML, "br");
+				elem.appendChild(new RvxText("test"));
+				elem.appendChild(new RvxElement(HTML, "br"));
+				strictEqual(elem.outerHTML, "<br>");
+			});
+
+			await test("default with children and attributes", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.setAttribute("foo", "bar");
+				elem.setAttribute("bar", "baz");
+				elem.appendChild(new RvxText("test"));
+				elem.appendChild(new RvxElement(HTML, "br"));
+				strictEqual(elem.outerHTML, "<div foo=\"bar\" bar=\"baz\">test<br></div>");
+			});
+
+			await test("void tag with ignored children and attributes", () => {
+				const elem = new RvxElement(HTML, "br");
+				elem.setAttribute("foo", "bar");
+				elem.setAttribute("bar", "baz");
+				elem.appendChild(new RvxText("test"));
+				elem.appendChild(new RvxElement(HTML, "br"));
+				strictEqual(elem.outerHTML, "<br foo=\"bar\" bar=\"baz\">");
+			});
+
+			await test("self closing tag", () => {
+				const elem = new RvxElement(SVG, "path");
+				strictEqual(elem.outerHTML, "<path/>");
+			});
+
+			await test("self closing tag with children", () => {
+				const elem = new RvxElement(SVG, "path");
+				elem.appendChild(new RvxText("test"));
+				strictEqual(elem.outerHTML, "<path>test</path>");
+			});
+
+			await test("self closing tag with attributes", () => {
+				const elem = new RvxElement(SVG, "path");
+				elem.setAttribute("foo", "bar");
+				elem.setAttribute("bar", "baz");
+				strictEqual(elem.outerHTML, "<path foo=\"bar\" bar=\"baz\"/>");
+			});
+		});
 	});
 });
