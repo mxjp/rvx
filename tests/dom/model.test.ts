@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { htmlEscapeAppendTo, RvxComment, RvxNode, RvxText } from "rvx/dom";
+import { htmlEscapeAppendTo, RvxComment, RvxDocumentFragment, RvxNode, RvxText } from "rvx/dom";
 
 await suite("dom/model", async () => {
 	await test("htmlEscape", () => {
@@ -121,6 +121,67 @@ await suite("dom/model", async () => {
 			assertRoot(parentA, []);
 			assertRoot(parentB, [
 				{ is: child },
+			]);
+		});
+
+		await test("append empty fragment to empty", () => {
+			const parent = new RvxNode();
+			const fragment = new RvxDocumentFragment();
+			parent.appendChild(fragment);
+			assertRoot(parent, []);
+			assertRoot(fragment, []);
+		});
+
+		await test("append empty fragment", () => {
+			const parent = new RvxNode();
+			const a = new RvxNode();
+			parent.appendChild(a);
+			const fragment = new RvxDocumentFragment();
+			parent.appendChild(fragment);
+			assertRoot(parent, [
+				{ is: a },
+			]);
+			assertRoot(fragment, []);
+		});
+
+		await test("append fragment to empty", () => {
+			const parent = new RvxNode();
+			const fragment = new RvxDocumentFragment();
+			const a = new RvxNode();
+			const b = new RvxNode();
+			fragment.appendChild(a);
+			fragment.appendChild(b);
+			assertRoot(fragment, [
+				{ is: a },
+				{ is: b },
+			]);
+			parent.appendChild(fragment);
+			assertRoot(fragment, []);
+			assertRoot(parent, [
+				{ is: a },
+				{ is: b },
+			]);
+		});
+
+		await test("append fragment", () => {
+			const parent = new RvxNode();
+			const a = new RvxNode();
+			parent.appendChild(a);
+			const fragment = new RvxDocumentFragment();
+			const b = new RvxNode();
+			const c = new RvxNode();
+			fragment.appendChild(b);
+			fragment.appendChild(c);
+			assertRoot(fragment, [
+				{ is: b },
+				{ is: c },
+			]);
+			parent.appendChild(fragment);
+			assertRoot(fragment, []);
+			assertRoot(parent, [
+				{ is: a },
+				{ is: b },
+				{ is: c },
 			]);
 		});
 

@@ -132,7 +132,28 @@ export class RvxNode {
 
 	appendChild(node: RvxNode): RvxNode {
 		if (node instanceof RvxDocumentFragment) {
-			throw new Error("not implemented");
+			if (node.#length === 0) {
+				return node;
+			}
+			const prev = this.#last;
+			const first = node.#first!;
+			if (prev === null) {
+				this.#first = first;
+			} else {
+				prev.#next = first;
+			}
+			first.#prev = prev;
+			this.#last = node.#last;
+			this.#length += node.#length;
+			let child: RvxNode | null = first;
+			while (child !== null) {
+				child.#parent = this;
+				child = child.#next;
+			}
+			node.#first = null;
+			node.#last = null;
+			node.#length = 0;
+			return node;
 		}
 		node.#parent?.removeChild(node);
 		const prev = this.#last;
