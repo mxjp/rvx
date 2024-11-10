@@ -631,7 +631,42 @@ await suite("dom/model", async () => {
 			const node = rvxDocument.createDocumentFragment();
 			strictEqual(node instanceof RvxDocumentFragment, true);
 			strictEqual(node.childNodes.length, 0);
-		})
+		});
+
+		await test("createElement", () => {
+			const node = rvxDocument.createElement("div");
+			strictEqual(node instanceof RvxElement, true);
+			strictEqual(node.namespaceURI, HTML);
+			strictEqual(node.tagName, "div");
+		});
+
+		await test("createElement, svg named html element", () => {
+			const node = rvxDocument.createElement("svg");
+			strictEqual(node instanceof RvxElement, true);
+			strictEqual(node.namespaceURI, HTML);
+			strictEqual(node.tagName, "svg");
+		});
+
+		await test("createElementNS, html", () => {
+			const node = rvxDocument.createElementNS(HTML, "div");
+			strictEqual(node instanceof RvxElement, true);
+			strictEqual(node.namespaceURI, HTML);
+			strictEqual(node.tagName, "div");
+		});
+
+		await test("createElementNS, svg", () => {
+			const node = rvxDocument.createElementNS(SVG, "div");
+			strictEqual(node instanceof RvxElement, true);
+			strictEqual(node.namespaceURI, SVG);
+			strictEqual(node.tagName, "div");
+		});
+
+		await test("createElementNS, mathml", () => {
+			const node = rvxDocument.createElementNS(MATHML, "div");
+			strictEqual(node instanceof RvxElement, true);
+			strictEqual(node.namespaceURI, MATHML);
+			strictEqual(node.tagName, "div");
+		});
 	});
 
 	await test("resolveNamespaceURI", () => {
