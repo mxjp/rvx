@@ -290,3 +290,17 @@ export class RvxText extends RvxNode {
 		return htmlEscapeAppendTo(html, this.#data);
 	}
 }
+
+export const rvxDocument = {
+	createTextNode(data: string) {
+		return new RvxText(data);
+	},
+
+	createComment(data: string) {
+		return new RvxComment(data);
+	},
+
+	createDocumentFragment() {
+		return new RvxDocumentFragment();
+	},
+};

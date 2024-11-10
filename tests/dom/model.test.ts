@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { htmlEscapeAppendTo, RvxComment, RvxDocumentFragment, RvxNode, RvxText } from "rvx/dom";
+import { htmlEscapeAppendTo, RvxComment, rvxDocument, RvxDocumentFragment, RvxNode, RvxText } from "rvx/dom";
 
 await suite("dom/model", async () => {
 	await test("htmlEscape", () => {
@@ -362,5 +362,25 @@ await suite("dom/model", async () => {
 		node.textContent = "\"'<>&";
 		strictEqual(node.textContent, "\"'<>&");
 		strictEqual(node.outerHTML, "&#34;&#39;&lt;&gt;&amp;");
+	});
+
+	await suite("document", async () => {
+		await test("createTextNode", () => {
+			const node = rvxDocument.createTextNode("test");
+			strictEqual(node instanceof RvxText, true);
+			strictEqual(node.textContent, "test");
+		});
+
+		await test("createComment", () => {
+			const node = rvxDocument.createComment("test");
+			strictEqual(node instanceof RvxComment, true);
+			strictEqual(node.textContent, "test");
+		});
+
+		await test("createDocumentFragment", () => {
+			const node = rvxDocument.createDocumentFragment();
+			strictEqual(node instanceof RvxDocumentFragment, true);
+			strictEqual(node.childNodes.length, 0);
+		})
 	});
 });
