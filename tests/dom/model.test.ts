@@ -127,7 +127,7 @@ await suite("dom/model", async () => {
 		await test("append empty fragment to empty", () => {
 			const parent = new RvxNode();
 			const fragment = new RvxDocumentFragment();
-			parent.appendChild(fragment);
+			strictEqual(parent.appendChild(fragment), fragment);
 			assertRoot(parent, []);
 			assertRoot(fragment, []);
 		});
@@ -137,7 +137,7 @@ await suite("dom/model", async () => {
 			const a = new RvxNode();
 			parent.appendChild(a);
 			const fragment = new RvxDocumentFragment();
-			parent.appendChild(fragment);
+			strictEqual(parent.appendChild(fragment), fragment);
 			assertRoot(parent, [
 				{ is: a },
 			]);
@@ -155,7 +155,7 @@ await suite("dom/model", async () => {
 				{ is: a },
 				{ is: b },
 			]);
-			parent.appendChild(fragment);
+			strictEqual(parent.appendChild(fragment), fragment);
 			assertRoot(fragment, []);
 			assertRoot(parent, [
 				{ is: a },
@@ -176,12 +176,118 @@ await suite("dom/model", async () => {
 				{ is: b },
 				{ is: c },
 			]);
-			parent.appendChild(fragment);
+			strictEqual(parent.appendChild(fragment), fragment);
 			assertRoot(fragment, []);
 			assertRoot(parent, [
 				{ is: a },
 				{ is: b },
 				{ is: c },
+			]);
+		});
+
+		await test("insert child", () => {
+			const parent = new RvxNode();
+			const ref = new RvxNode();
+			parent.appendChild(ref);
+			const a = new RvxNode();
+			strictEqual(parent.insertBefore(a, ref), a);
+			assertRoot(parent, [
+				{ is: a },
+				{ is: ref },
+			]);
+			const b = new RvxNode();
+			strictEqual(parent.insertBefore(b, ref), b);
+			assertRoot(parent, [
+				{ is: a },
+				{ is: b },
+				{ is: ref },
+			]);
+			strictEqual(parent.insertBefore(a, ref), a);
+			assertRoot(parent, [
+				{ is: b },
+				{ is: a },
+				{ is: ref },
+			]);
+		});
+
+		await test("insert from other parent", () => {
+			const parentA = new RvxNode();
+			const parentB = new RvxNode();
+			const ref = new RvxNode();
+			const node = new RvxNode();
+			parentA.appendChild(node);
+			parentB.appendChild(ref);
+			strictEqual(parentB.insertBefore(node, ref), node);
+			assertRoot(parentA, []);
+			assertRoot(parentB, [
+				{ is: node },
+				{ is: ref },
+			]);
+		});
+
+		await test("insert empty fragment", () => {
+			const parent = new RvxNode();
+			const ref = new RvxNode();
+			const fragment = new RvxDocumentFragment();
+			parent.appendChild(ref);
+			strictEqual(parent.insertBefore(fragment, ref), fragment);
+			assertRoot(fragment, []);
+			assertRoot(parent, [
+				{ is: ref },
+			]);
+		});
+
+		await test("insert empty fragment behind", () => {
+			const parent = new RvxNode();
+			const ref = new RvxNode();
+			const node = new RvxNode();
+			const fragment = new RvxDocumentFragment();
+			parent.appendChild(node);
+			parent.appendChild(ref);
+			strictEqual(parent.insertBefore(fragment, ref), fragment);
+			assertRoot(fragment, []);
+			assertRoot(parent, [
+				{ is: node },
+				{ is: ref },
+			]);
+		});
+
+		await test("insert fragment", () => {
+			const parent = new RvxNode();
+			const ref = new RvxNode();
+			const a = new RvxNode();
+			const b = new RvxNode();
+			const fragment = new RvxDocumentFragment();
+			parent.appendChild(ref);
+			fragment.appendChild(a);
+			fragment.appendChild(b);
+			strictEqual(parent.insertBefore(fragment, ref), fragment);
+			assertRoot(fragment, []);
+			assertRoot(parent, [
+				{ is: a },
+				{ is: b },
+				{ is: ref },
+			]);
+		});
+
+		await test("insert fragment behind", () => {
+			const parent = new RvxNode();
+			const node = new RvxNode();
+			const ref = new RvxNode();
+			const a = new RvxNode();
+			const b = new RvxNode();
+			const fragment = new RvxDocumentFragment();
+			parent.appendChild(node);
+			parent.appendChild(ref);
+			fragment.appendChild(a);
+			fragment.appendChild(b);
+			strictEqual(parent.insertBefore(fragment, ref), fragment);
+			assertRoot(fragment, []);
+			assertRoot(parent, [
+				{ is: node },
+				{ is: a },
+				{ is: b },
+				{ is: ref },
 			]);
 		});
 

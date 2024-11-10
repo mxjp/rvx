@@ -131,7 +131,7 @@ export class RvxNode {
 	}
 
 	appendChild(node: RvxNode): RvxNode {
-		if (node instanceof RvxDocumentFragment) {
+		if (node.nodeType === 11) {
 			if (node.#length === 0) {
 				return node;
 			}
@@ -165,6 +165,51 @@ export class RvxNode {
 		node.#prev = prev;
 		node.#parent = this;
 		this.#last = node;
+		this.#length++;
+		return node;
+	}
+
+	insertBefore(node: RvxNode, ref: RvxNode): RvxNode {
+		if (ref.#parent !== this) {
+			throw new Error("ref must be a child of this node");
+		}
+		if (node.nodeType === 11) {
+			if (node.#length === 0) {
+				return node;
+			}
+			const prev = ref.#prev;
+			const first = node.#first!;
+			const last = node.#last!;
+			if (prev === null) {
+				this.#first = first;
+			} else {
+				prev.#next = first;
+			}
+			first.#prev = prev;
+			last.#next = ref;
+			ref.#prev = last;
+			this.#length += node.#length;
+			let child: RvxNode | null = first;
+			while (child !== null) {
+				child.#parent = this;
+				child = child.#next;
+			}
+			node.#first = null;
+			node.#last = null;
+			node.#length = 0;
+			return node;
+		}
+		node.#parent?.removeChild(node);
+		const prev = ref.#prev;
+		if (prev === null) {
+			this.#first = node;
+		} else {
+			prev.#next = node;
+		}
+		ref.#prev = node;
+		node.#parent = this;
+		node.#prev = prev;
+		node.#next = ref;
 		this.#length++;
 		return node;
 	}
