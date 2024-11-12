@@ -1,7 +1,7 @@
 import { strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 
-import { capture, Context, mount, uncapture, watch } from "rvx";
+import { capture, Context, ENV, mount, uncapture, watch } from "rvx";
 import { isPending, isSelfPending, TASKS, Tasks, waitFor } from "rvx/async";
 
 import { assertEvents, future } from "../common.js";
@@ -124,27 +124,28 @@ await suite("async/tasks", async () => {
 		});
 	});
 
+	// TODO: Skip in rvx dom environment:
 	await test("manage focus", async () => {
 		const input = <input /> as HTMLInputElement;
-		const dispose = capture(() => mount(document.body, input));
+		const dispose = capture(() => mount(ENV.current.document.body, input));
 		try {
 			const tasks = uncapture(() => new Tasks());
 
 			input.focus();
-			strictEqual(document.activeElement, input);
+			strictEqual(ENV.current.document.activeElement, input);
 
 			const done = capture(() => tasks.setPending());
 
 			input.blur();
-			strictEqual(document.activeElement, document.body);
+			strictEqual(ENV.current.document.activeElement, ENV.current.document.body);
 
 			done();
-			strictEqual(document.activeElement, document.body);
+			strictEqual(ENV.current.document.activeElement, ENV.current.document.body);
 			await Promise.resolve();
-			strictEqual(document.activeElement, input);
+			strictEqual(ENV.current.document.activeElement, input);
 		} finally {
 			dispose();
 		}
-		strictEqual(document.activeElement, document.body);
+		strictEqual(ENV.current.document.activeElement, ENV.current.document.body);
 	});
 });

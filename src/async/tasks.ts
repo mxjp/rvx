@@ -1,4 +1,5 @@
 import { Context } from "../core/context.js";
+import { ENV } from "../core/env.js";
 import { teardown } from "../core/lifecycle.js";
 import { sig, watch } from "../core/signals.js";
 
@@ -34,14 +35,15 @@ export class Tasks {
 		this.#restoreFocus = options?.restoreFocus ?? (parent ? parent.#restoreFocus : true);
 
 		if (this.#restoreFocus) {
+			const env = ENV.current;
 			let last: Element | null = null;
 			watch(this.#pending, pending => {
 				if (pending) {
-					last = document.activeElement;
-				} else if (last && document.activeElement === document.body) {
+					last = env.document.activeElement;
+				} else if (last && env.document.activeElement === env.document.body) {
 					const target = last;
 					queueMicrotask(() => {
-						if (last === target && document.activeElement === document.body) {
+						if (last === target && env.document.activeElement === env.document.body) {
 							(target as HTMLElement).focus?.();
 						}
 					});

@@ -1,8 +1,6 @@
 import { deepStrictEqual, notStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-
-import { NODE, render, sig, uncapture, View, viewNodes } from "rvx";
-
+import { ENV, NODE, render, sig, uncapture, View, viewNodes } from "rvx";
 import { createText } from "../../dist/es/core/internals.js";
 import { assertEvents, boundaryEvents, testView, text } from "../common.js";
 
@@ -13,7 +11,7 @@ await suite("render", async () => {
 
 	await test("createText (internal)", () => {
 		const signal = sig<unknown>(undefined);
-		const text = uncapture(() => createText(signal));
+		const text = uncapture(() => createText(signal, ENV.current));
 		strictEqual(text.textContent, "");
 		signal.value = null;
 		strictEqual(text.textContent, "");
@@ -35,14 +33,14 @@ await suite("render", async () => {
 			const view = render(value);
 			const nodes = renderToNodes(view);
 			strictEqual(nodes.length, 1);
-			strictEqual(nodes[0] instanceof Comment, true);
+			strictEqual(nodes[0] instanceof ENV.current.Comment, true);
 		}
 	});
 
 	await test("document fragment", () => {
-		const fragment = document.createDocumentFragment();
-		const a = document.createElement("div");
-		const b = document.createElement("div");
+		const fragment = ENV.current.document.createDocumentFragment();
+		const a = ENV.current.document.createElement("div");
+		const b = ENV.current.document.createElement("div");
 		fragment.appendChild(a);
 		fragment.appendChild(b);
 		const view = render(fragment);
@@ -57,33 +55,33 @@ await suite("render", async () => {
 	});
 
 	await test("node target", () => {
-		const view = render({ [NODE]: document.createTextNode("test") });
-		strictEqual(view.first instanceof Text, true);
+		const view = render({ [NODE]: ENV.current.document.createTextNode("test") });
+		strictEqual(view.first instanceof ENV.current.Text, true);
 		strictEqual(view.first, view.last);
 		strictEqual(text(view.take()), "test");
 	});
 
 	await test("node targets", () => {
 		const view = render([
-			{ [NODE]: document.createTextNode("a") },
-			{ [NODE]: document.createTextNode("b") },
+			{ [NODE]: ENV.current.document.createTextNode("a") },
+			{ [NODE]: ENV.current.document.createTextNode("b") },
 		]);
 		strictEqual(text(view.take()), "ab");
 	});
 
 	await test("empty document fragment", () => {
-		const view = render(document.createDocumentFragment());
-		strictEqual(view.first instanceof Comment, true);
+		const view = render(ENV.current.document.createDocumentFragment());
+		strictEqual(view.first instanceof ENV.current.Comment, true);
 		strictEqual(view.first, view.last);
 	});
 
 	await test("empty document fragment in array", () => {
 		const view = render([
-			document.createDocumentFragment(),
-			document.createDocumentFragment(),
+			ENV.current.document.createDocumentFragment(),
+			ENV.current.document.createDocumentFragment(),
 		]);
-		strictEqual(view.first instanceof Comment, true);
-		strictEqual(view.last instanceof Comment, true);
+		strictEqual(view.first instanceof ENV.current.Comment, true);
+		strictEqual(view.last instanceof ENV.current.Comment, true);
 	});
 
 	await test("empty document fragment in array with view", () => {
@@ -91,9 +89,9 @@ await suite("render", async () => {
 		const inner = testView();
 		const view = uncapture(() => {
 			return render([
-				document.createDocumentFragment(),
+				ENV.current.document.createDocumentFragment(),
 				inner.view,
-				document.createDocumentFragment(),
+				ENV.current.document.createDocumentFragment(),
 			]);
 		});
 		strictEqual(text(view.take()), "fl");
@@ -108,17 +106,17 @@ await suite("render", async () => {
 		const inner = testView();
 		const view = uncapture(() => {
 			return render([
-				document.createDocumentFragment(),
-				document.createDocumentFragment(),
+				ENV.current.document.createDocumentFragment(),
+				ENV.current.document.createDocumentFragment(),
 				inner.view,
-				document.createDocumentFragment(),
-				document.createDocumentFragment(),
+				ENV.current.document.createDocumentFragment(),
+				ENV.current.document.createDocumentFragment(),
 			]);
 		});
 		strictEqual(text(view.take()), "fl");
 		uncapture(() => view.setBoundaryOwner(boundaryEvents(events)));
-		strictEqual(view.first instanceof Comment, true);
-		strictEqual(view.last instanceof Comment, true);
+		strictEqual(view.first instanceof ENV.current.Comment, true);
+		strictEqual(view.last instanceof ENV.current.Comment, true);
 		inner.nextFirst();
 		inner.nextLast();
 		assertEvents(events, []);
@@ -129,13 +127,13 @@ await suite("render", async () => {
 		const inner = testView();
 		const view = uncapture(() => {
 			return render([
-				document.createDocumentFragment(),
+				ENV.current.document.createDocumentFragment(),
 				render([1, "2"]),
-				document.createDocumentFragment(),
+				ENV.current.document.createDocumentFragment(),
 				inner.view,
-				document.createDocumentFragment(),
+				ENV.current.document.createDocumentFragment(),
 				render([3, "4"]),
-				document.createDocumentFragment(),
+				ENV.current.document.createDocumentFragment(),
 			]);
 		});
 		strictEqual(text(view.take()), "12fl34");
@@ -147,8 +145,8 @@ await suite("render", async () => {
 
 	await test("node", () => {
 		for (const node of [
-			document.createElement("div"),
-			document.createComment("test"),
+			ENV.current.document.createElement("div"),
+			ENV.current.document.createComment("test"),
 		]) {
 			deepStrictEqual(renderToNodes(node), [node]);
 		}
@@ -162,7 +160,7 @@ await suite("render", async () => {
 				uncapture(() => renderToNodes(sig(value))),
 			]) {
 				strictEqual(nodes.length, 1);
-				strictEqual(nodes[0] instanceof Text, true);
+				strictEqual(nodes[0] instanceof ENV.current.Text, true);
 				strictEqual(nodes[0].textContent, String(value));
 			}
 		}
@@ -170,7 +168,7 @@ await suite("render", async () => {
 
 	await suite("arrays", async () => {
 		await test("single view", () => {
-			const content = document.createElement("div");
+			const content = ENV.current.document.createElement("div");
 			const inner = render(content);
 			strictEqual(inner instanceof View, true);
 			const outer = uncapture(() => render([inner]));
@@ -181,8 +179,8 @@ await suite("render", async () => {
 		await test("inner view", () => {
 			const inner = testView();
 
-			const fragmentChild = document.createElement("div");
-			const fragment = document.createDocumentFragment();
+			const fragmentChild = ENV.current.document.createElement("div");
+			const fragment = ENV.current.document.createDocumentFragment();
 			fragment.appendChild(fragmentChild);
 
 			const view = uncapture(() => render([
@@ -225,8 +223,8 @@ await suite("render", async () => {
 			const first = testView();
 			const last = testView();
 
-			const fragmentChild = document.createElement("div");
-			const fragment = document.createDocumentFragment();
+			const fragmentChild = ENV.current.document.createElement("div");
+			const fragment = ENV.current.document.createDocumentFragment();
 			fragment.appendChild(fragmentChild);
 
 			const view = uncapture(() => render([

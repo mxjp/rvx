@@ -1,3 +1,4 @@
+import { ENV } from "../core/env.js";
 import { teardown } from "../core/lifecycle.js";
 import { batch, sig } from "../core/signals.js";
 import { normalize } from "./path.js";
@@ -19,21 +20,23 @@ export interface HashRouterOptions {
  * Everything after the first `"?"` is treated as query parameters.
  */
 export class HashRouter implements Router {
+	#env = ENV.current;
 	#path = sig<string>(undefined!);
 	#query = sig<Query | undefined>(undefined);
 
 	constructor(options?: HashRouterOptions) {
+		const env = this.#env;
 		const parseEvents = options?.parseEvents ?? ["hashchange"];
 		for (const name of parseEvents) {
-			window.addEventListener(name, this.#parse, { passive: true });
-			teardown(() => window.removeEventListener(name, this.#parse));
+			env.window.addEventListener(name, this.#parse, { passive: true });
+			teardown(() => env.window.removeEventListener(name, this.#parse));
 		}
 		this.#parse();
 	}
 
 	#parse = () => {
 		batch(() => {
-			const hash = location.hash.slice(1);
+			const hash = this.#env.location.hash.slice(1);
 			const queryStart = hash.indexOf("?");
 			if (queryStart < 0) {
 				this.#path.value = normalize(hash);
@@ -62,7 +65,7 @@ export class HashRouter implements Router {
 	}
 
 	push(path: string, query?: QueryInit): void {
-		location.hash = `#${normalize(path)}${query === undefined ? "" : `?${typeof query === "string" ? query : new URLSearchParams(query)}`}`;
+		this.#env.location.hash = `#${normalize(path)}${query === undefined ? "" : `?${typeof query === "string" ? query : new URLSearchParams(query)}`}`;
 	}
 
 	replace(path: string, query?: QueryInit): void {

@@ -8,11 +8,11 @@ export function querySelector<K extends keyof TagNameMap>(view: View, selector: 
 export function querySelector<E extends Element = Element>(view: View, selector: string): E | null;
 export function querySelector(view: View, selector: string): Element | null {
 	for (const node of viewNodes(view)) {
-		if (node instanceof Element) {
-			if (node.matches(selector)) {
-				return node;
+		if (node.nodeType === 1) {
+			if ((node as Element).matches(selector)) {
+				return node as Element;
 			}
-			const elem = node.querySelector(selector);
+			const elem = (node as Element).querySelector(selector);
 			if (elem !== null) {
 				return elem;
 			}
@@ -29,11 +29,11 @@ export function querySelectorAll<E extends Element = Element>(view: View, select
 export function querySelectorAll(view: View, selector: string): Element[] {
 	const elems: Element[] = [];
 	for (const node of viewNodes(view)) {
-		if (node instanceof Element) {
-			if (node.matches(selector)) {
-				elems.push(node);
+		if (node.nodeType === 1) {
+			if ((node as Element).matches(selector)) {
+				elems.push(node as Element);
 			}
-			elems.push(...node.querySelectorAll(selector));
+			elems.push(...(node as Element).querySelectorAll(selector));
 		}
 	}
 	return elems;

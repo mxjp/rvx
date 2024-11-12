@@ -1,9 +1,11 @@
 import { Context } from "./context.js";
 import { ClassValue, EventListener, NODE, NodeTarget, StyleValue, TagNameMap, XMLNS } from "./element-common.js";
+import { ENV } from "./env.js";
 import { appendContent, setAttr, setClass, setStyle } from "./internals.js";
 import { Expression, watch } from "./signals.js";
 
 export class ElementBuilder<E extends Element> implements NodeTarget {
+	#env = ENV.current;
 	elem: E;
 
 	get [NODE](): Node {
@@ -42,7 +44,7 @@ export class ElementBuilder<E extends Element> implements NodeTarget {
 	}
 
 	append(...content: unknown[]): this {
-		appendContent(this.elem, content);
+		appendContent(this.elem, content, this.#env);
 		return this;
 	}
 }
@@ -56,5 +58,5 @@ export class ElementBuilder<E extends Element> implements NodeTarget {
 export function e<K extends keyof TagNameMap>(tagName: K): ElementBuilder<TagNameMap[K]>;
 export function e<E extends Element>(tagName: string): ElementBuilder<E>;
 export function e(tagName: string): ElementBuilder<Element> {
-	return new ElementBuilder(document.createElementNS(XMLNS.current, tagName));
+	return new ElementBuilder(ENV.current.document.createElementNS(XMLNS.current, tagName));
 }

@@ -1,7 +1,7 @@
 import { deepStrictEqual, notStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
 
-import { Attach, capture, Component, For, IndexFor, memo, mount, movable, Nest, render, Show, sig, teardown, uncapture, View, watch, watchUpdates } from "rvx";
+import { Attach, capture, Component, ENV, For, IndexFor, memo, mount, movable, Nest, render, Show, sig, teardown, uncapture, View, watch, watchUpdates } from "rvx";
 import { wrap } from "rvx/store";
 
 import { assertEvents, boundaryEvents, lifecycleEvent, TestView, testView, text, withMsg } from "../common.js";
@@ -10,10 +10,10 @@ await suite("view", async () => {
 	await test("init incomplete", () => {
 		throws(() => new View(() => {}), withMsg("G1"));
 		throws(() => new View(setBoundary => {
-			setBoundary(document.createTextNode("test"), undefined);
+			setBoundary(ENV.current.document.createTextNode("test"), undefined);
 		}), withMsg("G1"));
 		throws(() => new View(setBoundary => {
-			setBoundary(undefined, document.createTextNode("test"));
+			setBoundary(undefined, ENV.current.document.createTextNode("test"));
 		}), withMsg("G1"));
 	});
 
@@ -30,7 +30,7 @@ await suite("view", async () => {
 
 	await test("init different nodes", () => {
 		const { view } = testView();
-		strictEqual(view.parent instanceof DocumentFragment, true);
+		strictEqual(view.parent instanceof ENV.current.DocumentFragment, true);
 		strictEqual(text(view.first), "f");
 		strictEqual(text(view.last), "l");
 	});
@@ -92,7 +92,7 @@ await suite("view", async () => {
 	await test("take multiple nodes", () => {
 		const { view } = testView();
 		const frag = view.take();
-		strictEqual(frag instanceof DocumentFragment, true);
+		strictEqual(frag instanceof ENV.current.DocumentFragment, true);
 		strictEqual(view.first, frag.firstChild);
 		strictEqual(view.last, frag.lastChild);
 	});
@@ -101,7 +101,7 @@ await suite("view", async () => {
 		const { view } = testView();
 		const parent = view.parent;
 		view.detach();
-		strictEqual(view.first.parentNode instanceof DocumentFragment, true);
+		strictEqual(view.first.parentNode instanceof ENV.current.DocumentFragment, true);
 		strictEqual(view.first.parentNode, view.last.parentNode);
 		notStrictEqual(view.first.parentNode, parent);
 	});
@@ -1138,7 +1138,7 @@ await suite("view", async () => {
 
 		const b = render(view.move());
 		strictEqual(text(a.take()), "");
-		strictEqual(a.first instanceof Comment, true);
+		strictEqual(a.first instanceof ENV.current.Comment, true);
 		strictEqual(a.first, a.last);
 		strictEqual(text(b.take()), "inner: 1");
 		inner.value = 2;
@@ -1147,7 +1147,7 @@ await suite("view", async () => {
 		view.detach();
 		inner.value = 3;
 		strictEqual(text(b.take()), "");
-		strictEqual(b.first instanceof Comment, true);
+		strictEqual(b.first instanceof ENV.current.Comment, true);
 		strictEqual(b.first, b.last);
 		notStrictEqual(a.first, b.first);
 

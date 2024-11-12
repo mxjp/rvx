@@ -1,21 +1,25 @@
 import { strictEqual } from "node:assert";
 import test from "node:test";
 
-import { uncapture, watch } from "rvx";
+import { ENV, uncapture, watch } from "rvx";
 import { HashRouter } from "rvx/router";
 
 import { assertEvents } from "../common.js";
 
+ENV.default = Object.create(ENV.default);
+
 let hash = "";
-globalThis.location = {
-	get hash() {
-		return hash;
-	},
-	set hash(value) {
-		hash = value;
-		window.dispatchEvent(new CustomEvent("hashchange"));
-	},
-} as typeof globalThis.location;
+Object.defineProperty(ENV.current, "location", {
+	value: {
+		get hash() {
+			return hash;
+		},
+		set hash(value) {
+			hash = value;
+			ENV.current.window.dispatchEvent(new ENV.current.CustomEvent("hashchange"));
+		},
+	} as typeof globalThis.location,
+});
 
 await test("router/history router", () => {
 	hash = "";
@@ -45,24 +49,24 @@ await test("router/history router", () => {
 	router.push("/d", { test: "2" });
 	assertEvents(events, [["/d", "test=2"]]);
 
-	location.hash = "#";
+	ENV.current.location.hash = "#";
 	assertEvents(events, [["", undefined]]);
 
-	location.hash = "#foo";
+	ENV.current.location.hash = "#foo";
 	assertEvents(events, [["/foo", undefined]]);
 
-	location.hash = "#/";
+	ENV.current.location.hash = "#/";
 	assertEvents(events, [["", undefined]]);
 
-	location.hash = "#/bar/baz";
+	ENV.current.location.hash = "#/bar/baz";
 	assertEvents(events, [["/bar/baz", undefined]]);
 
-	location.hash = "#/?";
+	ENV.current.location.hash = "#/?";
 	assertEvents(events, [["", ""]]);
 
-	location.hash = "#foo?test=1";
+	ENV.current.location.hash = "#foo?test=1";
 	assertEvents(events, [["/foo", "test=1"]]);
 
-	location.hash = "#/bar/baz?test=2";
+	ENV.current.location.hash = "#/bar/baz?test=2";
 	assertEvents(events, [["/bar/baz", "test=2"]]);
 });

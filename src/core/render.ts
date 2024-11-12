@@ -1,4 +1,5 @@
 import { NODE, NodeTarget } from "./element-common.js";
+import { Env, ENV } from "./env.js";
 import { createParent, createPlaceholder, createText } from "./internals.js";
 import { teardown } from "./lifecycle.js";
 import { View, ViewSetBoundaryFn } from "./view.js";
@@ -6,17 +7,17 @@ import { View, ViewSetBoundaryFn } from "./view.js";
 /**
  * Internal shorthand for creating the boundary comment of an empty view.
  */
-function empty(setBoundary: ViewSetBoundaryFn): void {
-	const node = createPlaceholder();
+function empty(setBoundary: ViewSetBoundaryFn, env: Env): void {
+	const node = createPlaceholder(env);
 	setBoundary(node, node);
 }
 
 /**
  * Internal shorthand for using the children of a node as boundary.
  */
-function use(setBoundary: ViewSetBoundaryFn, node: Node): void {
+function use(setBoundary: ViewSetBoundaryFn, node: Node, env: Env): void {
 	if (node.firstChild === null) {
-		empty(setBoundary);
+		empty(setBoundary, env);
 	} else {
 		setBoundary(node.firstChild, node.lastChild!);
 	}
@@ -71,21 +72,22 @@ export function render(content: unknown): View {
 		return content;
 	}
 	return new View(setBoundary => {
+		const env = ENV.current;
 		if (Array.isArray(content)) {
 			const flat = content.flat(Infinity) as unknown[];
 			if (flat.length > 1) {
-				const parent = createParent();
+				const parent = createParent(env);
 				for (let i = 0; i < flat.length; i++) {
 					let part = flat[i];
 					if (part === null || part === undefined) {
-						parent.appendChild(createPlaceholder());
+						parent.appendChild(createPlaceholder(env));
 					} else if (typeof part === "object") {
 						if (NODE in part) {
 							part = (part as NodeTarget)[NODE];
 						}
-						if (part instanceof Node) {
-							if (part.nodeName === "#document-fragment" && part.childNodes.length === 0) {
-								parent.appendChild(createPlaceholder());
+						if (part instanceof env.Node) {
+							if (part.nodeType === 11 && part.childNodes.length === 0) {
+								parent.appendChild(createPlaceholder(env));
 							} else {
 								parent.appendChild(part);
 							}
@@ -97,26 +99,26 @@ export function render(content: unknown): View {
 								part.setBoundaryOwner((_first, last) => setBoundary(undefined, last));
 							}
 						} else {
-							parent.appendChild(createText(part));
+							parent.appendChild(createText(part, env));
 						}
 					} else {
-						parent.appendChild(createText(part));
+						parent.appendChild(createText(part, env));
 					}
 				}
-				use(setBoundary, parent);
+				use(setBoundary, parent, env);
 				return;
 			}
 			content = flat[0];
 		}
 		if (content === null || content === undefined) {
-			empty(setBoundary);
+			empty(setBoundary, env);
 		} else if (typeof content === "object") {
 			if (NODE in content) {
 				content = (content as NodeTarget)[NODE];
 			}
-			if (content instanceof Node) {
-				if (content.nodeName === "#document-fragment") {
-					use(setBoundary, content);
+			if (content instanceof env.Node) {
+				if (content.nodeType === 11) {
+					use(setBoundary, content, env);
 				} else {
 					setBoundary(content, content);
 				}
@@ -124,11 +126,11 @@ export function render(content: unknown): View {
 				setBoundary(content.first, content.last);
 				content.setBoundaryOwner(setBoundary);
 			} else {
-				const text = createText(content);
+				const text = createText(content, env);
 				setBoundary(text, text);
 			}
 		} else {
-			const text = createText(content);
+			const text = createText(content, env);
 			setBoundary(text, text);
 		}
 	});

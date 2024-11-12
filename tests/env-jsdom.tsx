@@ -1,4 +1,6 @@
 import { JSDOM } from "jsdom";
+import { onTeardownLeak } from "rvx/test";
+import { ENV } from "rvx";
 
 const dom = new JSDOM(`
 	<!DOCTYPE html>
@@ -11,26 +13,7 @@ const dom = new JSDOM(`
 	</html>
 `);
 
-for (const key of [
-	"Comment",
-	"customElements",
-	"CustomEvent",
-	"document",
-	"DocumentFragment",
-	"Element",
-	"HTMLDivElement",
-	"HTMLElement",
-	"MouseEvent",
-	"Node",
-	"Range",
-	"Text",
-	"window",
-]) {
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-	(globalThis as any)[key] = dom.window[key];
-}
-
-const { onTeardownLeak } = await import("rvx/test");
+ENV.default = dom.window as any;
 
 onTeardownLeak(() => {
 	throw new Error("teardown leak");

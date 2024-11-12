@@ -1,7 +1,7 @@
 import { strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 
-import { uncapture, watch } from "rvx";
+import { ENV, uncapture, watch } from "rvx";
 import { HistoryRouter } from "rvx/router";
 
 import { assertEvents } from "../common.js";
@@ -23,19 +23,25 @@ function setUrl(data: unknown, unused: unknown, url: unknown) {
 	}
 }
 
-globalThis.history = {
-	pushState: setUrl,
-	replaceState: setUrl,
-} as typeof globalThis.history;
+ENV.default = Object.create(ENV.default);
 
-globalThis.location = {
-	get pathname() {
-		return locationPath;
+Object.defineProperty(ENV.current, "history", {
+	value: {
+		pushState: setUrl,
+		replaceState: setUrl,
 	},
-	get search() {
-		return locationSearch;
-	},
-} as typeof globalThis.location;
+});
+
+Object.defineProperty(ENV.current, "location", {
+	value: {
+		get pathname() {
+			return locationPath;
+		},
+		get search() {
+			return locationSearch;
+		},
+	} as typeof globalThis.location
+});
 
 await suite("router/history router", async () => {
 	await test("general usage", async () => {
@@ -69,12 +75,12 @@ await suite("router/history router", async () => {
 
 		locationPath = "/e";
 		locationSearch = "?test=3";
-		window.dispatchEvent(new CustomEvent("popstate"));
+		ENV.current.window.dispatchEvent(new ENV.current.CustomEvent("popstate"));
 		assertEvents(events, [["/e", "test=3"]]);
 
 		locationPath = "/f";
 		locationSearch = "?test=4";
-		window.dispatchEvent(new CustomEvent("rvx:router:update"));
+		ENV.current.window.dispatchEvent(new ENV.current.CustomEvent("rvx:router:update"));
 		assertEvents(events, [["/f", "test=4"]]);
 	});
 

@@ -1,4 +1,5 @@
 import { Component } from "./component.js";
+import { ENV } from "./env.js";
 import { createParent, createPlaceholder, extractRange, Falsy, NOOP } from "./internals.js";
 import { capture, nocapture, teardown, TeardownHook } from "./lifecycle.js";
 import { render } from "./render.js";
@@ -47,6 +48,7 @@ export interface ViewInitFn {
  * + If there are multiple nodes, all nodes must have a common parent node at all time.
  */
 export class View {
+	#env = ENV.current;
 	#first!: Node;
 	#last!: Node;
 	#owner: ViewBoundaryOwner | undefined;
@@ -125,7 +127,7 @@ export class View {
 		if (this.#first === this.#last) {
 			return this.#first;
 		}
-		return extractRange(this.#first, this.#last);
+		return extractRange(this.#first, this.#last, this.#env);
 	}
 
 	/**
@@ -137,7 +139,7 @@ export class View {
 		if (this.#first === this.#last) {
 			this.#first?.parentNode?.removeChild(this.#first);
 		} else {
-			extractRange(this.#first, this.#last);
+			extractRange(this.#first, this.#last, this.#env);
 		}
 	}
 }
@@ -323,12 +325,13 @@ export function For<T>(props: {
 			}
 		}
 
+		const env = ENV.current;
 		let cycle = 0;
 
 		const instances: Instance[] = [];
 		const instanceMap = new Map<T, Instance>();
 
-		const first: Node = createPlaceholder();
+		const first: Node = createPlaceholder(env);
 		setBoundary(first, first);
 
 		teardown(() => {
@@ -340,7 +343,7 @@ export function For<T>(props: {
 		effect(() => {
 			let parent = self.parent;
 			if (!parent) {
-				parent = createParent();
+				parent = createParent(env);
 				parent.appendChild(first);
 			}
 			let index = 0;
@@ -462,7 +465,8 @@ export function IndexFor<T>(props: {
 			v: View;
 		}
 
-		const first: Node = createPlaceholder();
+		const env = ENV.current;
+		const first: Node = createPlaceholder(env);
 		setBoundary(first, first);
 
 		const instances: Instance[] = [];
@@ -475,7 +479,7 @@ export function IndexFor<T>(props: {
 		effect(() => {
 			let parent = self.parent;
 			if (!parent) {
-				parent = createParent();
+				parent = createParent(env);
 				parent.appendChild(first);
 			}
 			let index = 0;
@@ -533,6 +537,7 @@ export function IndexFor<T>(props: {
  * A wrapper that can be used for moving and reusing views.
  */
 export class MovableView {
+	#env = ENV.current;
 	#view: View;
 	#dispose?: TeardownHook = undefined;
 
@@ -550,7 +555,7 @@ export class MovableView {
 				setBoundary(this.#view.first, this.#view.last);
 				this.#view.setBoundaryOwner(setBoundary);
 				teardown(() => {
-					const anchor = createPlaceholder();
+					const anchor = createPlaceholder(this.#env);
 					self.parent?.insertBefore(anchor, self.first);
 					self.detach();
 					setBoundary(anchor, anchor);

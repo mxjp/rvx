@@ -1,3 +1,4 @@
+import { ENV } from "../core/env.js";
 import { teardown } from "../core/lifecycle.js";
 import { batch, sig } from "../core/signals.js";
 import { join, relative } from "./path.js";
@@ -24,24 +25,27 @@ export interface HistoryRouterOptions {
  * A router that uses the history API.
  */
 export class HistoryRouter implements Router {
+	#env = ENV.current;
 	#basePath: string;
 	#path = sig<string>(undefined!);
 	#query = sig<Query | undefined>(undefined!);
 
 	constructor(options?: HistoryRouterOptions) {
+		const env = this.#env;
 		this.#basePath = options?.basePath ?? "";
 		const parseEvents = options?.parseEvents ?? ["popstate", "rvx:router:update"];
 		for (const name of parseEvents) {
-			window.addEventListener(name, this.#parse, { passive: true });
-			teardown(() => window.removeEventListener(name, this.#parse));
+			env.window.addEventListener(name, this.#parse, { passive: true });
+			teardown(() => env.window.removeEventListener(name, this.#parse));
 		}
 		this.#parse();
 	}
 
 	#parse = () => {
 		batch(() => {
-			this.#path.value = relative(this.#basePath, location.pathname);
-			this.#query.value = location.search.length > 0 ? new Query(location.search.slice(1)) : undefined;
+			const env = this.#env;
+			this.#path.value = relative(this.#basePath, env.location.pathname);
+			this.#query.value = env.location.search.length > 0 ? new Query(env.location.search.slice(1)) : undefined;
 		});
 	};
 
@@ -70,12 +74,14 @@ export class HistoryRouter implements Router {
 	}
 
 	push(path: string, query?: QueryInit): void {
-		history.pushState(null, "", this.#format(path, query));
-		window.dispatchEvent(new CustomEvent("rvx:router:update"));
+		const env = this.#env;
+		env.history.pushState(null, "", this.#format(path, query));
+		env.window.dispatchEvent(new env.CustomEvent("rvx:router:update"));
 	}
 
 	replace(path: string, query?: QueryInit): void {
-		history.replaceState(null, "", this.#format(path, query));
-		window.dispatchEvent(new CustomEvent("rvx:router:update"));
+		const env = this.#env;
+		env.history.replaceState(null, "", this.#format(path, query));
+		env.window.dispatchEvent(new env.CustomEvent("rvx:router:update"));
 	}
 }

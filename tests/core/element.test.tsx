@@ -1,7 +1,7 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 
-import { capture, ClassValue, Context, e, ExpressionResult, NODE, sig, StyleMap, uncapture } from "rvx";
+import { capture, ClassValue, Context, e, ENV, ExpressionResult, NODE, sig, StyleMap, uncapture } from "rvx";
 
 import { assertEvents } from "../common.js";
 
@@ -70,10 +70,10 @@ await suite("element", async () => {
 							}, { capture: true })
 							.elem;
 				});
-				const a = new MouseEvent("click");
+				const a = new ENV.current.MouseEvent("click");
 				elem.dispatchEvent(a);
 				assertEvents(events, [a]);
-				const b = new CustomEvent("custom-event");
+				const b = new ENV.current.CustomEvent("custom-event");
 				elem.dispatchEvent(b);
 				assertEvents(events, [b]);
 			});
@@ -134,11 +134,12 @@ await suite("element", async () => {
 				}
 
 				function createElem(value: ClassValue, events?: unknown[]) {
-					const createElementOriginal = document.createElementNS;
+					const env = ENV.current;
+					const createElementOriginal = env.document.createElementNS;
 					try {
 						if (events) {
-							document.createElementNS = ((ns: string, name: string) => {
-								const elem = createElementOriginal.call(document, ns, name);
+							env.document.createElementNS = ((ns: string, name: string) => {
+								const elem = createElementOriginal.call(env.document, ns, name);
 								const setAttributeOriginal = elem.setAttribute;
 								elem.setAttribute = (name, value) => {
 									events.push(["setAttribute", name, value]);
@@ -166,7 +167,7 @@ await suite("element", async () => {
 						});
 						return elem;
 					} finally {
-						document.createElementNS = createElementOriginal;
+						env.document.createElementNS = createElementOriginal;
 					}
 				}
 
@@ -403,7 +404,7 @@ await suite("element", async () => {
 				const elem = jsx
 					? <div /> as HTMLElement
 					: e("div").elem;
-				strictEqual(elem instanceof HTMLDivElement, true);
+				strictEqual(elem instanceof ENV.current.HTMLDivElement, true);
 				elem.classList.add("foo");
 				elem.click();
 			});
@@ -411,10 +412,10 @@ await suite("element", async () => {
 			await test("node target", () => {
 				const elem = jsx
 					? <div>
-						{{ [NODE]: document.createTextNode("test") }}
+						{{ [NODE]: ENV.current.document.createTextNode("test") }}
 					</div> as HTMLElement
 					: e("div").append(
-						{ [NODE]: document.createTextNode("test") }
+						{ [NODE]: ENV.current.document.createTextNode("test") }
 					).elem;
 				strictEqual(elem.outerHTML, "<div>test</div>");
 			});
@@ -534,7 +535,7 @@ await suite("element", async () => {
 				events.push("a");
 			}}
 			ref={elem => {
-				strictEqual(elem instanceof HTMLDivElement, true);
+				strictEqual(elem instanceof ENV.current.HTMLDivElement, true);
 				events.push("ref");
 			}}
 			attr:data-b={() => {

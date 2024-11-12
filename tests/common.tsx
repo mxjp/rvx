@@ -1,6 +1,6 @@
 import { deepStrictEqual } from "node:assert";
 
-import { teardown, View, ViewBoundaryOwner } from "rvx";
+import { ENV, teardown, View, ViewBoundaryOwner } from "rvx";
 
 export function assertEvents(events: unknown[], expected: unknown[]): void {
 	deepStrictEqual(events, expected);
@@ -8,7 +8,7 @@ export function assertEvents(events: unknown[], expected: unknown[]): void {
 }
 
 export function text(node: Node): string {
-	if (node instanceof Comment) {
+	if (node instanceof ENV.current.Comment) {
 		return "";
 	}
 	return (node.textContent ?? "").trim();
@@ -23,7 +23,7 @@ export function testView(prefix = "") {
 	const view = new View((setBoundary, self) => {
 		const first = <div>{prefix}f</div> as HTMLElement;
 		const last = <div>l</div> as HTMLElement;
-		const frag = document.createDocumentFragment();
+		const frag = ENV.current.document.createDocumentFragment();
 		frag.append(first, last);
 		setBoundary(first, last);
 

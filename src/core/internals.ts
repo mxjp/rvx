@@ -1,4 +1,5 @@
 import { type ClassValue, NODE, NodeTarget, type StyleValue } from "./element-common.js";
+import { Env } from "./env.js";
 import { teardown, type TeardownHook } from "./lifecycle.js";
 import { Expression, watch } from "./signals.js";
 import { View } from "./view.js";
@@ -22,22 +23,22 @@ export interface TeardownFrame {
 /**
  * Internal utility to create placeholder comments.
  */
-export function createPlaceholder(): Node {
-	return document.createComment("g");
+export function createPlaceholder(env: Env): Node {
+	return env.document.createComment("g");
 }
 
 /**
  * Internal utility to create an arbitrary parent node.
  */
-export function createParent(): Node {
-	return document.createDocumentFragment();
+export function createParent(env: Env): Node {
+	return env.document.createDocumentFragment();
 }
 
 /**
  * Internal utility to extract an inclusive range of nodes.
  */
-export function extractRange(first: Node, last: Node): DocumentFragment {
-	const r = new Range();
+export function extractRange(first: Node, last: Node, env: Env): DocumentFragment {
+	const r = new env.Range();
 	r.setStartBefore(first);
 	r.setEndAfter(last);
 	return r.extractContents();
@@ -60,8 +61,8 @@ export function useStack<T, R>(stack: T[], frame: T, fn: () => R): R {
  *
  * Null and undefined are displayed as an empty string.
  */
-export function createText(expr: Expression<unknown>): Text {
-	const text = document.createTextNode("");
+export function createText(expr: Expression<unknown>, env: Env): Text {
+	const text = env.document.createTextNode("");
 	watch(expr, value => text.textContent = (value ?? "") as string);
 	return text;
 }
@@ -72,22 +73,22 @@ export function createText(expr: Expression<unknown>): Text {
  * @param node The node.
  * @param content The content to append.
  */
-export function appendContent(node: Node, content: unknown): void {
+export function appendContent(node: Node, content: unknown, env: Env): void {
 	if (content === null || content === undefined) {
 		return;
 	}
 	if (Array.isArray(content)) {
 		for (let i = 0; i < content.length; i++) {
-			appendContent(node, content[i]);
+			appendContent(node, content[i], env);
 		}
-	} else if (content instanceof Node) {
+	} else if (content instanceof env.Node) {
 		node.appendChild(content);
 	} else if (content instanceof View) {
 		node.appendChild(content.take());
 	} else if (typeof content === "object" && NODE in content) {
 		node.appendChild((content as NodeTarget)[NODE]);
 	} else {
-		node.appendChild(createText(content));
+		node.appendChild(createText(content, env));
 	}
 }
 
