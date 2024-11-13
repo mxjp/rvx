@@ -24,6 +24,7 @@ export const rvxDocument = {
 
 const NODE_LENGTH = Symbol("length");
 const NODE_APPEND_HTML_TO = Symbol("appendHtmlTo");
+const NODE_EXTRACT_RANGE = Symbol("extractRange");
 
 class NodeListIterator implements Iterator<RvxNode> {
 	#current: RvxNode | null;
@@ -132,6 +133,57 @@ export class RvxNode {
 
 	[NODE_APPEND_HTML_TO](_html: string): string {
 		throw new Error("not supported");
+	}
+
+	static [NODE_EXTRACT_RANGE](start: RvxNode | null, end: RvxNode | null): RvxDocumentFragment {
+		if (start === null || end === null) {
+			throw new Error("invalid range");
+		}
+		const parent = start.#parent;
+		if (parent === null || parent !== end.#parent) {
+			throw new Error("invalid range");
+		}
+		const fragment = new RvxDocumentFragment();
+		let child = start;
+		let length = 0;
+		updateParents: for (;;) {
+			child.#parent = fragment;
+			length++;
+			if (child === end) {
+				break updateParents;
+			}
+			const next = child.#next;
+			if (next === null) {
+				revertParents: for (;;) {
+					child.#parent = parent;
+					if (child === start) {
+						break revertParents;
+					}
+					child = child.#prev!;
+				}
+				throw new Error("unterminated range");
+			}
+			child = next;
+		}
+		const prev = start.#prev;
+		const next = end.#next;
+		if (prev === null) {
+			parent.#first = next;
+		} else {
+			prev.#next = next;
+		}
+		if (next === null) {
+			parent.#last = prev;
+		} else {
+			next.#prev = prev;
+		}
+		parent.#length -= length;
+		start.#prev = null;
+		end.#next = null;
+		fragment.#first = start;
+		fragment.#last = end;
+		fragment.#length = length;
+		return fragment;
 	}
 
 	contains(node: RvxNode | null) {
@@ -354,6 +406,23 @@ export interface RvxNode {
 	nodeType: number;
 	nodeName: string;
 	ownerDocument: typeof rvxDocument;
+}
+
+export class RvxRange {
+	#start: RvxNode | null = null;
+	#end: RvxNode | null = null;
+
+	setStartBefore(node: RvxNode): void {
+		this.#start = node;
+	}
+
+	setEndAfter(node: RvxNode): void {
+		this.#end = node;
+	}
+
+	extractContents(): RvxDocumentFragment {
+		return RvxNode[NODE_EXTRACT_RANGE](this.#start, this.#end);
+	}
 }
 
 export class RvxDocumentFragment extends RvxNode {

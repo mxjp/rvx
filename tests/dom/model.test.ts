@@ -1,7 +1,7 @@
 import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
 import { HTML, MATHML, SVG } from "rvx";
-import { htmlEscapeAppendTo, isVoidTag, resolveNamespaceURI, RvxComment, rvxDocument, RvxDocumentFragment, RvxElement, RvxNode, RvxText, XMLNS_HTML, XMLNS_MATHML, XMLNS_SVG } from "rvx/dom";
+import { htmlEscapeAppendTo, isVoidTag, resolveNamespaceURI, RvxComment, rvxDocument, RvxDocumentFragment, RvxElement, RvxNode, RvxRange, RvxText, XMLNS_HTML, XMLNS_MATHML, XMLNS_SVG } from "rvx/dom";
 
 await suite("dom/model", async () => {
 	await test("htmlEscape", () => {
@@ -24,6 +24,7 @@ await suite("dom/model", async () => {
 			let index = 0;
 			let child = node.firstChild;
 			while (child !== null) {
+				strictEqual(child.parentNode, node);
 				strictEqual(child, children[index].is);
 				if (index === 0) {
 					strictEqual(child.previousSibling, null);
@@ -572,6 +573,195 @@ await suite("dom/model", async () => {
 					strictEqual(nodes[y].contains(nodes[x]), contains[y][x]);
 				}
 			}
+		});
+
+		await suite("extract range", async () => {
+			await test("single node", () => {
+				const parent = new RvxNode();
+				const a = new RvxNode();
+				parent.appendChild(a);
+				const range = new RvxRange();
+				range.setStartBefore(a);
+				range.setEndAfter(a);
+				const fragment = range.extractContents();
+				assertRoot(parent, []);
+				assertRoot(fragment, [
+					{ is: a },
+				]);
+			});
+
+			await test("first nodes", () => {
+				const parent = new RvxNode();
+				const a = new RvxNode();
+				const b = new RvxNode();
+				const c = new RvxNode();
+				parent.appendChild(a);
+				parent.appendChild(b);
+				parent.appendChild(c);
+				const range = new RvxRange();
+				range.setStartBefore(a);
+				range.setEndAfter(b);
+				const fragment = range.extractContents();
+				assertRoot(parent, [
+					{ is: c },
+				]);
+				assertRoot(fragment, [
+					{ is: a },
+					{ is: b },
+				]);
+			});
+
+			await test("middle nodes", () => {
+				const parent = new RvxNode();
+				const a = new RvxNode();
+				const b = new RvxNode();
+				const c = new RvxNode();
+				const d = new RvxNode();
+				parent.appendChild(a);
+				parent.appendChild(b);
+				parent.appendChild(c);
+				parent.appendChild(d);
+				const range = new RvxRange();
+				range.setStartBefore(b);
+				range.setEndAfter(c);
+				const fragment = range.extractContents();
+				assertRoot(parent, [
+					{ is: a },
+					{ is: d },
+				]);
+				assertRoot(fragment, [
+					{ is: b },
+					{ is: c },
+				]);
+			});
+
+			await test("last nodes", () => {
+				const parent = new RvxNode();
+				const a = new RvxNode();
+				const b = new RvxNode();
+				const c = new RvxNode();
+				parent.appendChild(a);
+				parent.appendChild(b);
+				parent.appendChild(c);
+				const range = new RvxRange();
+				range.setStartBefore(b);
+				range.setEndAfter(c);
+				const fragment = range.extractContents();
+				assertRoot(parent, [
+					{ is: a },
+				]);
+				assertRoot(fragment, [
+					{ is: b },
+					{ is: c },
+				]);
+			});
+
+			await test("invalid open end", () => {
+				const parent = new RvxNode();
+				const a = new RvxNode();
+				const b = new RvxNode();
+				const c = new RvxNode();
+				parent.appendChild(a);
+				parent.appendChild(b);
+				parent.appendChild(c);
+				const range = new RvxRange();
+				range.setStartBefore(b);
+				throws(() => range.extractContents());
+				assertRoot(parent, [
+					{ is: a },
+					{ is: b },
+					{ is: c },
+				]);
+			});
+
+			await test("invalid open start", () => {
+				const parent = new RvxNode();
+				const a = new RvxNode();
+				const b = new RvxNode();
+				const c = new RvxNode();
+				parent.appendChild(a);
+				parent.appendChild(b);
+				parent.appendChild(c);
+				const range = new RvxRange();
+				range.setEndAfter(b);
+				throws(() => range.extractContents());
+				assertRoot(parent, [
+					{ is: a },
+					{ is: b },
+					{ is: c },
+				]);
+			});
+
+			await test("invalid inner reversed", () => {
+				const parent = new RvxNode();
+				const a = new RvxNode();
+				const b = new RvxNode();
+				const c = new RvxNode();
+				const d = new RvxNode();
+				parent.appendChild(a);
+				parent.appendChild(b);
+				parent.appendChild(c);
+				parent.appendChild(d);
+				const range = new RvxRange();
+				range.setStartBefore(c);
+				range.setEndAfter(b);
+				throws(() => range.extractContents());
+				assertRoot(parent, [
+					{ is: a },
+					{ is: b },
+					{ is: c },
+					{ is: d },
+				]);
+			});
+
+			await test("invalid outer reversed", () => {
+				const parent = new RvxNode();
+				const a = new RvxNode();
+				const b = new RvxNode();
+				const c = new RvxNode();
+				parent.appendChild(a);
+				parent.appendChild(b);
+				parent.appendChild(c);
+				const range = new RvxRange();
+				range.setStartBefore(c);
+				range.setEndAfter(a);
+				throws(() => range.extractContents());
+				assertRoot(parent, [
+					{ is: a },
+					{ is: b },
+					{ is: c },
+				]);
+			});
+
+			await test("invalid missing parent", () => {
+				const node = new RvxNode();
+				const range = new RvxRange();
+				range.setStartBefore(node);
+				range.setEndAfter(node);
+				throws(() => range.extractContents());
+				assertRoot(node);
+			});
+
+			await test("invalid different parent", () => {
+				const parentA = new RvxNode();
+				const a = new RvxNode();
+				parentA.appendChild(a);
+
+				const parentB = new RvxNode();
+				const b = new RvxNode();
+				parentB.appendChild(b);
+
+				const range = new RvxRange();
+				range.setStartBefore(a);
+				range.setEndAfter(b);
+				throws(() => range.extractContents());
+				assertRoot(parentA, [
+					{ is: a },
+				]);
+				assertRoot(parentB, [
+					{ is: b },
+				]);
+			});
 		});
 	});
 
