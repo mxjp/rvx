@@ -1,27 +1,5 @@
 import { HTML, MATHML, SVG } from "../core/element-common.js";
 
-export const rvxDocument = {
-	createTextNode(data: string) {
-		return new RvxText(data);
-	},
-
-	createComment(data: string) {
-		return new RvxComment(data);
-	},
-
-	createDocumentFragment() {
-		return new RvxDocumentFragment();
-	},
-
-	createElementNS(namespaceURI: string, tagName: string) {
-		return new RvxElement(namespaceURI, tagName);
-	},
-
-	createElement(tagName: string) {
-		return new RvxElement(HTML, tagName);
-	}
-};
-
 const NODE_LENGTH = Symbol("length");
 const NODE_APPEND_HTML_TO = Symbol("appendHtmlTo");
 const NODE_EXTRACT_RANGE = Symbol("extractRange");
@@ -86,11 +64,47 @@ export function htmlEscapeAppendTo(html: string, data: string) {
 	});
 }
 
-export class RvxNode {
-	static {
-		this.prototype.ownerDocument = rvxDocument;
+export class RvxNoopEventTarget {
+	addEventListener(): void {
+		// noop
 	}
 
+	removeEventListener(): void {
+		// noop
+	}
+
+	dispatchEvent(): void {
+		throw new Error("dispatching events is not supported");
+	}
+}
+
+export class RvxDocument extends RvxNoopEventTarget {
+	get activeElement(): RvxElement | null {
+		return null;
+	}
+
+	createTextNode(data: string) {
+		return new RvxText(data);
+	}
+
+	createComment(data: string) {
+		return new RvxComment(data);
+	}
+
+	createDocumentFragment() {
+		return new RvxDocumentFragment();
+	}
+
+	createElementNS(namespaceURI: string, tagName: string) {
+		return new RvxElement(namespaceURI, tagName);
+	}
+
+	createElement(tagName: string) {
+		return new RvxElement(HTML, tagName);
+	}
+}
+
+export class RvxNode extends RvxNoopEventTarget {
 	#parent: RvxNode | null = null;
 	#first: RvxNode | null = null;
 	#last: RvxNode | null = null;
@@ -405,7 +419,6 @@ export class RvxNode {
 export interface RvxNode {
 	nodeType: number;
 	nodeName: string;
-	ownerDocument: typeof rvxDocument;
 }
 
 export class RvxRange {

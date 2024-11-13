@@ -1,7 +1,7 @@
 import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
 import { HTML, MATHML, SVG } from "rvx";
-import { htmlEscapeAppendTo, isVoidTag, resolveNamespaceURI, RvxComment, rvxDocument, RvxDocumentFragment, RvxElement, RvxNode, RvxRange, RvxText, XMLNS_HTML, XMLNS_MATHML, XMLNS_SVG } from "rvx/dom";
+import { htmlEscapeAppendTo, isVoidTag, resolveNamespaceURI, RvxComment, RvxDocument, RvxDocumentFragment, RvxElement, RvxNode, RvxNoopEventTarget, RvxRange, RvxText, XMLNS_HTML, XMLNS_MATHML, XMLNS_SVG } from "rvx/dom";
 
 await suite("dom/model", async () => {
 	await test("htmlEscape", () => {
@@ -801,58 +801,54 @@ await suite("dom/model", async () => {
 	});
 
 	await suite("document", async () => {
-		await test("owner document", () => {
-			strictEqual(new RvxNode().ownerDocument, rvxDocument);
-		});
-
 		await test("createTextNode", () => {
-			const node = rvxDocument.createTextNode("test");
+			const node = new RvxDocument().createTextNode("test");
 			strictEqual(node instanceof RvxText, true);
 			strictEqual(node.textContent, "test");
 		});
 
 		await test("createComment", () => {
-			const node = rvxDocument.createComment("test");
+			const node = new RvxDocument().createComment("test");
 			strictEqual(node instanceof RvxComment, true);
 			strictEqual(node.textContent, "test");
 		});
 
 		await test("createDocumentFragment", () => {
-			const node = rvxDocument.createDocumentFragment();
+			const node = new RvxDocument().createDocumentFragment();
 			strictEqual(node instanceof RvxDocumentFragment, true);
 			strictEqual(node.childNodes.length, 0);
 		});
 
 		await test("createElement", () => {
-			const node = rvxDocument.createElement("div");
+			const node = new RvxDocument().createElement("div");
 			strictEqual(node instanceof RvxElement, true);
 			strictEqual(node.namespaceURI, HTML);
 			strictEqual(node.tagName, "div");
 		});
 
 		await test("createElement, svg named html element", () => {
-			const node = rvxDocument.createElement("svg");
+			const node = new RvxDocument().createElement("svg");
 			strictEqual(node instanceof RvxElement, true);
 			strictEqual(node.namespaceURI, HTML);
 			strictEqual(node.tagName, "svg");
 		});
 
 		await test("createElementNS, html", () => {
-			const node = rvxDocument.createElementNS(HTML, "div");
+			const node = new RvxDocument().createElementNS(HTML, "div");
 			strictEqual(node instanceof RvxElement, true);
 			strictEqual(node.namespaceURI, HTML);
 			strictEqual(node.tagName, "div");
 		});
 
 		await test("createElementNS, svg", () => {
-			const node = rvxDocument.createElementNS(SVG, "div");
+			const node = new RvxDocument().createElementNS(SVG, "div");
 			strictEqual(node instanceof RvxElement, true);
 			strictEqual(node.namespaceURI, SVG);
 			strictEqual(node.tagName, "div");
 		});
 
 		await test("createElementNS, mathml", () => {
-			const node = rvxDocument.createElementNS(MATHML, "div");
+			const node = new RvxDocument().createElementNS(MATHML, "div");
 			strictEqual(node instanceof RvxElement, true);
 			strictEqual(node.namespaceURI, MATHML);
 			strictEqual(node.tagName, "div");
