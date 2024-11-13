@@ -79,7 +79,13 @@ export class RvxNoopEventTarget {
 }
 
 export class RvxDocument extends RvxNoopEventTarget {
+	get body(): RvxElement | null {
+		// noop
+		return null;
+	}
+
 	get activeElement(): RvxElement | null {
+		// noop
 		return null;
 	}
 
@@ -717,6 +723,14 @@ export class RvxElement extends RvxNode {
 		return this.#classList;
 	}
 
+	focus(): void {
+		// noop
+	}
+
+	blur(): void {
+		// noop
+	}
+
 	append(...nodes: (RvxNode | string)[]): void {
 		for (let i = 0; i < nodes.length; i++) {
 			const node = nodes[i];
@@ -807,4 +821,29 @@ export class RvxElement extends RvxNode {
 		}
 		return html;
 	}
+}
+
+export class RvxWindow extends RvxNoopEventTarget {
+	static {
+		this.prototype.Comment = RvxComment;
+		this.prototype.Document = RvxDocument;
+		this.prototype.DocumentFragment = RvxDocumentFragment;
+		this.prototype.Element = RvxElement;
+		this.prototype.Node = RvxNode;
+		this.prototype.Range = RvxRange;
+		this.prototype.Text = RvxText;
+	}
+
+	window = this;
+	document = new RvxDocument();
+}
+
+export interface RvxWindow {
+	Comment: typeof RvxComment;
+	Document: typeof RvxDocument;
+	DocumentFragment: typeof RvxDocumentFragment;
+	Element: typeof RvxElement;
+	Node: typeof RvxNode;
+	Range: typeof RvxRange;
+	Text: typeof RvxText;
 }

@@ -1,7 +1,7 @@
 import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
 import { HTML, MATHML, SVG } from "rvx";
-import { htmlEscapeAppendTo, isVoidTag, resolveNamespaceURI, RvxComment, RvxDocument, RvxDocumentFragment, RvxElement, RvxNode, RvxNoopEventTarget, RvxRange, RvxText, XMLNS_HTML, XMLNS_MATHML, XMLNS_SVG } from "rvx/dom";
+import { htmlEscapeAppendTo, isVoidTag, resolveNamespaceURI, RvxComment, RvxDocument, RvxDocumentFragment, RvxElement, RvxNode, RvxNoopEventTarget, RvxRange, RvxText, RvxWindow, XMLNS_HTML, XMLNS_MATHML, XMLNS_SVG } from "rvx/dom";
 
 await suite("dom/model", async () => {
 	await test("htmlEscape", () => {
@@ -853,6 +853,12 @@ await suite("dom/model", async () => {
 			strictEqual(node.namespaceURI, MATHML);
 			strictEqual(node.tagName, "div");
 		});
+	});
+
+	await test("window", () => {
+		const window = new RvxWindow();
+		strictEqual(window.window, window);
+		strictEqual(window.document instanceof RvxDocument, true);
 	});
 
 	await test("resolveNamespaceURI", () => {
