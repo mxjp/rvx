@@ -1,5 +1,9 @@
 # Changelog
 
+## 18.4
++ `TaskSlot` has been renamed to `Queue` with a deprecated alias export.
++ **Deprecated:** The `TaskSlot` export will be removed in the next major version.
+
 ## 18.3
 + The `NodeTarget` interface is no longer experimental.
 + Optimize initial render performance for the `"class"` attribute.

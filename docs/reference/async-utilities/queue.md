@@ -1,41 +1,43 @@
-# `TaskSlot`
-This is a queue for sequentially running async tasks that can be triggered by both the user and side effects.
+# `Queue`
+This is a queue for sequentially running async tasks.
+
+Depending on the use case, a task can be either **blocking** or a **side effect**:
 
 + **Blocking** tasks are queued normally and are guaranteed to run.
 + **Side effects** are queued, but aborted when anything else is queued.
 
 === "JSX"
 	```jsx
-	import { TaskSlot } from "rvx/async";
+	import { Queue } from "rvx/async";
 
-	const slot = new TaskSlot();
+	const queue = new Queue();
 
 	// Queue a blocking task:
-	const value = await slot.block(async () => {
+	const value = await queue.block(async () => {
 		// ...
 		return 42;
 	});
 
 	// Queue a side effect:
-	slot.sideEffect(async signal => {
+	queue.sideEffect(async signal => {
 		// "signal" is an abort signal to abort this side effect if possible.
 	});
 	```
 
 === "No Build"
 	```jsx
-	import { TaskSlot } from "./rvx.js";
+	import { Queue } from "./rvx.js";
 
-	const slot = new TaskSlot();
+	const queue = new Queue();
 
 	// Queue a blocking task:
-	const value = await slot.block(async () => {
+	const value = await queue.block(async () => {
 		// ...
 		return 42;
 	});
 
 	// Queue a side effect:
-	slot.sideEffect(async signal => {
+	queue.sideEffect(async signal => {
 		// "signal" is an abort signal to abort this side effect if possible.
 	});
 	```

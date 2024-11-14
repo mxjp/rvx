@@ -2,7 +2,7 @@ import test, { suite } from "node:test";
 import { exclusive } from "rvx/test";
 import { assertEvents, future } from "../common.js";
 
-await suite("test/task-slot", async () => {
+await suite("test/queue", async () => {
 	const KEY_A = Symbol("a");
 	const KEY_B = Symbol("b");
 

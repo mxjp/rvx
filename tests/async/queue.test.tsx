@@ -2,15 +2,15 @@ import { strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 
 import { uncapture } from "rvx";
-import { TaskSlot } from "rvx/async";
+import { Queue } from "rvx/async";
 
 import { assertEvents } from "../common.js";
 
-await suite("async/task-slot", async () => {
+await suite("async/queue", async () => {
 	await test("sync side effect", () => {
 		const events: unknown[] = [];
-		const slot = uncapture(() => new TaskSlot());
-		slot.sideEffect(signal => {
+		const queue = uncapture(() => new Queue());
+		queue.sideEffect(signal => {
 			events.push(0);
 			strictEqual(signal.aborted, false);
 			events.push(1);
@@ -21,8 +21,8 @@ await suite("async/task-slot", async () => {
 
 	await test("sync blocking", () => {
 		const events: unknown[] = [];
-		const slot = uncapture(() => new TaskSlot());
-		void slot.block(() => {
+		const queue = uncapture(() => new Queue());
+		void queue.block(() => {
 			events.push(0);
 		});
 		events.push(1);
@@ -31,53 +31,53 @@ await suite("async/task-slot", async () => {
 
 	await test("abort side effect", async () => {
 		const events: unknown[] = [];
-		const slot = uncapture(() => new TaskSlot());
-		slot.sideEffect(async signal => {
+		const queue = uncapture(() => new Queue());
+		queue.sideEffect(async signal => {
 			events.push(0);
 			await Promise.resolve();
 			events.push(1, signal.aborted);
 		});
 		events.push(2);
-		slot.sideEffect(() => {});
+		queue.sideEffect(() => {});
 		await Promise.resolve();
 		assertEvents(events, [0, 2, 1, true]);
 	});
 
 	await test("dequeue side effect & run most recent", async () => {
 		const events: unknown[] = [];
-		const slot = uncapture(() => new TaskSlot());
-		slot.sideEffect(async signal => {
+		const queue = uncapture(() => new Queue());
+		queue.sideEffect(async signal => {
 			events.push(0);
 			await Promise.resolve();
 			events.push(1, signal.aborted);
 		});
-		slot.sideEffect(() => events.push(2));
-		slot.sideEffect(() => events.push(3));
-		slot.sideEffect(signal => events.push(4, signal.aborted));
+		queue.sideEffect(() => events.push(2));
+		queue.sideEffect(() => events.push(3));
+		queue.sideEffect(signal => events.push(4, signal.aborted));
 		await Promise.resolve();
 		assertEvents(events, [0, 1, true]);
 		await Promise.resolve();
 		assertEvents(events, [4, false]);
-		slot.sideEffect(() => events.push(5));
+		queue.sideEffect(() => events.push(5));
 		await Promise.resolve();
 		assertEvents(events, [5]);
 	});
 
 	await test("abort side effects by blocking tasks", async () => {
 		const events: unknown[] = [];
-		const slot = uncapture(() => new TaskSlot());
-		slot.sideEffect(async signal => {
+		const queue = uncapture(() => new Queue());
+		queue.sideEffect(async signal => {
 			events.push(0);
 			await Promise.resolve();
 			events.push(1, signal.aborted);
 		});
 		events.push(2);
-		const result = slot.block(async () => {
+		const result = queue.block(async () => {
 			events.push(3);
 			return 42;
 		});
 		events.push(4);
-		slot.sideEffect(() => {
+		queue.sideEffect(() => {
 			events.push(5);
 		});
 		await result;
@@ -88,17 +88,17 @@ await suite("async/task-slot", async () => {
 
 	await test("multiple blocking tasks", async () => {
 		const events: unknown[] = [];
-		const slot = uncapture(() => new TaskSlot());
-		slot.sideEffect(async signal => {
+		const queue = uncapture(() => new Queue());
+		queue.sideEffect(async signal => {
 			events.push(0);
 			await Promise.resolve();
 			events.push(1, signal.aborted);
 		});
-		const a = slot.block(() => {
+		const a = queue.block(() => {
 			events.push("a");
 			return "a";
 		});
-		const b = slot.block(() => {
+		const b = queue.block(() => {
 			events.push("b");
 			return "b";
 		});
@@ -110,12 +110,12 @@ await suite("async/task-slot", async () => {
 
 	await test("side effect after blocking", async () => {
 		const events: unknown[] = [];
-		const slot = uncapture(() => new TaskSlot());
-		await slot.block(() => {
+		const queue = uncapture(() => new Queue());
+		await queue.block(() => {
 			events.push(0);
 		});
 		events.push(1);
-		slot.sideEffect(() => {
+		queue.sideEffect(() => {
 			events.push(2);
 		});
 		events.push(3);

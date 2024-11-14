@@ -19,17 +19,17 @@ type Task = SideEffect | Blocking;
 /**
  * A queue for sequentially running async tasks that can be triggered by both the user and side effects.
  */
-export class TaskSlot {
+export class Queue {
 	#queue: Task[] = [];
 	/**
-	 * Number of tasks that need to be dequeued until this slot isn't blocked or any negative number. Zero indicates, that the last blocking task is currently running.
+	 * Number of tasks that need to be dequeued until this queue isn't blocked or any negative number. Zero indicates, that the last blocking task is currently running.
 	 */
 	#blocked = -1;
 	#controller: AbortController | undefined = undefined;
 	#running: Promise<void> | undefined = undefined;
 
 	/**
-	 * Create a new task slot.
+	 * Create a new queue.
 	 *
 	 * When the current lifecycle is disposed, all side effects are aborted and removed from the queue.
 	 */
@@ -76,7 +76,7 @@ export class TaskSlot {
 	}
 
 	/**
-	 * Queue a side effect to run if this slot isn't blocked.
+	 * Queue a side effect to run if this queue isn't currently blocked.
 	 *
 	 * This will abort and remove all other side effects from the queue.
 	 *
@@ -92,7 +92,7 @@ export class TaskSlot {
 	}
 
 	/**
-	 * Queue a task to run and block this slot until it completes.
+	 * Queue a task to run and block this queue until it completes.
 	 *
 	 * This will abort and remove all other side effects from the queue.
 	 *
@@ -107,3 +107,8 @@ export class TaskSlot {
 		}) as Promise<T>;
 	}
 }
+
+/**
+ * @deprecated `TaskSlot` has been renamed to `Queue`. This export will be removed in the next major version.
+ */
+export const TaskSlot = Queue;
