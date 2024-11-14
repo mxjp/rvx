@@ -207,3 +207,8 @@ The example below appends an element every time an event is fired:
 	```
 
 You can find more complex view implementation examples [in rvx's core view module](https://github.com/mxjp/rvx/blob/main/src/core/view.ts) and [this example](../../examples/custom-view.md).
+
+## Lifecycle Conventions
+When the [lifecycle](../lifecycle.md) in which a view was created is disposed, all of it's nodes should remain in place by convention.
++ This results in much better performance when disposing large amounts of nested views.
++ Users of that view have the ability to keep displaying remaining content for animation purposes.
