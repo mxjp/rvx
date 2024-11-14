@@ -1,7 +1,7 @@
 import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
 import { HTML, MATHML, SVG } from "rvx";
-import { htmlEscapeAppendTo, isVoidTag, resolveNamespaceURI, RvxComment, RvxDocument, RvxDocumentFragment, RvxElement, RvxNode, RvxNoopEventTarget, RvxRange, RvxText, RvxWindow, XMLNS_HTML, XMLNS_MATHML, XMLNS_SVG } from "rvx/dom";
+import { htmlEscapeAppendTo, isVoidTag, resolveNamespaceURI, RvxComment, RvxDocument, RvxDocumentFragment, RvxElement, RvxNode, RvxRange, RvxText, RvxWindow, XMLNS_HTML, XMLNS_MATHML, XMLNS_SVG } from "rvx/dom";
 
 await suite("dom/model", async () => {
 	await test("htmlEscape", () => {
@@ -1075,7 +1075,71 @@ await suite("dom/model", async () => {
 				strictEqual(elem.getAttribute("style"), "foo: bar; bar: baz");
 			});
 
-			// TODO.
+			await test("init from missing attribute", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.style.setProperty("foo", "bar");
+				strictEqual(elem.getAttribute("style"), "foo: bar");
+			});
+
+			await test("init from empty attribute", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.setAttribute("style", "");
+				elem.style.setProperty("foo", "bar");
+				strictEqual(elem.getAttribute("style"), "foo: bar");
+			});
+
+			await test("parsing unsupport", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.setAttribute("style", "color: red");
+				throws(() => elem.style.setProperty("foo", "bar"));
+			});
+
+			await test("invalidate by setAttribute", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.style.setProperty("foo", "bar");
+				strictEqual(elem.getAttribute("style"), "foo: bar");
+				elem.setAttribute("style", "color: red");
+				strictEqual(elem.getAttribute("style"), "color: red");
+			});
+
+			await test("invalidate by removeAttribute", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.setAttribute("style", "color: red");
+				elem.removeAttribute("style");
+				elem.style.setProperty("foo", "bar");
+				strictEqual(elem.getAttribute("style"), "foo: bar");
+			});
+
+			await test("invalidate by setProperty", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.style.setProperty("foo", "bar");
+				strictEqual(elem.getAttribute("style"), "foo: bar");
+				elem.style.setProperty("bar", "baz");
+				strictEqual(elem.getAttribute("style"), "foo: bar; bar: baz");
+			});
+
+			await test("invalidate by removeProperty", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.style.setProperty("foo", "bar");
+				elem.style.setProperty("bar", "baz");
+				strictEqual(elem.getAttribute("style"), "foo: bar; bar: baz");
+				elem.style.removeProperty("foo");
+				strictEqual(elem.getAttribute("style"), "bar: baz");
+			});
+
+			await test("hasAttribute", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.style.setProperty("foo", "bar");
+				strictEqual(elem.hasAttribute("style"), true);
+				elem.style.removeProperty("foo");
+				strictEqual(elem.hasAttribute("style"), false);
+			});
+
+			await test("outerHTML", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.style.setProperty("foo", "bar");
+				strictEqual(elem.outerHTML, "<div style=\"foo: bar\"></div>");
+			});
 		});
 
 		await suite("outerHTML", async () => {
