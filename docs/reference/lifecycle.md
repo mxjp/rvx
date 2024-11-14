@@ -183,7 +183,7 @@ There are some places where registering teardown hooks is very likely a mistake.
 	```
 
 ## `teardownOnError`
-Run a function within a lifecycle boundary.
+Run a function and immediately call teardown hooks if it throws an error.
 
 + If an error is thrown, teardown hooks are immediately called in reverse registration order and the error is re-thrown.
 + If no error is thrown, this behaves as if teardown hooks were registered in the outer context.
