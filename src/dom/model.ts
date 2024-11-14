@@ -558,7 +558,7 @@ export class RvxElementClassList {
 	}
 
 	get length(): number {
-		return this.#parseTokens().size;
+		return this.#parseAttribute().size;
 	}
 
 	get value(): string {
@@ -583,7 +583,7 @@ export class RvxElementClassList {
 		return this.#value;
 	}
 
-	#parseTokens(): Set<string> {
+	#parseAttribute(): Set<string> {
 		if (this.#tokens === null) {
 			const value = this.#attrs.get("class");
 			if (value === undefined || value === ATTR_STALE) {
@@ -595,7 +595,7 @@ export class RvxElementClassList {
 		return this.#tokens;
 	}
 
-	#invalidateValue(): void {
+	#invalidateAttribute(): void {
 		this.#value = null;
 		if (this.#tokens?.size === 0) {
 			this.#attrs.delete("class");
@@ -609,43 +609,43 @@ export class RvxElementClassList {
 	}
 
 	add(...tokens: string[]): void {
-		const set = this.#parseTokens();
+		const set = this.#parseAttribute();
 		const prevSize = set.size;
 		for (let i = 0; i < tokens.length; i++) {
 			set.add(tokens[i]);
 		}
 		if (set.size !== prevSize) {
-			this.#invalidateValue();
+			this.#invalidateAttribute();
 		}
 	}
 
 	contains(token: string): boolean {
-		return this.#parseTokens().has(token);
+		return this.#parseAttribute().has(token);
 	}
 
 	remove(...tokens: string[]): void {
-		const set = this.#parseTokens();
+		const set = this.#parseAttribute();
 		const prevSize = set.size;
 		for (let i = 0; i < tokens.length; i++) {
 			set.delete(tokens[i]);
 		}
 		if (set.size !== prevSize) {
-			this.#invalidateValue();
+			this.#invalidateAttribute();
 		}
 	}
 
 	replace(oldToken: string, newToken: string): boolean {
-		const set = this.#parseTokens();
+		const set = this.#parseAttribute();
 		if (set.delete(oldToken)) {
 			set.add(newToken);
-			this.#invalidateValue();
+			this.#invalidateAttribute();
 			return true;
 		}
 		return false;
 	}
 
 	toggle(token: string, force?: boolean): boolean {
-		const set = this.#parseTokens();
+		const set = this.#parseAttribute();
 		const prevSize = set.size;
 		let exists = false;
 		if (force === undefined) {
@@ -661,17 +661,92 @@ export class RvxElementClassList {
 			set.delete(token);
 		}
 		if (set.size !== prevSize) {
-			this.#invalidateValue();
+			this.#invalidateAttribute();
 		}
 		return exists;
 	}
 
 	values(): IterableIterator<string> {
-		return this.#parseTokens()[Symbol.iterator]();
+		return this.#parseAttribute()[Symbol.iterator]();
 	}
 
 	[Symbol.iterator](): IterableIterator<string> {
-		return this.#parseTokens()[Symbol.iterator]();
+		return this.#parseAttribute()[Symbol.iterator]();
+	}
+}
+
+export class RvxElementStyles {
+	#attrs: Attrs;
+	#value: string | null = null;
+	#props: Map<string, string> | null = null;
+
+	constructor(attrs: Attrs) {
+		this.#attrs = attrs;
+	}
+
+	get cssText() {
+		if (this.#value === null) {
+			if (this.#props === null) {
+				const raw = this.#attrs.get("style");
+				return raw === ATTR_STALE ? "" : (raw ?? "");
+			} else {
+				let cssText = "";
+				let first = true;
+				for (const [name, value] of this.#props) {
+					// TODO: Document that value should not contain untrusted data.
+					if (first) {
+						cssText = cssText + name + ": " + value;
+						first = false;
+					} else {
+						cssText = cssText + "; " + name + ": " + value;
+					}
+				}
+				this.#value = cssText;
+			}
+		}
+		return this.#value;
+	}
+
+	#parseAttribute(): Map<string, string> {
+		if (this.#props === null) {
+			const value = this.#attrs.get("style");
+			if (value === undefined || value === "" || value === ATTR_STALE) {
+				this.#props = new Map();
+			} else {
+				throw new Error("style attribute parsing is not supported");
+			}
+		}
+		return this.#props;
+	}
+
+	#invalidateAttribute(): void {
+		this.#value = null;
+		if (this.#props?.size === 0) {
+			this.#attrs.delete("style");
+		} else {
+			this.#attrs.set("style", ATTR_STALE);
+		}
+	}
+
+	[ATTR_INVALIDATE_PARSED](): void {
+		this.#props = null;
+	}
+
+	setProperty(name: string, value: string, priority?: "" | "important"): void {
+		const props = this.#parseAttribute();
+		if (priority === "important") {
+			value += " !important";
+		}
+		props.set(name, value);
+		this.#invalidateAttribute();
+	}
+
+	removeProperty(name: string): void {
+		const props = this.#parseAttribute();
+		if (props.delete(name)) {
+			this.#invalidateAttribute();
+		}
+		// TODO: Document, that this returns undefined instead of the removed value.
 	}
 }
 
@@ -686,6 +761,7 @@ export class RvxElement extends RvxNode {
 	#tagName: string;
 	#attrs: Attrs = new Map();
 	#classList: RvxElementClassList | null = null;
+	#styles: RvxElementStyles | null = null;
 
 	constructor(namespaceURI: string, tagName: string) {
 		super();
@@ -723,6 +799,13 @@ export class RvxElement extends RvxNode {
 		return this.#classList;
 	}
 
+	get style(): RvxElementStyles {
+		if (this.#styles === null) {
+			this.#styles = new RvxElementStyles(this.#attrs);
+		}
+		return this.#styles;
+	}
+
 	focus(): void {
 		// noop
 	}
@@ -742,18 +825,22 @@ export class RvxElement extends RvxNode {
 		}
 	}
 
-	setAttribute(name: string, value: string): void {
-		this.#attrs.set(name, value);
+	#invalidateAttribute(name: string) {
 		if (name === "class") {
 			this.#classList?.[ATTR_INVALIDATE_PARSED]();
+		} else if (name === "style") {
+			this.#styles?.[ATTR_INVALIDATE_PARSED]();
 		}
+	}
+
+	setAttribute(name: string, value: string): void {
+		this.#attrs.set(name, value);
+		this.#invalidateAttribute(name);
 	}
 
 	removeAttribute(name: string): void {
 		this.#attrs.delete(name);
-		if (name === "class") {
-			this.#classList?.[ATTR_INVALIDATE_PARSED]();
-		}
+		this.#invalidateAttribute(name);
 	}
 
 	toggleAttribute(name: string, force?: boolean): void {
@@ -766,9 +853,7 @@ export class RvxElement extends RvxNode {
 				this.#attrs.delete(name);
 			}
 		}
-		if (name === "class") {
-			this.#classList?.[ATTR_INVALIDATE_PARSED]();
-		}
+		this.#invalidateAttribute(name);
 	}
 
 	getAttribute(name: string): string | null {
@@ -787,6 +872,11 @@ export class RvxElement extends RvxNode {
 		switch (name) {
 			case "class": {
 				const value = this.#classList!.value;
+				this.#attrs.set(name, value);
+				return value;
+			}
+			case "style": {
+				const value = this.#styles!.cssText;
 				this.#attrs.set(name, value);
 				return value;
 			}

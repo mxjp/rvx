@@ -1067,6 +1067,17 @@ await suite("dom/model", async () => {
 			});
 		});
 
+		await suite("style", async () => {
+			await test("basic usage", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.style.setProperty("foo", "bar");
+				elem.style.setProperty("bar", "baz");
+				strictEqual(elem.getAttribute("style"), "foo: bar; bar: baz");
+			});
+
+			// TODO.
+		});
+
 		await suite("outerHTML", async () => {
 			await test("default", () => {
 				const elem = new RvxElement(HTML, "div");
