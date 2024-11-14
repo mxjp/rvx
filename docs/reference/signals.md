@@ -140,9 +140,8 @@ Run a function and re-run when any accessed signals are updated.
 Prefer using [`watch`](#watch) or [`watchUpdates`](#watchupdates) if possible because it's easy to build infinite loops using `effect`:
 ```jsx
 effect(() => {
-	// This will cause a stack overflow because this
-	// both accesses and updates the value wich will
-	// re-run this callback during the update itself:
+	// This will cause an infinite loop because this
+	// both accesses and updates the value:
 	count.value++;
 });
 ```
