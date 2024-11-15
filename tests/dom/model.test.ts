@@ -763,6 +763,17 @@ await suite("dom/model", async () => {
 				]);
 			});
 		});
+
+		await test("append", () => {
+			const node = new RvxNode();
+			node.append(
+				"test",
+				new RvxElement(HTML, "br"),
+			);
+			strictEqual(node.childNodes.length, 2);
+			strictEqual(node.firstChild instanceof RvxText, true);
+			strictEqual(node.lastChild instanceof RvxElement, true);
+		});
 	});
 
 	await test("node text content", () => {
@@ -787,6 +798,10 @@ await suite("dom/model", async () => {
 		node.textContent = "-->";
 		strictEqual(node.textContent, "-->");
 		strictEqual(node.outerHTML, `<!---->-->`);
+
+		node.textContent = 42 as any;
+		strictEqual(node.textContent, "42");
+		strictEqual(node.outerHTML, "<!--42-->");
 	});
 
 	await test("text", () => {
@@ -798,6 +813,10 @@ await suite("dom/model", async () => {
 		node.textContent = "\"'<>&";
 		strictEqual(node.textContent, "\"'<>&");
 		strictEqual(node.outerHTML, "&#34;&#39;&lt;&gt;&amp;");
+
+		node.textContent = 42 as any;
+		strictEqual(node.textContent, "42");
+		strictEqual(node.outerHTML, "42");
 	});
 
 	await suite("document", async () => {
@@ -883,18 +902,6 @@ await suite("dom/model", async () => {
 			strictEqual(elem.nodeName, "div");
 			strictEqual(elem.nodeType, 1);
 			strictEqual(elem.tagName, "div");
-		});
-
-		await test("append", () => {
-			const elem = new RvxElement(HTML, "div");
-			elem.append(
-				"test",
-				new RvxElement(HTML, "br"),
-			);
-			strictEqual(elem.childNodes.length, 2);
-			strictEqual(elem.firstChild instanceof RvxText, true);
-			strictEqual(elem.lastChild instanceof RvxElement, true);
-			strictEqual(elem.innerHTML, "test<br>");
 		});
 
 		await test("innerHTML", () => {
@@ -1118,6 +1125,12 @@ await suite("dom/model", async () => {
 				strictEqual(elem.getAttribute("style"), "foo: bar; bar: baz");
 			});
 
+			await test("non string values", () => {
+				const elem = new RvxElement(HTML, "div");
+				elem.style.setProperty("foo", 42 as any);
+				strictEqual(elem.getAttribute("style"), "foo: 42");
+			});
+
 			await test("invalidate by removeProperty", () => {
 				const elem = new RvxElement(HTML, "div");
 				elem.style.setProperty("foo", "bar");
@@ -1229,6 +1242,12 @@ await suite("dom/model", async () => {
 				elem.setAttribute("foo", "bar");
 				elem.setAttribute("bar", "baz");
 				strictEqual(elem.outerHTML, "<path foo=\"bar\" bar=\"baz\"/>");
+			});
+
+			await test("non string attributes", () => {
+				const elem = new RvxElement(SVG, "path");
+				elem.setAttribute("foo", 42 as any);
+				strictEqual(elem.getAttribute("foo"), "42");
 			});
 		});
 	});
