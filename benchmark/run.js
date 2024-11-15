@@ -8,7 +8,10 @@ import { chromium, firefox } from "playwright";
 import yargsParser from "yargs-parser";
 
 const ctx = dirname(fileURLToPath(import.meta.url));
-const args = yargsParser(process.argv.slice(2));
+const args = yargsParser(process.argv.slice(2), {
+	boolean: ["headless"],
+	string: ["only"],
+});
 const headless = args.headless ?? false;
 
 const app = express();
@@ -35,7 +38,13 @@ const browsers = [chromium, firefox];
 const snapshots = await readdir(join(ctx, "src/snapshots"));
 const snapshotNameLength = Math.max(...snapshots.map(s => s.length));
 
-const benchmarks = await readdir(join(ctx, "src/benchmarks"));
+let benchmarks = await readdir(join(ctx, "src/benchmarks"));
+if (args.only) {
+	const filter = args.only;
+	benchmarks = benchmarks.filter(name => {
+		return name.startsWith(filter);
+	});
+}
 
 for (const browserDef of browsers) {
 	console.group(browserDef.name());
