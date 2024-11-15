@@ -1,7 +1,7 @@
 import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
 import { HTML, MATHML, SVG } from "rvx";
-import { htmlEscapeAppendTo, isVoidTag, resolveNamespaceURI, RvxComment, RvxDocument, RvxDocumentFragment, RvxElement, RvxNode, RvxRange, RvxText, RvxWindow, XMLNS_HTML, XMLNS_MATHML, XMLNS_SVG } from "rvx/dom";
+import { htmlEscapeAppendTo, isVoidTag, resolveNamespaceURI, RvxNoopComment, RvxDocument, RvxDocumentFragment, RvxElement, RvxNode, RvxRange, RvxText, RvxWindow, XMLNS_HTML, XMLNS_MATHML, XMLNS_SVG } from "rvx/dom";
 
 await suite("dom/model", async () => {
 	await test("htmlEscape", () => {
@@ -779,29 +779,29 @@ await suite("dom/model", async () => {
 	await test("node text content", () => {
 		const parent = new RvxNode();
 		parent.appendChild(new RvxText("foo"));
-		parent.appendChild(new RvxComment("bar"));
+		parent.appendChild(new RvxNoopComment("bar"));
 		parent.appendChild(new RvxText("baz"));
 		strictEqual(parent.textContent, "foobaz");
 	});
 
 	await test("comment", () => {
-		const node = new RvxComment("foo");
+		const node = new RvxNoopComment("foo");
 		strictEqual(node.nodeType, 8);
 		strictEqual(node.nodeName, "#comment");
 		strictEqual(node.textContent, "foo");
-		strictEqual(node.outerHTML, `<!--foo-->`);
+		strictEqual(node.outerHTML, "");
 
 		node.textContent = "";
 		strictEqual(node.textContent, "");
-		strictEqual(node.outerHTML, `<!---->`);
+		strictEqual(node.outerHTML, "");
 
 		node.textContent = "-->";
 		strictEqual(node.textContent, "-->");
-		strictEqual(node.outerHTML, `<!---->-->`);
+		strictEqual(node.outerHTML, "");
 
 		node.textContent = 42 as any;
 		strictEqual(node.textContent, "42");
-		strictEqual(node.outerHTML, "<!--42-->");
+		strictEqual(node.outerHTML, "");
 	});
 
 	await test("text", () => {
@@ -828,7 +828,7 @@ await suite("dom/model", async () => {
 
 		await test("createComment", () => {
 			const node = new RvxDocument().createComment("test");
-			strictEqual(node instanceof RvxComment, true);
+			strictEqual(node instanceof RvxNoopComment, true);
 			strictEqual(node.textContent, "test");
 		});
 

@@ -96,7 +96,7 @@ export class RvxDocument extends RvxNoopEventTarget {
 	}
 
 	createComment(data: string) {
-		return new RvxComment(data);
+		return new RvxNoopComment(data);
 	}
 
 	createDocumentFragment() {
@@ -153,8 +153,13 @@ export class RvxNode extends RvxNoopEventTarget {
 		return this.#length;
 	}
 
-	[NODE_APPEND_HTML_TO](_html: string): string {
-		throw new Error("not supported");
+	[NODE_APPEND_HTML_TO](html: string): string {
+		let child = this.firstChild;
+		while (child !== null) {
+			html = child[NODE_APPEND_HTML_TO](html);
+			child = child.nextSibling;
+		}
+		return html;
 	}
 
 	static [NODE_EXTRACT_RANGE](start: RvxNode | null, end: RvxNode | null): RvxDocumentFragment {
@@ -464,7 +469,7 @@ export class RvxDocumentFragment extends RvxNode {
 	}
 }
 
-export class RvxComment extends RvxNode {
+export class RvxNoopComment extends RvxNode {
 	static {
 		this.prototype.nodeType = 8;
 		this.prototype.nodeName = "#comment";
@@ -486,7 +491,8 @@ export class RvxComment extends RvxNode {
 	}
 
 	[NODE_APPEND_HTML_TO](html: string): string {
-		return html + "<!--" + this.#data + "-->";
+		return html;
+		// return html + "<!--" + this.#data + "-->";
 	}
 }
 
@@ -907,13 +913,7 @@ export class RvxElement extends RvxNode {
 		if (this.#isVoidTag()) {
 			html += ">";
 		} else if (this.hasChildNodes() || this.#xmlns === XMLNS_HTML) {
-			html += ">";
-			let child = this.firstChild;
-			while (child !== null) {
-				html = child[NODE_APPEND_HTML_TO](html);
-				child = child.nextSibling;
-			}
-			html = html + "</" + this.#tagName + ">";
+			html = super[NODE_APPEND_HTML_TO](html + ">") + "</" + this.#tagName + ">";
 		} else {
 			html += "/>";
 		}
@@ -923,7 +923,7 @@ export class RvxElement extends RvxNode {
 
 export class RvxWindow extends RvxNoopEventTarget {
 	static {
-		this.prototype.Comment = RvxComment;
+		this.prototype.Comment = RvxNoopComment;
 		this.prototype.CustomEvent = RvxNoopEvent;
 		this.prototype.Document = RvxDocument;
 		this.prototype.DocumentFragment = RvxDocumentFragment;
@@ -939,7 +939,7 @@ export class RvxWindow extends RvxNoopEventTarget {
 }
 
 export interface RvxWindow {
-	Comment: typeof RvxComment;
+	Comment: typeof RvxNoopComment;
 	CustomEvent: typeof RvxNoopEvent;
 	Document: typeof RvxDocument;
 	DocumentFragment: typeof RvxDocumentFragment;
@@ -950,4 +950,7 @@ export interface RvxWindow {
 	Text: typeof RvxText;
 }
 
+/**
+ * A global default rvxdom window instance.
+ */
 export const WINDOW = new RvxWindow();
