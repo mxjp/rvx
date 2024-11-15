@@ -949,3 +949,5 @@ export interface RvxWindow {
 	Range: typeof RvxRange;
 	Text: typeof RvxText;
 }
+
+export const WINDOW = new RvxWindow();
