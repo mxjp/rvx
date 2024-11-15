@@ -95,4 +95,7 @@ node ./snapshot.js
 
 # Run benchmarks against existing snapshots:
 node ./run.js --headless
+
+# Run only benchmarks starting with "signals-":
+node ./run.js --only signals-
 ```
