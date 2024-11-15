@@ -4,14 +4,14 @@ const NODE_LENGTH = Symbol("length");
 const NODE_APPEND_HTML_TO = Symbol("appendHtmlTo");
 const NODE_EXTRACT_RANGE = Symbol("extractRange");
 
-class NodeListIterator implements Iterator<RvxNode> {
-	#current: RvxNode | null;
+class NodeListIterator implements Iterator<Node> {
+	#current: Node | null;
 
-	constructor(node: RvxNode) {
+	constructor(node: Node) {
 		this.#current = node.firstChild;
 	}
 
-	next(): IteratorResult<RvxNode, any> {
+	next(): IteratorResult<Node, any> {
 		const current = this.#current;
 		if (current === null) {
 			return { value: null, done: true };
@@ -21,10 +21,10 @@ class NodeListIterator implements Iterator<RvxNode> {
 	}
 }
 
-export class RvxNodeList {
-	#node: RvxNode;
+export class NodeList {
+	#node: Node;
 
-	constructor(node: RvxNode) {
+	constructor(node: Node) {
 		this.#node = node;
 	}
 
@@ -32,7 +32,7 @@ export class RvxNodeList {
 		return this.#node[NODE_LENGTH]();
 	}
 
-	forEach(cb: (node: RvxNode, index: number, list: RvxNodeList) => void, thisArg?: unknown): void {
+	forEach(cb: (node: Node, index: number, list: NodeList) => void, thisArg?: unknown): void {
 		let index = 0;
 		let node = this.#node.firstChild;
 		while (node !== null) {
@@ -42,11 +42,11 @@ export class RvxNodeList {
 		}
 	}
 
-	[Symbol.iterator](): Iterator<RvxNode> {
+	[Symbol.iterator](): Iterator<Node> {
 		return new NodeListIterator(this.#node);
 	}
 
-	values(): Iterator<RvxNode> {
+	values(): Iterator<Node> {
 		return new NodeListIterator(this.#node);
 	}
 }
@@ -64,9 +64,9 @@ export function htmlEscapeAppendTo(html: string, data: string) {
 	});
 }
 
-export class RvxNoopEvent {}
+export class NoopEvent {}
 
-export class RvxNoopEventTarget {
+export class NoopEventTarget {
 	addEventListener(): void {
 		// noop
 	}
@@ -80,71 +80,71 @@ export class RvxNoopEventTarget {
 	}
 }
 
-export class RvxDocument extends RvxNoopEventTarget {
-	get body(): RvxElement | null {
+export class Document extends NoopEventTarget {
+	get body(): Element | null {
 		// noop
 		return null;
 	}
 
-	get activeElement(): RvxElement | null {
+	get activeElement(): Element | null {
 		// noop
 		return null;
 	}
 
 	createTextNode(data: string) {
-		return new RvxText(data);
+		return new Text(data);
 	}
 
 	createComment(data: string) {
-		return new RvxNoopComment(data);
+		return new NoopComment(data);
 	}
 
 	createDocumentFragment() {
-		return new RvxDocumentFragment();
+		return new DocumentFragment();
 	}
 
 	createElementNS(namespaceURI: string, tagName: string) {
-		return new RvxElement(namespaceURI, tagName);
+		return new Element(namespaceURI, tagName);
 	}
 
 	createElement(tagName: string) {
-		return new RvxElement(HTML, tagName);
+		return new Element(HTML, tagName);
 	}
 }
 
-export class RvxNode extends RvxNoopEventTarget {
-	#parent: RvxNode | null = null;
-	#first: RvxNode | null = null;
-	#last: RvxNode | null = null;
-	#prev: RvxNode | null = null;
-	#next: RvxNode | null = null;
+export class Node extends NoopEventTarget {
+	#parent: Node | null = null;
+	#first: Node | null = null;
+	#last: Node | null = null;
+	#prev: Node | null = null;
+	#next: Node | null = null;
 	#length = 0;
 
-	#childNodes: RvxNodeList | null = null;
+	#childNodes: NodeList | null = null;
 
-	get parentNode(): RvxNode | null {
+	get parentNode(): Node | null {
 		return this.#parent;
 	}
 
-	get firstChild(): RvxNode | null {
+	get firstChild(): Node | null {
 		return this.#first;
 	}
 
-	get lastChild(): RvxNode | null {
+	get lastChild(): Node | null {
 		return this.#last;
 	}
 
-	get previousSibling(): RvxNode | null {
+	get previousSibling(): Node | null {
 		return this.#prev;
 	}
 
-	get nextSibling(): RvxNode | null {
+	get nextSibling(): Node | null {
 		return this.#next;
 	}
 
-	get childNodes(): RvxNodeList {
+	get childNodes(): NodeList {
 		if (this.#childNodes === null) {
-			this.#childNodes = new RvxNodeList(this);
+			this.#childNodes = new NodeList(this);
 		}
 		return this.#childNodes;
 	}
@@ -162,7 +162,7 @@ export class RvxNode extends RvxNoopEventTarget {
 		return html;
 	}
 
-	static [NODE_EXTRACT_RANGE](start: RvxNode | null, end: RvxNode | null): RvxDocumentFragment {
+	static [NODE_EXTRACT_RANGE](start: Node | null, end: Node | null): DocumentFragment {
 		if (start === null || end === null) {
 			throw new Error("invalid range");
 		}
@@ -170,7 +170,7 @@ export class RvxNode extends RvxNoopEventTarget {
 		if (parent === null || parent !== end.#parent) {
 			throw new Error("invalid range");
 		}
-		const fragment = new RvxDocumentFragment();
+		const fragment = new DocumentFragment();
 		let child = start;
 		let length = 0;
 		updateParents: for (;;) {
@@ -213,7 +213,7 @@ export class RvxNode extends RvxNoopEventTarget {
 		return fragment;
 	}
 
-	contains(node: RvxNode | null) {
+	contains(node: Node | null) {
 		if (node === null) {
 			return false;
 		}
@@ -230,7 +230,7 @@ export class RvxNode extends RvxNoopEventTarget {
 		return this.#length > 0;
 	}
 
-	removeChild(node: RvxNode): RvxNode {
+	removeChild(node: Node): Node {
 		if (node.#parent !== this) {
 			throw new Error("node is not a child of this node");
 		}
@@ -253,7 +253,7 @@ export class RvxNode extends RvxNoopEventTarget {
 		return node;
 	}
 
-	appendChild(node: RvxNode): RvxNode {
+	appendChild(node: Node): Node {
 		if (node.nodeType === 11) {
 			if (node.#length === 0) {
 				return node;
@@ -268,7 +268,7 @@ export class RvxNode extends RvxNoopEventTarget {
 			first.#prev = prev;
 			this.#last = node.#last;
 			this.#length += node.#length;
-			let child: RvxNode | null = first;
+			let child: Node | null = first;
 			while (child !== null) {
 				child.#parent = this;
 				child = child.#next;
@@ -292,7 +292,7 @@ export class RvxNode extends RvxNoopEventTarget {
 		return node;
 	}
 
-	insertBefore(node: RvxNode, ref: RvxNode): RvxNode {
+	insertBefore(node: Node, ref: Node): Node {
 		if (ref.#parent !== this) {
 			throw new Error("ref must be a child of this node");
 		}
@@ -312,7 +312,7 @@ export class RvxNode extends RvxNoopEventTarget {
 			last.#next = ref;
 			ref.#prev = last;
 			this.#length += node.#length;
-			let child: RvxNode | null = first;
+			let child: Node | null = first;
 			while (child !== null) {
 				child.#parent = this;
 				child = child.#next;
@@ -337,7 +337,7 @@ export class RvxNode extends RvxNoopEventTarget {
 		return node;
 	}
 
-	replaceChild(node: RvxNode, ref: RvxNode): RvxNode {
+	replaceChild(node: Node, ref: Node): Node {
 		if (ref.#parent !== this) {
 			throw new Error("ref must be a child of this node");
 		}
@@ -383,7 +383,7 @@ export class RvxNode extends RvxNoopEventTarget {
 				node.#first = null;
 				node.#last = null;
 				node.#length = 0;
-				let child: RvxNode | null = first;
+				let child: Node | null = first;
 				while (child !== null) {
 					child.#parent = this;
 					child = child.#next;
@@ -412,11 +412,11 @@ export class RvxNode extends RvxNoopEventTarget {
 		return ref;
 	}
 
-	append(...nodes: (RvxNode | string)[]): void {
+	append(...nodes: (Node | string)[]): void {
 		for (let i = 0; i < nodes.length; i++) {
 			const node = nodes[i];
 			if (typeof node === "string") {
-				this.appendChild(new RvxText(node));
+				this.appendChild(new Text(node));
 			} else {
 				this.appendChild(node);
 			}
@@ -440,36 +440,36 @@ export class RvxNode extends RvxNoopEventTarget {
 	}
 }
 
-export interface RvxNode {
+export interface Node {
 	nodeType: number;
 	nodeName: string;
 }
 
-export class RvxRange {
-	#start: RvxNode | null = null;
-	#end: RvxNode | null = null;
+export class Range {
+	#start: Node | null = null;
+	#end: Node | null = null;
 
-	setStartBefore(node: RvxNode): void {
+	setStartBefore(node: Node): void {
 		this.#start = node;
 	}
 
-	setEndAfter(node: RvxNode): void {
+	setEndAfter(node: Node): void {
 		this.#end = node;
 	}
 
-	extractContents(): RvxDocumentFragment {
-		return RvxNode[NODE_EXTRACT_RANGE](this.#start, this.#end);
+	extractContents(): DocumentFragment {
+		return Node[NODE_EXTRACT_RANGE](this.#start, this.#end);
 	}
 }
 
-export class RvxDocumentFragment extends RvxNode {
+export class DocumentFragment extends Node {
 	static {
 		this.prototype.nodeType = 11;
 		this.prototype.nodeName = "#document-fragment";
 	}
 }
 
-export class RvxNoopComment extends RvxNode {
+export class NoopComment extends Node {
 	static {
 		this.prototype.nodeType = 8;
 		this.prototype.nodeName = "#comment";
@@ -496,7 +496,7 @@ export class RvxNoopComment extends RvxNode {
 	}
 }
 
-export class RvxText extends RvxNode {
+export class Text extends Node {
 	static {
 		this.prototype.nodeType = 3;
 		this.prototype.nodeName = "#text";
@@ -567,7 +567,7 @@ const ATTR_INVALIDATE_PARSED = Symbol("invalidateParsed");
 
 type Attrs = Map<string, string | typeof ATTR_STALE>;
 
-export class RvxElementClassList {
+export class ElementClassList {
 	#attrs: Attrs;
 	#value: string | null = null;
 	#tokens: Set<string> | null = null;
@@ -695,7 +695,7 @@ interface CssValue {
 	important: boolean;
 }
 
-export class RvxElementStyles {
+export class ElementStyles {
 	#attrs: Attrs;
 	#value: string | null = null;
 	#props: Map<string, CssValue> | null = null;
@@ -775,7 +775,7 @@ export class RvxElementStyles {
 	}
 }
 
-export class RvxElement extends RvxNode {
+export class Element extends Node {
 	static {
 		this.prototype.nodeType = 1;
 	}
@@ -785,8 +785,8 @@ export class RvxElement extends RvxNode {
 	#void: boolean | undefined;
 	#tagName: string;
 	#attrs: Attrs = new Map();
-	#classList: RvxElementClassList | null = null;
-	#styles: RvxElementStyles | null = null;
+	#classList: ElementClassList | null = null;
+	#styles: ElementStyles | null = null;
 
 	constructor(namespaceURI: string, tagName: string) {
 		super();
@@ -817,16 +817,16 @@ export class RvxElement extends RvxNode {
 		return html;
 	}
 
-	get classList(): RvxElementClassList {
+	get classList(): ElementClassList {
 		if (this.#classList === null) {
-			this.#classList = new RvxElementClassList(this.#attrs);
+			this.#classList = new ElementClassList(this.#attrs);
 		}
 		return this.#classList;
 	}
 
-	get style(): RvxElementStyles {
+	get style(): ElementStyles {
 		if (this.#styles === null) {
-			this.#styles = new RvxElementStyles(this.#attrs);
+			this.#styles = new ElementStyles(this.#attrs);
 		}
 		return this.#styles;
 	}
@@ -921,36 +921,36 @@ export class RvxElement extends RvxNode {
 	}
 }
 
-export class RvxWindow extends RvxNoopEventTarget {
+export class Window extends NoopEventTarget {
 	static {
-		this.prototype.Comment = RvxNoopComment;
-		this.prototype.CustomEvent = RvxNoopEvent;
-		this.prototype.Document = RvxDocument;
-		this.prototype.DocumentFragment = RvxDocumentFragment;
-		this.prototype.Element = RvxElement;
-		this.prototype.Event = RvxNoopEvent;
-		this.prototype.Node = RvxNode;
-		this.prototype.Range = RvxRange;
-		this.prototype.Text = RvxText;
+		this.prototype.Comment = NoopComment;
+		this.prototype.CustomEvent = NoopEvent;
+		this.prototype.Document = Document;
+		this.prototype.DocumentFragment = DocumentFragment;
+		this.prototype.Element = Element;
+		this.prototype.Event = NoopEvent;
+		this.prototype.Node = Node;
+		this.prototype.Range = Range;
+		this.prototype.Text = Text;
 	}
 
 	window = this;
-	document = new RvxDocument();
+	document = new Document();
 }
 
-export interface RvxWindow {
-	Comment: typeof RvxNoopComment;
-	CustomEvent: typeof RvxNoopEvent;
-	Document: typeof RvxDocument;
-	DocumentFragment: typeof RvxDocumentFragment;
-	Element: typeof RvxElement;
-	Event: typeof RvxNoopEvent;
-	Node: typeof RvxNode;
-	Range: typeof RvxRange;
-	Text: typeof RvxText;
+export interface Window {
+	Comment: typeof NoopComment;
+	CustomEvent: typeof NoopEvent;
+	Document: typeof Document;
+	DocumentFragment: typeof DocumentFragment;
+	Element: typeof Element;
+	Event: typeof NoopEvent;
+	Node: typeof Node;
+	Range: typeof Range;
+	Text: typeof Text;
 }
 
 /**
  * A global default rvxdom window instance.
  */
-export const WINDOW = new RvxWindow();
+export const WINDOW = new Window();
