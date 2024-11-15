@@ -88,10 +88,11 @@
 		"start:types": "tsc -p tsconfig-types.json -w --preserveWatchOutput",
 		"start:tests": "tsc -p tests/tsconfig.json -w --preserveWatchOutput",
 		"start:jsx-legacy-runtime-tests": "tsc -p tests/jsx-legacy-runtime/tsconfig.json -w --preserveWatchOutput",
-		"test": "npm run test:dom && npm run test:env-jsdom && npm run test:env-jsdom-global",
+		"test": "npm run test:dom && npm run test:env-jsdom && npm run test:env-jsdom-global && npm run test:env-rvxdom",
 		"test:dom": "cd tests_out && node --enable-source-maps --test \"dom/**/*.test.js\"",
 		"test:env-jsdom": "cd tests_out && node --enable-source-maps --import=./env-jsdom.js --test \"!(dom|element)/**/*.test.js\"",
 		"test:env-jsdom-global": "cd tests_out && node --enable-source-maps --import=./env-jsdom-global.js --test \"!(dom)/**/*.test.js\"",
+		"test:env-rvxdom": "cd tests_out && node --enable-source-maps --import=./env-rvxdom.js --test \"!(dom|element)/**/*.test.js\"",
 		"prepack": "npm run build && npm test && node scripts/prepack.js"
 	},
 	"devDependencies": {

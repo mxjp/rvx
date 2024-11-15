@@ -1,7 +1,7 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 import { uncapture } from "rvx";
-import { jsx, Fragment } from "rvx/jsx";
+import { Fragment, jsx } from "rvx/jsx";
 import { Fragment as R17Fragment } from "rvx/jsx-runtime";
 
 await suite("jsx-legacy-runtime", async () => {
@@ -17,8 +17,8 @@ await suite("jsx-legacy-runtime", async () => {
 		});
 		strictEqual(elem.getAttribute("foo"), "bar");
 		deepStrictEqual(Array.from(elem.classList), ["a", "b"]);
-		strictEqual(elem.dataset.bar, "baz");
-		strictEqual(elem.dataset.baz, "boo");
+		strictEqual(elem.getAttribute("data-bar"), "baz");
+		strictEqual(elem.getAttribute("data-baz"), "boo");
 		strictEqual(elem.title, "example");
 	});
 

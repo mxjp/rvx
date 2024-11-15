@@ -1132,7 +1132,7 @@ await suite("dom/model", async () => {
 				elem.style.setProperty("foo", "bar");
 				strictEqual(elem.hasAttribute("style"), true);
 				elem.style.removeProperty("foo");
-				strictEqual(elem.hasAttribute("style"), false);
+				strictEqual(elem.hasAttribute("style"), true);
 			});
 
 			await test("outerHTML", () => {

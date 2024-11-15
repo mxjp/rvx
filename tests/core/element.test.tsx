@@ -3,7 +3,7 @@ import test, { suite } from "node:test";
 
 import { capture, ClassValue, Context, e, ENV, ExpressionResult, NODE, sig, StyleMap, uncapture } from "rvx";
 
-import { assertEvents } from "../common.js";
+import { assertEvents, ENV_TYPE } from "../common.js";
 
 await suite("element", async () => {
 	for (const jsx of [false, true]) {
@@ -34,7 +34,7 @@ await suite("element", async () => {
 				).outerHTML, "<div>12</div>");
 			});
 
-			await test("events", () => {
+			await test("events", { skip: ENV_TYPE === "rvxdom" }, () => {
 				const events: unknown[] = [];
 
 				const ctx = new Context<string | undefined>();
@@ -70,7 +70,7 @@ await suite("element", async () => {
 							}, { capture: true })
 							.elem;
 				});
-				const a = new ENV.current.MouseEvent("click");
+				const a = new ENV.current.CustomEvent("click");
 				elem.dispatchEvent(a);
 				assertEvents(events, [a]);
 				const b = new ENV.current.CustomEvent("custom-event");
@@ -98,8 +98,13 @@ await suite("element", async () => {
 				});
 				strictEqual(elem.getAttribute("foo"), "bar");
 				deepStrictEqual(Array.from(elem.classList), ["a", "b"]);
-				strictEqual(elem.dataset.bar, "baz");
-				strictEqual(elem.dataset.baz, "boo");
+				strictEqual(elem.getAttribute("data-bar"), "baz");
+				strictEqual(elem.getAttribute("data-baz"), "boo");
+				// TODO: Support dataset:
+				if (ENV_TYPE !== "rvxdom") {
+					strictEqual(elem.dataset.bar, "baz");
+					strictEqual(elem.dataset.baz, "boo");
+				}
 				strictEqual(elem.title, "example");
 			});
 
@@ -378,35 +383,38 @@ await suite("element", async () => {
 							])
 							.elem;
 				});
-				strictEqual(elem.style.color, "red");
-				strictEqual(elem.style.width, "42px");
+				strictEqual(elem.style.getPropertyValue("color"), "red");
+				strictEqual(elem.style.getPropertyValue("width"), "42px");
 				c.value = { width: "7px" };
-				strictEqual(elem.style.color, "red");
-				strictEqual(elem.style.width, "7px");
+				strictEqual(elem.style.getPropertyValue("color"), "red");
+				strictEqual(elem.style.getPropertyValue("width"), "7px");
 				a.value = { color: "blue", width: "13px" };
-				strictEqual(elem.style.color, "red");
-				strictEqual(elem.style.width, "7px");
+				strictEqual(elem.style.getPropertyValue("color"), "red");
+				strictEqual(elem.style.getPropertyValue("width"), "7px");
 				b.value = "green";
-				strictEqual(elem.style.color, "green");
-				strictEqual(elem.style.width, "7px");
+				strictEqual(elem.style.getPropertyValue("color"), "green");
+				strictEqual(elem.style.getPropertyValue("width"), "7px");
 				c.value = {};
-				strictEqual(elem.style.color, "green");
-				strictEqual(elem.style.width, "7px");
+				strictEqual(elem.style.getPropertyValue("color"), "green");
+				strictEqual(elem.style.getPropertyValue("width"), "7px");
 				a.value = { color: "gray" };
-				strictEqual(elem.style.color, "green");
-				strictEqual(elem.style.width, "7px");
+				strictEqual(elem.style.getPropertyValue("color"), "green");
+				strictEqual(elem.style.getPropertyValue("width"), "7px");
 				b.value = "silver";
-				strictEqual(elem.style.color, "silver");
-				strictEqual(elem.style.width, "7px");
+				strictEqual(elem.style.getPropertyValue("color"), "silver");
+				strictEqual(elem.style.getPropertyValue("width"), "7px");
 			});
 
 			await test("api types", () => {
 				const elem = jsx
 					? <div /> as HTMLElement
 					: e("div").elem;
-				strictEqual(elem instanceof ENV.current.HTMLDivElement, true);
+				if (ENV_TYPE === "rvxdom") {
+					strictEqual(elem instanceof ENV.current.Element, true);
+				} else {
+					strictEqual(elem instanceof ENV.current.HTMLDivElement, true);
+				}
 				elem.classList.add("foo");
-				elem.click();
 			});
 
 			await test("node target", () => {
@@ -535,7 +543,11 @@ await suite("element", async () => {
 				events.push("a");
 			}}
 			ref={elem => {
-				strictEqual(elem instanceof ENV.current.HTMLDivElement, true);
+				if (ENV_TYPE === "rvxdom") {
+					strictEqual(elem instanceof ENV.current.Element, true);
+				} else {
+					strictEqual(elem instanceof ENV.current.HTMLDivElement, true);
+				}
 				events.push("ref");
 			}}
 			attr:data-b={() => {

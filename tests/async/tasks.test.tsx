@@ -4,7 +4,7 @@ import test, { suite } from "node:test";
 import { capture, Context, ENV, mount, uncapture, watch } from "rvx";
 import { isPending, isSelfPending, TASKS, Tasks, waitFor } from "rvx/async";
 
-import { assertEvents, future } from "../common.js";
+import { assertEvents, ENV_TYPE, future } from "../common.js";
 
 await suite("async/tasks", async () => {
 	for (const fn of [false, true]) {
@@ -124,8 +124,7 @@ await suite("async/tasks", async () => {
 		});
 	});
 
-	// TODO: Skip in rvx dom environment:
-	await test("manage focus", async () => {
+	await test("manage focus", { skip: ENV_TYPE === "rvxdom" }, async () => {
 		const input = <input /> as HTMLInputElement;
 		const dispose = capture(() => mount(ENV.current.document.body, input));
 		try {

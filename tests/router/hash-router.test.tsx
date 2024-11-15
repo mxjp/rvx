@@ -4,7 +4,7 @@ import test from "node:test";
 import { ENV, uncapture, watch } from "rvx";
 import { HashRouter } from "rvx/router";
 
-import { assertEvents } from "../common.js";
+import { assertEvents, ENV_TYPE } from "../common.js";
 
 ENV.default = Object.create(ENV.default);
 
@@ -21,7 +21,7 @@ Object.defineProperty(ENV.current, "location", {
 	} as typeof globalThis.location,
 });
 
-await test("router/history router", () => {
+await test("router/history router", { skip: ENV_TYPE === "rvxdom" }, () => {
 	hash = "";
 
 	const events: unknown[] = [];

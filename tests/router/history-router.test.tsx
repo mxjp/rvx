@@ -4,7 +4,7 @@ import test, { suite } from "node:test";
 import { ENV, uncapture, watch } from "rvx";
 import { HistoryRouter } from "rvx/router";
 
-import { assertEvents } from "../common.js";
+import { assertEvents, ENV_TYPE } from "../common.js";
 
 let locationPath = "/";
 let locationSearch = "";
@@ -43,7 +43,7 @@ Object.defineProperty(ENV.current, "location", {
 	} as typeof globalThis.location
 });
 
-await suite("router/history router", async () => {
+await suite("router/history router", { skip: ENV_TYPE === "rvxdom" }, async () => {
 	await test("general usage", async () => {
 		locationPath = "/";
 		locationSearch = "";

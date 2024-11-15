@@ -64,6 +64,8 @@ export function htmlEscapeAppendTo(html: string, data: string) {
 	});
 }
 
+export class RvxNoopEvent {}
+
 export class RvxNoopEventTarget {
 	addEventListener(): void {
 		// noop
@@ -405,6 +407,17 @@ export class RvxNode extends RvxNoopEventTarget {
 		return ref;
 	}
 
+	append(...nodes: (RvxNode | string)[]): void {
+		for (let i = 0; i < nodes.length; i++) {
+			const node = nodes[i];
+			if (typeof node === "string") {
+				this.appendChild(new RvxText(node));
+			} else {
+				this.appendChild(node);
+			}
+		}
+	}
+
 	get textContent(): string {
 		let text = "";
 		let node = this.#first;
@@ -461,7 +474,7 @@ export class RvxComment extends RvxNode {
 
 	constructor(data: string) {
 		super();
-		this.#data = data;
+		this.#data = String(data);
 	}
 
 	get textContent() {
@@ -469,7 +482,7 @@ export class RvxComment extends RvxNode {
 	}
 
 	set textContent(data: string) {
-		this.#data = data;
+		this.#data = String(data);
 	}
 
 	[NODE_APPEND_HTML_TO](html: string): string {
@@ -487,7 +500,7 @@ export class RvxText extends RvxNode {
 
 	constructor(data: string) {
 		super();
-		this.#data = data;
+		this.#data = String(data);
 	}
 
 	get textContent() {
@@ -495,7 +508,7 @@ export class RvxText extends RvxNode {
 	}
 
 	set textContent(data: string) {
-		this.#data = data;
+		this.#data = String(data);
 	}
 
 	[NODE_APPEND_HTML_TO](html: string): string {
@@ -597,11 +610,7 @@ export class RvxElementClassList {
 
 	#invalidateAttribute(): void {
 		this.#value = null;
-		if (this.#tokens?.size === 0) {
-			this.#attrs.delete("class");
-		} else {
-			this.#attrs.set("class", ATTR_STALE);
-		}
+		this.#attrs.set("class", ATTR_STALE);
 	}
 
 	[ATTR_INVALIDATE_PARSED](): void {
@@ -675,10 +684,15 @@ export class RvxElementClassList {
 	}
 }
 
+interface CssValue {
+	value: string;
+	important: boolean;
+}
+
 export class RvxElementStyles {
 	#attrs: Attrs;
 	#value: string | null = null;
-	#props: Map<string, string> | null = null;
+	#props: Map<string, CssValue> | null = null;
 
 	constructor(attrs: Attrs) {
 		this.#attrs = attrs;
@@ -695,10 +709,13 @@ export class RvxElementStyles {
 				for (const [name, value] of this.#props) {
 					// TODO: Document that value should not contain untrusted data.
 					if (first) {
-						cssText = cssText + name + ": " + value;
+						cssText = cssText + name + ": " + value.value;
 						first = false;
 					} else {
-						cssText = cssText + "; " + name + ": " + value;
+						cssText = cssText + "; " + name + ": " + value.value;
+					}
+					if (value.important) {
+						cssText += " !important";
 					}
 				}
 				this.#value = cssText;
@@ -707,7 +724,7 @@ export class RvxElementStyles {
 		return this.#value;
 	}
 
-	#parseAttribute(): Map<string, string> {
+	#parseAttribute(): Map<string, CssValue> {
 		if (this.#props === null) {
 			const value = this.#attrs.get("style");
 			if (value === undefined || value === "" || value === ATTR_STALE) {
@@ -721,11 +738,7 @@ export class RvxElementStyles {
 
 	#invalidateAttribute(): void {
 		this.#value = null;
-		if (this.#props?.size === 0) {
-			this.#attrs.delete("style");
-		} else {
-			this.#attrs.set("style", ATTR_STALE);
-		}
+		this.#attrs.set("style", ATTR_STALE);
 	}
 
 	[ATTR_INVALIDATE_PARSED](): void {
@@ -734,19 +747,25 @@ export class RvxElementStyles {
 
 	setProperty(name: string, value: string, priority?: "" | "important"): void {
 		const props = this.#parseAttribute();
-		if (priority === "important") {
-			value += " !important";
-		}
-		props.set(name, value);
+		props.set(name, { value: String(value), important: priority === "important" });
 		this.#invalidateAttribute();
 	}
 
-	removeProperty(name: string): void {
+	removeProperty(name: string): string {
 		const props = this.#parseAttribute();
-		if (props.delete(name)) {
+		const value = props.get(name);
+		if (value === undefined) {
+			return "";
+		} else {
+			props.delete(name);
 			this.#invalidateAttribute();
+			return value.value;
 		}
-		// TODO: Document, that this returns undefined instead of the removed value.
+	}
+
+	getPropertyValue(name: string): string {
+		const props = this.#parseAttribute();
+		return props.get(name)?.value ?? "";
 	}
 }
 
@@ -814,17 +833,6 @@ export class RvxElement extends RvxNode {
 		// noop
 	}
 
-	append(...nodes: (RvxNode | string)[]): void {
-		for (let i = 0; i < nodes.length; i++) {
-			const node = nodes[i];
-			if (typeof node === "string") {
-				this.appendChild(new RvxText(node));
-			} else {
-				this.appendChild(node);
-			}
-		}
-	}
-
 	#invalidateAttribute(name: string) {
 		if (name === "class") {
 			this.#classList?.[ATTR_INVALIDATE_PARSED]();
@@ -834,7 +842,7 @@ export class RvxElement extends RvxNode {
 	}
 
 	setAttribute(name: string, value: string): void {
-		this.#attrs.set(name, value);
+		this.#attrs.set(name, String(value));
 		this.#invalidateAttribute(name);
 	}
 
@@ -916,9 +924,11 @@ export class RvxElement extends RvxNode {
 export class RvxWindow extends RvxNoopEventTarget {
 	static {
 		this.prototype.Comment = RvxComment;
+		this.prototype.CustomEvent = RvxNoopEvent;
 		this.prototype.Document = RvxDocument;
 		this.prototype.DocumentFragment = RvxDocumentFragment;
 		this.prototype.Element = RvxElement;
+		this.prototype.Event = RvxNoopEvent;
 		this.prototype.Node = RvxNode;
 		this.prototype.Range = RvxRange;
 		this.prototype.Text = RvxText;
@@ -930,9 +940,11 @@ export class RvxWindow extends RvxNoopEventTarget {
 
 export interface RvxWindow {
 	Comment: typeof RvxComment;
+	CustomEvent: typeof RvxNoopEvent;
 	Document: typeof RvxDocument;
 	DocumentFragment: typeof RvxDocumentFragment;
 	Element: typeof RvxElement;
+	Event: typeof RvxNoopEvent;
 	Node: typeof RvxNode;
 	Range: typeof RvxRange;
 	Text: typeof RvxText;
