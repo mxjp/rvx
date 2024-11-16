@@ -14,17 +14,34 @@ const _capture = <T>(context: Context<T>): ContextState<T> => {
  * If you need a global default value, use {@link DefaultContext} instead.
  */
 export class Context<T> {
-	#stack: (T | undefined)[] = [];
+	/**
+	 * @param defaultValue The default value. This is used if the {@link current} value is `null` or `undefined`.
+	 */
+	constructor(defaultValue: T);
+	constructor(...defaultValue: T extends undefined ? [T?] : never);
+	constructor(defaultValue: T) {
+		this.default = defaultValue;
+	}
+
+	#stack: (T | null | undefined)[] = [];
 	#windowId = 0;
+
+	/**
+	 * Get or set the default value.
+	 *
+	 * This is used if the {@link current} value is `null` or `undefined`.
+	 */
+	default: T;
 
 	/**
 	 * Get the current value for this context.
 	 */
-	get current(): T | undefined {
+	get current(): T {
 		if (this.#windowId === WINDOWS.length) {
 			const stack = this.#stack;
-			return stack[stack.length - 1];
+			return stack[stack.length - 1] ?? this.default;
 		}
+		return this.default;
 	}
 
 	/**
@@ -35,7 +52,7 @@ export class Context<T> {
 	 * @param args The function arguments.
 	 * @returns The function's return value.
 	 */
-	inject<F extends (...args: any) => any>(value: T | undefined, fn: F, ...args: Parameters<F>): ReturnType<F> {
+	inject<F extends (...args: any) => any>(value: T | null | undefined, fn: F, ...args: Parameters<F>): ReturnType<F> {
 		const window = WINDOWS[WINDOWS.length - 1];
 		const stack = this.#stack;
 		const parent = this.#windowId;
@@ -54,7 +71,7 @@ export class Context<T> {
 	/**
 	 * Shorthand for creating a context-value pair for this context.
 	 */
-	with(value: T | undefined): ContextState<T> {
+	with(value: T | null | undefined): ContextState<T> {
 		return { context: this, value };
 	}
 
@@ -119,28 +136,9 @@ export class Context<T> {
 }
 
 /**
- * A {@link Context context} with a default value.
+ * @deprecated Use {@link Context} instead.
  */
-export class DefaultContext<T> extends Context<T> {
-	/**
-	 * Get or set the default value.
-	 *
-	 * This is used if the {@link current} value is `null` or `undefined`.
-	 */
-	default: T;
-
-	/**
-	 * @param defaultValue The default value. This is used if the {@link current} value is `null` or `undefined`.
-	 */
-	constructor(defaultValue: T) {
-		super();
-		this.default = defaultValue;
-	}
-
-	get current(): T {
-		return super.current ?? this.default;
-	}
-}
+export const DefaultContext = Context;
 
 interface ActiveState<T> {
 	c: Context<T>;
@@ -149,7 +147,7 @@ interface ActiveState<T> {
 
 export interface ContextState<T> {
 	context: Context<T>;
-	value: T | undefined;
+	value: T | null | undefined;
 }
 
 /**
@@ -159,7 +157,7 @@ export function Inject<T>(props: {
 	/** The context to inject into. */
 	context: Context<T>;
 	/** The value to inject. */
-	value: T | undefined;
+	value: T | null | undefined;
 	children: () => unknown;
 } | {
 	/** The context states to inject. */

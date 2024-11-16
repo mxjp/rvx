@@ -99,4 +99,4 @@ export class AsyncError extends Error {
 /**
  * Context for the current {@link AsyncContext}.
  */
-export const ASYNC = new Context<AsyncContext>();
+export const ASYNC = new Context<AsyncContext | undefined>();

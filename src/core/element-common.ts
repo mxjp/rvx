@@ -21,7 +21,7 @@ export type XMLNS = typeof HTML | typeof SVG | typeof MATHML;
 /**
  * Context for setting the namespace URI for new elements.
  */
-export const XMLNS = new Context<XMLNS>();
+export const XMLNS = new Context<XMLNS>(HTML);
 
 export type ClassValue = Expression<undefined | null | false | string | Record<string, Expression<boolean | undefined>> | ClassValue[]>;
 

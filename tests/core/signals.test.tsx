@@ -587,7 +587,7 @@ await suite("signals", async () => {
 			const events: unknown[] = [];
 			const signal = sig(1);
 
-			const ctx = new Context();
+			const ctx = new Context<number | undefined>();
 			ctx.inject(42, () => {
 				uncapture(() => watch(() => {
 					strictEqual(isTracking(), true);

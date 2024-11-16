@@ -1,5 +1,5 @@
 import { Context } from "../context.js";
-import { Attributes, ClassValue, EventArgs, EventListener, HTML, RefFn, StyleValue, TagNameMap, XMLNS } from "../element-common.js";
+import { Attributes, ClassValue, EventArgs, EventListener, RefFn, StyleValue, TagNameMap, XMLNS } from "../element-common.js";
 import { appendContent, setAttr, setClass, setStyle } from "../internals.js";
 import { watch } from "../signals.js";
 
@@ -14,7 +14,7 @@ import { watch } from "../signals.js";
 export function createElement<K extends keyof TagNameMap>(tagName: K, attrs: Attributes<TagNameMap[K]>, content: unknown): TagNameMap[K];
 export function createElement<E extends Element>(tagName: string, attrs: Attributes<E>, content: unknown): E;
 export function createElement(tagName: string, attrs: Attributes<TagNameMap[keyof TagNameMap]>, content: unknown): Element {
-	const elem = document.createElementNS(XMLNS.current ?? HTML, tagName);
+	const elem = document.createElementNS(XMLNS.current, tagName);
 	for (const name in attrs) {
 		const value = attrs[name];
 		if (value !== undefined) {

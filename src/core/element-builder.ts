@@ -1,5 +1,5 @@
 import { Context } from "./context.js";
-import { ClassValue, EventListener, HTML, NODE, NodeTarget, StyleValue, TagNameMap, XMLNS } from "./element-common.js";
+import { ClassValue, EventListener, NODE, NodeTarget, StyleValue, TagNameMap, XMLNS } from "./element-common.js";
 import { appendContent, setAttr, setClass, setStyle } from "./internals.js";
 import { Expression, watch } from "./signals.js";
 
@@ -56,5 +56,5 @@ export class ElementBuilder<E extends Element> implements NodeTarget {
 export function e<K extends keyof TagNameMap>(tagName: K): ElementBuilder<TagNameMap[K]>;
 export function e<E extends Element>(tagName: string): ElementBuilder<E>;
 export function e(tagName: string): ElementBuilder<Element> {
-	return new ElementBuilder(document.createElementNS(XMLNS.current ?? HTML, tagName));
+	return new ElementBuilder(document.createElementNS(XMLNS.current, tagName));
 }

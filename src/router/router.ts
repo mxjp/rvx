@@ -56,4 +56,4 @@ export interface Router {
 /**
  * Context for the current router.
  */
-export const ROUTER = new Context<Router>();
+export const ROUTER = new Context<Router | undefined>();

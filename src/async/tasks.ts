@@ -139,7 +139,7 @@ export class Tasks {
 /**
  * Context for the current {@link Tasks} instance.
  */
-export const TASKS = new Context<Tasks>;
+export const TASKS = new Context<Tasks | undefined>();
 
 /**
  * Check if there are any pending tasks in the current tasks instance.
