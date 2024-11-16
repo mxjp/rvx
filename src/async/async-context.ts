@@ -1,17 +1,24 @@
 import { Context } from "../core/context.js";
 import { sig } from "../core/signals.js";
 
+export interface AsyncContextParent {
+	/**
+	 * Called by async contexts to track a pending task.
+	 */
+	track(task: Promise<unknown>): void;
+}
+
 /**
  * Represents pending operations in an asynchronously rendered tree.
  *
  * This can be used to wait until an entire async tree is rendered or to check if any unhandled errors occurred.
  */
 export class AsyncContext {
-	#parent: AsyncContext | undefined;
+	#parent: AsyncContextParent | undefined;
 	#tasks = sig(new Set<Promise<unknown>>());
 	#errorHandlers = new Set<unknown[]>();
 
-	constructor(parent?: AsyncContext) {
+	constructor(parent?: AsyncContextParent) {
 		this.#parent = parent;
 	}
 
