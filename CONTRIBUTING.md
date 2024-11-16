@@ -94,7 +94,7 @@ npx playwright install
 node ./snapshot.js
 
 # Run benchmarks against existing snapshots:
-node ./run.js --headless
+node ./run.js
 
 # Run only benchmarks starting with "signals-":
 node ./run.js --only signals-

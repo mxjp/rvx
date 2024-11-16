@@ -10,6 +10,9 @@ import yargsParser from "yargs-parser";
 const ctx = dirname(fileURLToPath(import.meta.url));
 const args = yargsParser(process.argv.slice(2), {
 	boolean: ["headless"],
+	default: {
+		headless: true,
+	},
 	string: ["only"],
 });
 const headless = args.headless ?? false;
