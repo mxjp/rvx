@@ -6,7 +6,7 @@ Contexts can be used to implicitly pass values along the call stack and other rv
 	import { Context } from "rvx";
 
 	// Create a context:
-	const MESSAGE = new Context<string>();
+	const MESSAGE = new Context<string | undefined>();
 
 	// Inject a value for the context while running a function:
 	MESSAGE.inject("Hello World!", () => {
@@ -35,7 +35,7 @@ You can also inject values for multiple contexts at once:
 	```jsx
 	import { Context } from "rvx";
 
-	const MESSAGE = new Context<string>();
+	const MESSAGE = new Context<string | undefined>();
 
 	Context.inject([
 		MESSAGE.with("Hello World!"),
@@ -62,20 +62,22 @@ You can also inject values for multiple contexts at once:
 	```
 
 ## Default Values
-Contexts return `undefined` as the current value if nothing is injected.
-
-If you need a global default value, you can use a `DefaultContext` instead:
+Contexts have a global default value which is returned if nothing, `null` or `undefined` is injected.
 
 === "JSX"
 	```jsx
-	import { DefaultContext } from "rvx";
+	import { Context } from "rvx";
 
-	const CONTEXT = new DefaultContext(42);
+	const CONTEXT = new Context(42);
 
 	CONTEXT.current; // 42
 
 	CONTEXT.inject(77, () => {
 		CONTEXT.current; // 77
+
+		CONTEXT.inject(null, () => {
+			CONTEXT.current; // 42
+		});
 	});
 	```
 
@@ -83,12 +85,16 @@ If you need a global default value, you can use a `DefaultContext` instead:
 	```jsx
 	import { DefaultContext } from "./rvx.js";
 
-	const CONTEXT = new DefaultContext(42);
+	const CONTEXT = new Context(42);
 
 	CONTEXT.current; // 42
 
 	CONTEXT.inject(77, () => {
 		CONTEXT.current; // 77
+
+		CONTEXT.inject(null, () => {
+			CONTEXT.current; // 42
+		});
 	});
 	```
 
