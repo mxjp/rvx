@@ -1,4 +1,4 @@
-import { DefaultContext } from "./context.js";
+import { Context } from "./context.js";
 
 export type Env = typeof globalThis;
 
@@ -7,4 +7,4 @@ export type Env = typeof globalThis;
  *
  * This can be used to run rvx applications in non browser environments.
  */
-export const ENV = new DefaultContext<Env>(globalThis);
+export const ENV = new Context<Env>(globalThis);
