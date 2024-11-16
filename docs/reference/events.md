@@ -129,7 +129,7 @@ Event listeners running while a value for a context is injected also have access
 	import { Context } from "rvx";
 	import { Emitter } from "rvx/event";
 
-	const MESSAGE = new Context<string>();
+	const MESSAGE = new Context<string | undefined>();
 
 	const emitter = new Emitter<[]>();
 	emitter.event(() => {
