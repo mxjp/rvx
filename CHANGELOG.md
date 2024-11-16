@@ -3,6 +3,7 @@
 ## 18.5
 + `Context` now has a global default value.
 + **Deprecated:** The `DefaultContext` export will be removed in the next major version. Use `Context` instead.
++ `AsyncContext` now supports custom parent objects.
 
 ## 18.4
 + `TaskSlot` has been renamed to `Queue` with a deprecated alias export.
