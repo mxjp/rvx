@@ -239,8 +239,4 @@ Rvx supports all the client side features you would expect from a modern framewo
 + [History API & hash based routing](./reference/routing.md)
 	+ Custom & manual route matching
 	+ Nested routing
-
-### Hydration Unsupport
-Rvx does not directly support server side rendering (SSR) or hydration and probably never will. Instead, you can use libraries like [JSDOM](https://www.npmjs.com/package/jsdom) to render rvx applications on the server or during the build process.
-
-On the client, rvx provides a way to [render](./examples/render-to-string.md) an entire application in the background, wait for all async parts to complete and then replace pre-rendered DOM. This approach temporarily uses more memory than hydration, but has approximately the same performance, makes client side code much more simpler and removes the need to explicitly support SSR and hydration in your application code.
++ [Server side rendering](./reference/advanced-topics/environments.md)
