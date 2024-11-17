@@ -1019,7 +1019,7 @@ await suite("dom/model", async () => {
 				elem.setAttribute("class", "a b c");
 				strictEqual(elem.getAttribute("class"), "a b c");
 				elem.classList.replace("b", "d");
-				strictEqual(elem.getAttribute("class"), "a c d");
+				strictEqual(elem.getAttribute("class"), "a d c");
 			});
 
 			await test("invalidate by toggle", () => {
@@ -1036,9 +1036,9 @@ await suite("dom/model", async () => {
 				strictEqual(elem.classList.replace("c", "d"), false);
 				deepStrictEqual(Array.from(elem.classList), ["a", "b"]);
 				strictEqual(elem.classList.replace("a", "c"), true);
-				deepStrictEqual(Array.from(elem.classList), ["b", "c"]);
+				deepStrictEqual(Array.from(elem.classList), ["c", "b"]);
 				strictEqual(elem.classList.replace("a", "c"), false);
-				deepStrictEqual(Array.from(elem.classList), ["b", "c"]);
+				deepStrictEqual(Array.from(elem.classList), ["c", "b"]);
 			});
 
 			await test("toggle", () => {

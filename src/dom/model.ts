@@ -593,216 +593,258 @@ export function isVoidTag(xmlns: XMLNS, name: string): boolean {
 	}
 }
 
-const ATTR_STALE = Symbol("stale");
-const ATTR_INVALIDATE_PARSED = Symbol("invalidateParsed");
+const ATTR_CHANGED = Symbol("attrChanged");
 
-type Attrs = Map<string, string | typeof ATTR_STALE>;
+interface Attribute {
+	name: string;
+	value: string;
+	stale: boolean;
+}
+
+function setAttrStale(attrs: Attribute[], name: string): Attribute {
+	for (let i = 0; i < attrs.length; i++) {
+		const attr = attrs[i];
+		if (attr.name === name) {
+			attr.stale = true;
+			return attr;
+		}
+	}
+	const attr: Attribute = { name, value: "", stale: true };
+	attrs.push(attr);
+	return attr;
+}
 
 export class ElementClassList {
-	#attrs: Attrs;
-	#value: string | null = null;
-	#tokens: Set<string> | null = null;
+	#attrs: Attribute[];
+	#attr: Attribute | null = null;
+	#tokens: string[] | null = null;
 
-	constructor(attrs: Attrs) {
+	constructor(attrs: Attribute[]) {
 		this.#attrs = attrs;
 	}
 
 	get length(): number {
-		return this.#parseAttribute().size;
+		return this.#parse().length;
 	}
 
 	get value(): string {
-		if (this.#value === null) {
-			if (this.#tokens === null) {
-				const raw = this.#attrs.get("class");
-				return raw === ATTR_STALE ? "" : (raw ?? "");
-			} else {
-				let value = "";
-				let first = true;
-				for (const token of this.#tokens) {
-					if (first) {
-						value += token;
-						first = false;
-					} else {
-						value = value + " " + token;
-					}
+		const attr = this.#attr;
+		if (attr === null || attr.stale) {
+			const tokens = this.#tokens;
+			if (tokens === null) {
+				return "";
+			}
+			let value = "";
+			for (let i = 0; i < tokens.length; i++) {
+				if (i > 0) {
+					value += " ";
 				}
-				this.#value = value;
+				value += tokens[i];
 			}
+			attr!.value = value;
+			attr!.stale = false;
+			return value;
 		}
-		return this.#value;
+		return attr.value;
 	}
 
-	#parseAttribute(): Set<string> {
-		if (this.#tokens === null) {
-			const value = this.#attrs.get("class");
-			if (value === undefined || value === ATTR_STALE) {
-				this.#tokens = new Set();
+	#parse(): string[] {
+		let tokens = this.#tokens;
+		if (tokens === null) {
+			const attr = this.#attr;
+			if (attr === null || attr.stale) {
+				tokens = [];
 			} else {
-				this.#tokens = new Set(value.split(" "));
+				tokens = attr.value.split(" ");
 			}
+			this.#tokens = tokens;
 		}
-		return this.#tokens;
+		return tokens;
 	}
 
-	#invalidateAttribute(): void {
-		this.#value = null;
-		this.#attrs.set("class", ATTR_STALE);
+	#setAttrStale(): void {
+		this.#attr = setAttrStale(this.#attrs, "class");
 	}
 
-	[ATTR_INVALIDATE_PARSED](): void {
+	[ATTR_CHANGED](attr: Attribute | null): void {
+		this.#attr = attr;
 		this.#tokens = null;
 	}
 
 	add(...tokens: string[]): void {
-		const set = this.#parseAttribute();
-		const prevSize = set.size;
+		const set = this.#parse();
 		for (let i = 0; i < tokens.length; i++) {
-			set.add(tokens[i]);
+			const token = tokens[i];
+			if (!set.includes(token)) {
+				set.push(token);
+			}
 		}
-		if (set.size !== prevSize) {
-			this.#invalidateAttribute();
-		}
+		this.#setAttrStale();
 	}
 
 	contains(token: string): boolean {
-		return this.#parseAttribute().has(token);
+		return this.#parse().includes(String(token));
 	}
 
 	remove(...tokens: string[]): void {
-		const set = this.#parseAttribute();
-		const prevSize = set.size;
+		const set = this.#parse();
 		for (let i = 0; i < tokens.length; i++) {
-			set.delete(tokens[i]);
+			const token = String(tokens[i]);
+			const index = set.indexOf(token);
+			if (index >= 0) {
+				set.splice(index, 1);
+			}
 		}
-		if (set.size !== prevSize) {
-			this.#invalidateAttribute();
-		}
+		this.#setAttrStale();
 	}
 
 	replace(oldToken: string, newToken: string): boolean {
-		const set = this.#parseAttribute();
-		if (set.delete(oldToken)) {
-			set.add(newToken);
-			this.#invalidateAttribute();
+		const set = this.#parse();
+		const index = set.indexOf(String(oldToken));
+		if (index >= 0) {
+			set[index] = String(newToken);
+			this.#setAttrStale();
 			return true;
 		}
 		return false;
 	}
 
 	toggle(token: string, force?: boolean): boolean {
-		const set = this.#parseAttribute();
-		const prevSize = set.size;
+		token = String(token);
+		const set = this.#parse();
+		const index = set.indexOf(token);
 		let exists = false;
 		if (force === undefined) {
-			if (!set.delete(token)) {
-				set.add(token);
+			if (index < 0) {
+				set.push(token);
 				exists = true;
+			} else {
+				set.splice(index, 1);
 			}
 		} else if (force) {
-			set.add(token);
+			if (index < 0) {
+				set.push(token);
+			}
 			exists = true;
-
-		} else {
-			set.delete(token);
+		} else if (index >= 0) {
+			set.splice(index, 1);
 		}
-		if (set.size !== prevSize) {
-			this.#invalidateAttribute();
-		}
+		this.#setAttrStale();
 		return exists;
 	}
 
 	values(): IterableIterator<string> {
-		return this.#parseAttribute()[Symbol.iterator]();
+		return this.#parse()[Symbol.iterator]();
 	}
 
 	[Symbol.iterator](): IterableIterator<string> {
-		return this.#parseAttribute()[Symbol.iterator]();
+		return this.#parse()[Symbol.iterator]();
 	}
 }
 
-interface CssValue {
+interface StyleProp {
+	name: string;
 	value: string;
 	important: boolean;
 }
 
 export class ElementStyles {
-	#attrs: Attrs;
-	#value: string | null = null;
-	#props: Map<string, CssValue> | null = null;
+	#attrs: Attribute[];
+	#attr: Attribute | null = null;
+	#props: StyleProp[] | null = null;
 
-	constructor(attrs: Attrs) {
+	constructor(attrs: Attribute[]) {
 		this.#attrs = attrs;
 	}
 
-	get cssText() {
-		if (this.#value === null) {
-			if (this.#props === null) {
-				const raw = this.#attrs.get("style");
-				return raw === ATTR_STALE ? "" : (raw ?? "");
-			} else {
-				let cssText = "";
-				let first = true;
-				for (const [name, value] of this.#props) {
-					// TODO: Document that value should not contain untrusted data.
-					if (first) {
-						cssText = cssText + name + ": " + value.value;
-						first = false;
-					} else {
-						cssText = cssText + "; " + name + ": " + value.value;
-					}
-					if (value.important) {
-						cssText += " !important";
-					}
-				}
-				this.#value = cssText;
+	get cssText(): string {
+		const attr = this.#attr;
+		if (attr === null || attr.stale) {
+			const props = this.#props;
+			if (props === null) {
+				return "";
 			}
+			let cssText = "";
+			for (let i = 0; i < props.length; i++) {
+				const prop = props[i];
+				if (i > 0) {
+					cssText += "; ";
+				}
+				cssText = cssText + prop.name + ": " + prop.value;
+				if (prop.important) {
+					cssText += " !important";
+				}
+			}
+			attr!.stale = false;
+			attr!.value = cssText;
+			return cssText;
 		}
-		return this.#value;
+		return attr.value;
 	}
 
-	#parseAttribute(): Map<string, CssValue> {
-		if (this.#props === null) {
-			const value = this.#attrs.get("style");
-			if (value === undefined || value === "" || value === ATTR_STALE) {
-				this.#props = new Map();
+	#parse(): StyleProp[] {
+		let props = this.#props;
+		if (props === null) {
+			const attr = this.#attr;
+			if (attr === null || attr.stale || attr.value === "") {
+				this.#props = props = [];
 			} else {
 				throw new Error("style attribute parsing is not supported");
 			}
 		}
-		return this.#props;
+		return props;
 	}
 
-	#invalidateAttribute(): void {
-		this.#value = null;
-		this.#attrs.set("style", ATTR_STALE);
+	#setAttrStale(): void {
+		this.#attr = setAttrStale(this.#attrs, "style");
 	}
 
-	[ATTR_INVALIDATE_PARSED](): void {
+	[ATTR_CHANGED](attr: Attribute | null): void {
+		this.#attr = attr;
 		this.#props = null;
 	}
 
 	setProperty(name: string, value: string, priority?: "" | "important"): void {
-		const props = this.#parseAttribute();
-		props.set(name, { value: String(value), important: priority === "important" });
-		this.#invalidateAttribute();
+		const props = this.#parse();
+		for (let i = 0; i < props.length; i++) {
+			const prop = props[i];
+			if (prop.name === name) {
+				prop.value = String(value);
+				prop.important = priority === "important";
+				this.#setAttrStale();
+				return;
+			}
+		}
+		props.push({
+			name,
+			value,
+			important: priority === "important",
+		});
+		this.#setAttrStale();
 	}
 
 	removeProperty(name: string): string {
-		const props = this.#parseAttribute();
-		const value = props.get(name);
-		if (value === undefined) {
-			return "";
-		} else {
-			props.delete(name);
-			this.#invalidateAttribute();
-			return value.value;
+		const props = this.#parse();
+		for (let i = 0; i < props.length; i++) {
+			const prop = props[i];
+			if (prop.name === name) {
+				props.splice(i, 1);
+				this.#setAttrStale();
+				return prop.value;
+			}
 		}
+		return "";
 	}
 
 	getPropertyValue(name: string): string {
-		const props = this.#parseAttribute();
-		return props.get(name)?.value ?? "";
+		const props = this.#parse();
+		for (let i = 0; i < props.length; i++) {
+			const prop = props[i];
+			if (prop.name === name) {
+				return prop.value;
+			}
+		}
+		return "";
 	}
 }
 
@@ -815,9 +857,9 @@ export class Element extends Node {
 	#namespaceURI: string;
 	#void: boolean | undefined;
 	#tagName: string;
-	#attrs: Attrs = new Map();
-	#classList: ElementClassList | null = null;
-	#styles: ElementStyles | null = null;
+	#attrs: Attribute[] = [];
+	#classList = new ElementClassList(this.#attrs);
+	#styles = new ElementStyles(this.#attrs);
 
 	constructor(namespaceURI: string, tagName: string) {
 		super();
@@ -870,63 +912,102 @@ export class Element extends Node {
 		// noop
 	}
 
-	#invalidateAttribute(name: string) {
-		if (name === "class") {
-			this.#classList?.[ATTR_INVALIDATE_PARSED]();
-		} else if (name === "style") {
-			this.#styles?.[ATTR_INVALIDATE_PARSED]();
+	#attrChanged(name: string, attr: Attribute | null) {
+		switch (name) {
+			case "class":
+				this.#classList[ATTR_CHANGED](attr);
+				break;
+			case "style":
+				this.#styles[ATTR_CHANGED](attr);
+				break;
 		}
 	}
 
 	setAttribute(name: string, value: string): void {
-		this.#attrs.set(name, String(value));
-		this.#invalidateAttribute(name);
+		const attrs = this.#attrs;
+		for (let i = 0; i < attrs.length; i++) {
+			const attr = attrs[i];
+			if (attr.name === name) {
+				attr.value = String(value);
+				attr.stale = false;
+				this.#attrChanged(name, attr);
+				return;
+			}
+		}
+		const attr: Attribute = {
+			name,
+			value: String(value),
+			stale: false,
+		};
+		attrs.push(attr);
+		this.#attrChanged(name, attr);
 	}
 
 	removeAttribute(name: string): void {
-		this.#attrs.delete(name);
-		this.#invalidateAttribute(name);
+		const attrs = this.#attrs;
+		for (let i = 0; i < attrs.length; i++) {
+			const attr = attrs[i];
+			if (attr.name === name) {
+				attrs.splice(i, 1);
+				this.#attrChanged(name, null);
+				return;
+			}
+		}
 	}
 
 	toggleAttribute(name: string, force?: boolean): void {
-		const has = this.#attrs.has(name);
-		force ??= !has;
-		if (has !== force) {
-			if (force) {
-				this.#attrs.set(name, "");
-			} else {
-				this.#attrs.delete(name);
+		const attrs = this.#attrs;
+		for (let i = 0; i < attrs.length; i++) {
+			const attr = attrs[i];
+			if (attr.name === name) {
+				if (force === undefined || !force) {
+					attrs.splice(i, 1);
+					this.#attrChanged(name, null);
+				}
+				return;
 			}
 		}
-		this.#invalidateAttribute(name);
+		if (force === undefined || force) {
+			const attr: Attribute = {
+				name,
+				value: "",
+				stale: false,
+			};
+			attrs.push(attr);
+			this.#attrChanged(name, attr);
+		}
 	}
 
 	getAttribute(name: string): string | null {
-		const value = this.#attrs.get(name);
-		if (value === ATTR_STALE) {
-			return this.#resolveStaleAttr(name);
+		const attrs = this.#attrs;
+		for (let i = 0; i < attrs.length; i++) {
+			const attr = attrs[i];
+			if (attr.name === name) {
+				return this.#resolveAttr(attr);
+			}
 		}
-		return value ?? null;
+		return null;
 	}
 
 	hasAttribute(name: string): boolean {
-		return this.#attrs.has(name);
+		const attrs = this.#attrs;
+		for (let i = 0; i < attrs.length; i++) {
+			if (attrs[i].name === name) {
+				return true;
+			}
+		}
+		return false;
 	}
 
-	#resolveStaleAttr(name: string): string {
-		switch (name) {
-			case "class": {
-				const value = this.#classList!.value;
-				this.#attrs.set(name, value);
-				return value;
+	#resolveAttr(attr: Attribute): string {
+		if (attr.stale) {
+			switch (attr.name) {
+				case "class": return this.#classList.value;
+				case "style": return this.#styles.cssText;
+				default: throw new Error("invalid internal state");
 			}
-			case "style": {
-				const value = this.#styles!.cssText;
-				this.#attrs.set(name, value);
-				return value;
-			}
-			default: throw new Error("invalid internal state");
 		}
+		return attr.value;
 	}
 
 	#isVoidTag(): boolean {
@@ -935,11 +1016,10 @@ export class Element extends Node {
 
 	[NODE_APPEND_HTML_TO](html: string): string {
 		html = html + "<" + this.#tagName;
-		for (let [name, value] of this.#attrs) {
-			if (value === ATTR_STALE) {
-				value = this.#resolveStaleAttr(name);
-			}
-			html = htmlEscapeAppendTo(html + " " + name + "=\"", value) + "\"";
+		const attrs = this.#attrs;
+		for (let i = 0; i < attrs.length; i++) {
+			const attr = attrs[i];
+			html = htmlEscapeAppendTo(html + " " + attr.name + "=\"", this.#resolveAttr(attr)) + "\"";
 		}
 		if (this.#isVoidTag()) {
 			html += ">";
