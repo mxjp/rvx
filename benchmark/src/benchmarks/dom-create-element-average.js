@@ -9,11 +9,13 @@ export function create({ e, ENV, WINDOW }) {
 				.set("foo", "a")
 				.set("bar", "b")
 				.set("baz", "c")
-				.class(["foo", "bar", "baz"])
+				.set("baz", "d")
+				.class(["foo", "bar", "baz", "boo"])
 				.style({
 					"foo": "a",
 					"bar": "b",
 					"baz": "c",
+					"boo": "d",
 				});
 		});
 	};

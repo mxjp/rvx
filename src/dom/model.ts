@@ -601,19 +601,6 @@ interface Attribute {
 	stale: boolean;
 }
 
-function setAttrStale(attrs: Attribute[], name: string): Attribute {
-	for (let i = 0; i < attrs.length; i++) {
-		const attr = attrs[i];
-		if (attr.name === name) {
-			attr.stale = true;
-			return attr;
-		}
-	}
-	const attr: Attribute = { name, value: "", stale: true };
-	attrs.push(attr);
-	return attr;
-}
-
 export class ElementClassList {
 	#attrs: Attribute[];
 	#attr: Attribute | null = null;
@@ -663,7 +650,12 @@ export class ElementClassList {
 	}
 
 	#setAttrStale(): void {
-		this.#attr = setAttrStale(this.#attrs, "class");
+		const attr = this.#attr;
+		if (attr === null) {
+			this.#attrs.push(this.#attr = { name: "class", value: "", stale: true });
+		} else {
+			attr.stale = true;
+		}
 	}
 
 	[ATTR_CHANGED](attr: Attribute | null): void {
@@ -796,7 +788,12 @@ export class ElementStyles {
 	}
 
 	#setAttrStale(): void {
-		this.#attr = setAttrStale(this.#attrs, "style");
+		const attr = this.#attr;
+		if (attr === null) {
+			this.#attrs.push(this.#attr = { name: "style", value: "", stale: true });
+		} else {
+			attr.stale = true;
+		}
 	}
 
 	[ATTR_CHANGED](attr: Attribute | null): void {
