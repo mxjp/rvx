@@ -1,4 +1,9 @@
+
 # Environments
+
+!!! warning
+	All API documented on this page is currently **experimental** and may change at any time.
+
 Rvx accesses all browser related APIs through the `ENV` context which provides a `window` like object.
 ```jsx
 import { ENV } from "rvx";
