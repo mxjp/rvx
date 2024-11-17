@@ -1,5 +1,9 @@
 # Changelog
 
+## 18.6
++ Add experimental `ENV` context API.
++ Add experimental `"rvx/dom"` module.
+
 ## 18.5
 + `Context` now has a global default value.
 + **Deprecated:** The `DefaultContext` export will be removed in the next major version. Use `Context` instead.
