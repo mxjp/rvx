@@ -2,16 +2,7 @@ import { JSDOM } from "jsdom";
 import { onTeardownLeak } from "rvx/test";
 import { ENV } from "rvx";
 
-const dom = new JSDOM(`
-	<!DOCTYPE html>
-	<html lang="en">
-		<head>
-			<meta charset="UTF-8">
-			<title>rvx!</title>
-		</head>
-		<body></body>
-	</html>
-`);
+const dom = new JSDOM();
 
 ENV.default = dom.window as any;
 

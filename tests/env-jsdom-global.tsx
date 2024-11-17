@@ -1,15 +1,6 @@
 import { JSDOM } from "jsdom";
 
-const dom = new JSDOM(`
-	<!DOCTYPE html>
-	<html lang="en">
-		<head>
-			<meta charset="UTF-8">
-			<title>rvx!</title>
-		</head>
-		<body></body>
-	</html>
-`);
+const dom = new JSDOM();
 
 for (const key of [
 	"Comment",
