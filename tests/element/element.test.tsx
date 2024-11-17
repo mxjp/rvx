@@ -1,7 +1,7 @@
 import { strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 
-import { map, nocapture, teardown } from "rvx";
+import { ENV, map, nocapture, teardown } from "rvx";
 import { RvxElement, RvxElementOptions } from "rvx/element";
 
 import { assertEvents } from "../common.js";
@@ -28,7 +28,7 @@ await suite("element/element", async () => {
 		}
 	}
 
-	customElements.define("test-element", TestElement);
+	ENV.current.customElements.define("test-element", TestElement);
 
 	await test("default lifecycle & attributes", async () => {
 		options = undefined;
@@ -36,7 +36,7 @@ await suite("element/element", async () => {
 		strictEqual(elem instanceof TestElement, true);
 		assertEvents(elem.events, []);
 		for (let i = 0; i < 3; i++) {
-			document.body.appendChild(elem);
+			ENV.current.document.body.appendChild(elem);
 			assertEvents(elem.events, ["render"]);
 			strictEqual(elem.shadowRoot!.innerHTML, "Hello World!");
 
@@ -67,7 +67,7 @@ await suite("element/element", async () => {
 			assertEvents(elem.events, ["render"]);
 			strictEqual(elem.shadowRoot!.innerHTML, "Hello World!");
 
-			document.body.appendChild(elem);
+			ENV.current.document.body.appendChild(elem);
 			strictEqual(elem.shadowRoot!.innerHTML, "Hello World!");
 
 			elem.setAttribute("name", "Test");
@@ -94,7 +94,7 @@ await suite("element/element", async () => {
 		assertEvents(elem.events, []);
 		strictEqual(elem.shadowRoot, null);
 		for (let i = 0; i < 3; i++) {
-			document.body.appendChild(elem);
+			ENV.current.document.body.appendChild(elem);
 			assertEvents(elem.events, ["render"]);
 			strictEqual(elem.innerHTML, "Hello World!");
 

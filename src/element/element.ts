@@ -1,3 +1,4 @@
+import { ENV } from "../core/env.js";
 import { capture, TeardownHook, uncapture } from "../core/lifecycle.js";
 import { render } from "../core/render.js";
 import { sig, Signal, watchUpdates } from "../core/signals.js";
@@ -30,7 +31,9 @@ export interface RvxElementOptions {
 	dispose?: DisposeTrigger;
 }
 
-export abstract class RvxElement extends HTMLElement {
+const moduleEnv = ENV.current;
+
+export abstract class RvxElement extends moduleEnv.HTMLElement {
 	static observedAttributes?: string[];
 
 	#signals = new Map<string, Signal<string | null>>();
@@ -94,7 +97,11 @@ export abstract class RvxElement extends HTMLElement {
 	 */
 	start(): void {
 		if (this.#dispose === undefined) {
-			this.#dispose = capture(() => (this.#shadow ?? this).replaceChildren(render(this.render()).take()));
+			this.#dispose = capture(() => {
+				ENV.inject(moduleEnv, () => {
+					(this.#shadow ?? this).replaceChildren(render(this.render()).take());
+				});
+			});
 		}
 	}
 
