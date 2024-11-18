@@ -35,7 +35,6 @@ src/
 
 # Minimal templates for new projects:
 templates/
-	no-build/   # No build system.
 	vite-ts/    # Vite + TypeScript & JSX
 	webpack-ts/ # Webpack + TypeScript & JSX
 
