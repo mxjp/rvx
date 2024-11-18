@@ -9,17 +9,14 @@ import { Async } from "rvx/async";
 import { renderToStringAsync } from "rvx/dom";
 
 export function Example() {
-	return <Async
-		source={renderToStringAsync(() => <>
-			<h1>Hello World!</h1>
+	const promise = renderToStringAsync(() => <>
+		<h1>Hello World!</h1>
+		<Async source={new Promise(r => setTimeout(r, 1000))}>
+			{() => <>This has been rendered asynchronously.</>}
+		</Async>
+	</>);
 
-			{/* The "renderToString" function will wait for this part: */}
-			<Async source={new Promise(r => setTimeout(r, 2000))}>
-				{() => <>This has been rendered asynchronously.</>}
-			</Async>
-		</>)}
-		pending={() => <>Rendering...</>}
-	>
+	return <Async source={promise} pending={() => <>Rendering...</>}>
 		{html => <pre><code>{html}</code></pre>}
 	</Async>;
 }

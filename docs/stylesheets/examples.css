@@ -14,3 +14,7 @@
 input[type="text"] {
 	max-width: 10rem;
 }
+
+pre:has(code) {
+	margin-block: 0;
+}

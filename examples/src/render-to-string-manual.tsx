@@ -1,51 +1,50 @@
 /*
 
 # Render To String (Manual)
-This example shows how to manually render a component to HTML using the runtime's DOM implementation.
+This example shows how to manually render a component to HTML using the browser's DOM implementation.
 
 */
 
-import { Inject, captureSelf, render } from "rvx";
+import { Component, Inject, capture } from "rvx";
 import { ASYNC, Async, AsyncContext } from "rvx/async";
 
-async function renderToString(root: () => unknown): Promise<string> {
-	// Capture teardown hooks for disposing after rendering:
-	return captureSelf(async dispose => {
-		try {
-			// Create an async context for awaiting "<Async>" parts:
-			const context = new AsyncContext();
+async function renderToStringAsync(component: Component): Promise<string> {
+	// Create context for tracking "<Async>" parts:
+	const context = new AsyncContext();
 
-			// Create an arbitrary "host" element to render into:
-			const host = <div /> as Element;
-
-			// Render into the host element:
-			const view = render(<Inject context={ASYNC} value={context}>{root}</Inject>);
-			host.appendChild(view.take());
-
-			// Wait for all "<Async>" parts:
-			await context.complete();
-
-			// Return the final HTML:
-			return host.innerHTML;
-		} finally {
-			// Run captured teardown hooks:
-			dispose();
-		}
+	let host!: Element;
+	const dispose = capture(() => {
+		// Create a host element to render the component into:
+		host = <div>
+			<Inject context={ASYNC} value={context}>
+				{component}
+			</Inject>
+		</div> as Element;
 	});
+
+	try {
+		// Wait for all "<Async>" parts to complete:
+		await context.complete();
+
+		// Capture the current HTML:
+		return host.innerHTML;
+	} finally {
+		// Dispose any resources:
+		dispose();
+	}
 }
 
 export function Example() {
-	return <Async
-		source={renderToString(() => <>
-			<h1>Hello World!</h1>
+	const promise = renderToStringAsync(() => <>
+		<h1>Hello World!</h1>
 
-			{/* The "renderToString" function will wait for this part: */}
-			<Async source={new Promise(r => setTimeout(r, 2000))}>
-				{() => <>This has been rendered asynchronously.</>}
-			</Async>
-		</>)}
-		pending={() => <>Rendering...</>}
-	>
+		{/* The "renderToString" function will wait for this part: */}
+		<Async source={new Promise(r => setTimeout(r, 1000))}>
+			{() => <>This has been rendered asynchronously.</>}
+		</Async>
+	</>);
+
+	return <Async source={promise} pending={() => <>Rendering...</>}>
 		{html => <pre><code>{html}</code></pre>}
 	</Async>;
 }
