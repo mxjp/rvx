@@ -443,6 +443,10 @@ export class Node extends NoopEventTarget {
 		return ref;
 	}
 
+	remove(): void {
+		this.#parent?.removeChild(this);
+	}
+
 	append(...nodes: (Node | string)[]): void {
 		for (let i = 0; i < nodes.length; i++) {
 			const node = nodes[i];

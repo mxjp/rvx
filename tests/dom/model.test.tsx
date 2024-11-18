@@ -764,6 +764,17 @@ await suite("dom/model", async () => {
 			});
 		});
 
+		await test("remove", () => {
+			const parent = new Node();
+			const node = new Node();
+			parent.appendChild(node);
+			node.remove();
+			assertRoot(parent, []);
+			assertRoot(node, []);
+			node.remove();
+			assertRoot(node, []);
+		});
+
 		await test("append", () => {
 			const node = new Node();
 			node.append(
