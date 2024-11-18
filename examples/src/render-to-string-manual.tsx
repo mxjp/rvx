@@ -1,7 +1,7 @@
 /*
 
-# Render To String
-This example shows how to render a rvx component to HTML.
+# Render To String (Manual)
+This example shows how to manually render a component to HTML using the runtime's DOM implementation.
 
 */
 
