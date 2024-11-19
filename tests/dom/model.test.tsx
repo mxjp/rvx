@@ -1,7 +1,7 @@
 import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
 import { HTML, MATHML, SVG } from "rvx";
-import { htmlEscapeAppendTo, isVoidTag, resolveNamespaceURI, NoopComment, Document, DocumentFragment, Element, Node, Range, Text, Window, XMLNS_HTML, XMLNS_MATHML, XMLNS_SVG } from "rvx/dom";
+import { htmlEscapeAppendTo, isVoidTag, resolveNamespaceURI, NoopComment, Document, DocumentFragment, Element, Node, Range, Text, Window, XMLNS_HTML, XMLNS_MATHML, XMLNS_SVG, RawHTML } from "rvx/dom";
 
 await suite("dom/model", async () => {
 	await test("htmlEscape", () => {
@@ -785,6 +785,40 @@ await suite("dom/model", async () => {
 			strictEqual(node.firstChild instanceof Text, true);
 			strictEqual(node.lastChild instanceof Element, true);
 		});
+
+		await test("replace children", () => {
+			const parent = new Node();
+			const a = new Node();
+			const c = new Node();
+			const d = new Node();
+
+			parent.replaceChildren(a, "b");
+
+			const b = parent.lastChild!;
+			strictEqual(b instanceof Text, true);
+			assertRoot(parent, [
+				{ is: a },
+				{ is: b },
+			]);
+
+			parent.replaceChildren();
+			assertRoot(parent);
+			assertRoot(a);
+			assertRoot(b);
+
+			parent.replaceChildren(b, a);
+			assertRoot(parent, [
+				{ is: b },
+				{ is: a },
+			]);
+
+			parent.replaceChildren(c, a, d);
+			assertRoot(parent, [
+				{ is: c },
+				{ is: a },
+				{ is: d },
+			]);
+		});
 	});
 
 	await test("node text content", () => {
@@ -915,13 +949,29 @@ await suite("dom/model", async () => {
 			strictEqual(elem.tagName, "div");
 		});
 
-		await test("innerHTML", () => {
+		await test("node innerHTML", () => {
 			const elem = new Element(HTML, "div");
 			strictEqual(elem.innerHTML, "");
 			elem.appendChild(new Text("test"));
 			strictEqual(elem.innerHTML, "test");
 			elem.appendChild(new Element(HTML, "br"));
 			strictEqual(elem.innerHTML, "test<br>");
+		});
+
+		await test("raw innerHTML", () => {
+			const elem = new Element(HTML, "div");
+			elem.innerHTML = "test";
+
+			strictEqual(elem.innerHTML, "test");
+			strictEqual(elem.outerHTML, "<div>test</div>");
+
+			elem.innerHTML = "<input><!--test-->";
+			strictEqual(elem.outerHTML, "<div><input><!--test--></div>");
+
+			const raw = elem.firstChild;
+			strictEqual(elem.lastChild, raw);
+			strictEqual(raw instanceof RawHTML, true);
+			strictEqual((raw as RawHTML).outerHTML, "<input><!--test-->");
 		});
 
 		await suite("attributes", async () => {

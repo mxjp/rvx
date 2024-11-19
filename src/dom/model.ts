@@ -458,6 +458,21 @@ export class Node extends NoopEventTarget {
 		}
 	}
 
+	replaceChildren(...nodes: (Node | string)[]): void {
+		let child = this.#first;
+		while (child !== null) {
+			const next = child.#next;
+			child.#parent = null;
+			child.#prev = null;
+			child.#next = null;
+			child = next;
+		}
+		this.#length = 0;
+		this.#first = null;
+		this.#last = null;
+		this.append(...nodes);
+	}
+
 	get textContent(): string {
 		let text = "";
 		let node = this.#first;
@@ -891,6 +906,10 @@ export class Element extends Node {
 		return html;
 	}
 
+	set innerHTML(html: string) {
+		this.replaceChildren(new RawHTML(html));
+	}
+
 	get classList(): ElementClassList {
 		if (this.#classList === null) {
 			this.#classList = new ElementClassList(this.#attrs);
@@ -1030,6 +1049,19 @@ export class Element extends Node {
 			html += "/>";
 		}
 		return html;
+	}
+}
+
+export class RawHTML extends Node {
+	#html: string;
+
+	constructor(html: string) {
+		super();
+		this.#html = html;
+	}
+
+	[NODE_APPEND_HTML_TO](html: string): string {
+		return html + this.#html;
 	}
 }
 
