@@ -1,10 +1,9 @@
 import { strictEqual } from "node:assert";
 import test from "node:test";
-
 import { ENV, uncapture, watch } from "rvx";
 import { HashRouter } from "rvx/router";
-
-import { assertEvents, ENV_TYPE } from "../common.js";
+import { isRvxDom } from "../../dist/es/dom/env.js";
+import { assertEvents } from "../common.js";
 
 ENV.default = Object.create(ENV.default);
 
@@ -21,7 +20,7 @@ Object.defineProperty(ENV.current, "location", {
 	} as typeof globalThis.location,
 });
 
-await test("router/history router", { skip: ENV_TYPE === "rvxdom" }, () => {
+await test("router/history router", { skip: isRvxDom() }, () => {
 	hash = "";
 
 	const events: unknown[] = [];

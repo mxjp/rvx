@@ -1,10 +1,9 @@
 import { strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-
 import { capture, Context, ENV, mount, uncapture, watch } from "rvx";
 import { isPending, isSelfPending, TASKS, Tasks, waitFor } from "rvx/async";
-
-import { assertEvents, ENV_TYPE, future } from "../common.js";
+import { isRvxDom } from "rvx/dom";
+import { assertEvents, future } from "../common.js";
 
 await suite("async/tasks", async () => {
 	for (const fn of [false, true]) {
@@ -124,7 +123,7 @@ await suite("async/tasks", async () => {
 		});
 	});
 
-	await test("manage focus", { skip: ENV_TYPE === "rvxdom" }, async () => {
+	await test("manage focus", { skip: isRvxDom() }, async () => {
 		const input = <input /> as HTMLInputElement;
 		const dispose = capture(() => mount(ENV.current.document.body, input));
 		try {

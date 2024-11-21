@@ -1,4 +1,5 @@
 import { HTML, MATHML, SVG } from "../core/element-common.js";
+import { WINDOW_MARKER } from "./internals.js";
 
 const NODE_LENGTH = Symbol("length");
 const NODE_APPEND_HTML_TO = Symbol("appendHtmlTo");
@@ -1067,6 +1068,7 @@ export class RawHTML extends Node {
 
 export class Window extends NoopEventTarget {
 	static {
+		this.prototype[WINDOW_MARKER] = true;
 		this.prototype.Comment = NoopComment;
 		this.prototype.CustomEvent = NoopEvent;
 		this.prototype.Document = Document;
@@ -1083,6 +1085,7 @@ export class Window extends NoopEventTarget {
 }
 
 export interface Window {
+	[WINDOW_MARKER]: boolean;
 	Comment: typeof NoopComment;
 	CustomEvent: typeof NoopEvent;
 	Document: typeof Document;

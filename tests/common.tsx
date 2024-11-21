@@ -2,10 +2,6 @@ import { deepStrictEqual } from "node:assert";
 
 import { ENV, teardown, View, ViewBoundaryOwner } from "rvx";
 
-export type EnvType = "jsdom-global" | "jsdom" | "rvxdom";
-
-export const ENV_TYPE: EnvType | undefined = (globalThis as any)[Symbol.for("rvx:test:env-type")];
-
 export function assertEvents(events: unknown[], expected: unknown[]): void {
 	deepStrictEqual(events, expected);
 	events.length = 0;

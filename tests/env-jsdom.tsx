@@ -9,5 +9,3 @@ ENV.default = dom.window as any;
 onTeardownLeak(() => {
 	throw new Error("teardown leak");
 });
-
-(globalThis as any)[Symbol.for("rvx:test:env-type")] = "jsdom";

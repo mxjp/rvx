@@ -1,10 +1,9 @@
 import { strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-
 import { ENV, uncapture, watch } from "rvx";
+import { isRvxDom } from "rvx/dom";
 import { HistoryRouter } from "rvx/router";
-
-import { assertEvents, ENV_TYPE } from "../common.js";
+import { assertEvents } from "../common.js";
 
 let locationPath = "/";
 let locationSearch = "";
@@ -43,7 +42,7 @@ Object.defineProperty(ENV.current, "location", {
 	} as typeof globalThis.location
 });
 
-await suite("router/history router", { skip: ENV_TYPE === "rvxdom" }, async () => {
+await suite("router/history router", { skip: isRvxDom() }, async () => {
 	await test("general usage", async () => {
 		locationPath = "/";
 		locationSearch = "";

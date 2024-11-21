@@ -1,11 +1,12 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 import { render } from "rvx";
+import { isRvxDom } from "rvx/dom";
 import { querySelector, querySelectorAll } from "rvx/test";
-import { ENV_TYPE, text } from "../common.js";
+import { text } from "../common.js";
 
 await suite("test/view", async () => {
-	await test("querySelector", { skip: ENV_TYPE === "rvxdom" }, () => {
+	await test("querySelector", { skip: isRvxDom() }, () => {
 		const view = render(<>
 			<div>a</div>
 			<span>
@@ -16,7 +17,7 @@ await suite("test/view", async () => {
 		strictEqual(text(div), "a");
 	});
 
-	await test("querySelectorAll", { skip: ENV_TYPE === "rvxdom" }, () => {
+	await test("querySelectorAll", { skip: isRvxDom() }, () => {
 		const view = render(<>
 			<div>a</div>
 			<span>

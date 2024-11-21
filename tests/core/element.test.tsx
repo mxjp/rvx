@@ -1,9 +1,8 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-
 import { capture, ClassValue, Context, e, ENV, ExpressionResult, NODE, sig, StyleMap, uncapture } from "rvx";
-
-import { assertEvents, ENV_TYPE } from "../common.js";
+import { isRvxDom } from "rvx/dom";
+import { assertEvents } from "../common.js";
 
 await suite("element", async () => {
 	for (const jsx of [false, true]) {
@@ -34,7 +33,7 @@ await suite("element", async () => {
 				).outerHTML, "<div>12</div>");
 			});
 
-			await test("events", { skip: ENV_TYPE === "rvxdom" }, () => {
+			await test("events", { skip: isRvxDom() }, () => {
 				const events: unknown[] = [];
 
 				const ctx = new Context<string | undefined>();
@@ -101,7 +100,7 @@ await suite("element", async () => {
 				strictEqual(elem.getAttribute("data-bar"), "baz");
 				strictEqual(elem.getAttribute("data-baz"), "boo");
 				// TODO: Support dataset:
-				if (ENV_TYPE !== "rvxdom") {
+				if (!isRvxDom()) {
 					strictEqual(elem.dataset.bar, "baz");
 					strictEqual(elem.dataset.baz, "boo");
 				}
@@ -409,7 +408,7 @@ await suite("element", async () => {
 				const elem = jsx
 					? <div /> as HTMLElement
 					: e("div").elem;
-				if (ENV_TYPE === "rvxdom") {
+				if (isRvxDom()) {
 					strictEqual(elem instanceof ENV.current.Element, true);
 				} else {
 					strictEqual(elem instanceof ENV.current.HTMLDivElement, true);
@@ -543,7 +542,7 @@ await suite("element", async () => {
 				events.push("a");
 			}}
 			ref={elem => {
-				if (ENV_TYPE === "rvxdom") {
+				if (isRvxDom()) {
 					strictEqual(elem instanceof ENV.current.Element, true);
 				} else {
 					strictEqual(elem instanceof ENV.current.HTMLDivElement, true);
