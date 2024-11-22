@@ -22,7 +22,7 @@ function setUrl(data: unknown, unused: unknown, url: unknown) {
 	}
 }
 
-ENV.default = Object.create(ENV.default);
+ENV.default = Object.create(ENV.default as object);
 
 Object.defineProperty(ENV.current, "history", {
 	value: {

@@ -1,5 +1,4 @@
 import { type ClassValue, NODE, NodeTarget, type StyleValue } from "./element-common.js";
-import { Env } from "./env.js";
 import { teardown, type TeardownHook } from "./lifecycle.js";
 import { Expression, watch } from "./signals.js";
 import { View } from "./view.js";
@@ -23,21 +22,21 @@ export interface TeardownFrame {
 /**
  * Internal utility to create placeholder comments.
  */
-export function createPlaceholder(env: Env): Node {
+export function createPlaceholder(env: typeof globalThis): Node {
 	return env.document.createComment("g");
 }
 
 /**
  * Internal utility to create an arbitrary parent node.
  */
-export function createParent(env: Env): Node {
+export function createParent(env: typeof globalThis): Node {
 	return env.document.createDocumentFragment();
 }
 
 /**
  * Internal utility to extract an inclusive range of nodes.
  */
-export function extractRange(first: Node, last: Node, env: Env): DocumentFragment {
+export function extractRange(first: Node, last: Node, env: typeof globalThis): DocumentFragment {
 	const r = new env.Range();
 	r.setStartBefore(first);
 	r.setEndAfter(last);
@@ -61,7 +60,7 @@ export function useStack<T, R>(stack: T[], frame: T, fn: () => R): R {
  *
  * Null and undefined are displayed as an empty string.
  */
-export function createText(expr: Expression<unknown>, env: Env): Text {
+export function createText(expr: Expression<unknown>, env: typeof globalThis): Text {
 	const text = env.document.createTextNode("");
 	watch(expr, value => text.textContent = (value ?? "") as string);
 	return text;
@@ -73,7 +72,7 @@ export function createText(expr: Expression<unknown>, env: Env): Text {
  * @param node The node.
  * @param content The content to append.
  */
-export function appendContent(node: Node, content: unknown, env: Env): void {
+export function appendContent(node: Node, content: unknown, env: typeof globalThis): void {
 	if (content === null || content === undefined) {
 		return;
 	}

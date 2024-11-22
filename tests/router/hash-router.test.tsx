@@ -5,7 +5,7 @@ import { HashRouter } from "rvx/router";
 import { isRvxDom } from "../../dist/es/dom/env.js";
 import { assertEvents } from "../common.js";
 
-ENV.default = Object.create(ENV.default);
+ENV.default = Object.create(ENV.default as object);
 
 let hash = "";
 Object.defineProperty(ENV.current, "location", {

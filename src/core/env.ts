@@ -1,9 +1,8 @@
 import { Context } from "./context.js";
 
-/**
- * **This is experimental API.**
- */
-export type Env = typeof globalThis;
+interface EnvContext extends Context<unknown> {
+	get current(): typeof globalThis;
+}
 
 /**
  * **This is experimental API.**
@@ -12,4 +11,4 @@ export type Env = typeof globalThis;
  *
  * This can be used to run rvx applications in non browser environments.
  */
-export const ENV = new Context<Env>(globalThis);
+export const ENV: EnvContext = new Context(globalThis);

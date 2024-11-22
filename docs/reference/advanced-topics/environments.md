@@ -9,10 +9,10 @@ Rvx accesses all browser related APIs through the `ENV` context which provides a
 import { ENV } from "rvx";
 
 // Set the global default:
-ENV.default = someAPI as any;
+ENV.default = someAPI;
 
 // Or use a different DOM API in a specific context:
-ENV.inject(someAPI as any, () => {
+ENV.inject(someAPI, () => {
 	// ...
 });
 
@@ -141,7 +141,7 @@ The [JSDOM](https://www.npmjs.com/package/jsdom) library can emulate a subset of
 import { JSDOM } from "jsdom";
 import { ENV } from "rvx";
 
-ENV.default = new JSDOM().window as any;
+ENV.default = new JSDOM().window;
 
 mount(ENV.current.document.body, <h1>Hello World!</h1>);
 ```
@@ -151,7 +151,7 @@ The `rvx/element` module always uses the global default at module load time. To 
 ```jsx
 import { ENV } from "rvx";
 
-ENV.default = someAPI as any;
+ENV.default = someAPI;
 
 const { RvxElement } = await import("rvx/element");
 

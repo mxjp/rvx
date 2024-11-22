@@ -1,5 +1,5 @@
 import { NODE, NodeTarget } from "./element-common.js";
-import { Env, ENV } from "./env.js";
+import { ENV } from "./env.js";
 import { createParent, createPlaceholder, createText } from "./internals.js";
 import { teardown } from "./lifecycle.js";
 import { View, ViewSetBoundaryFn } from "./view.js";
@@ -7,7 +7,7 @@ import { View, ViewSetBoundaryFn } from "./view.js";
 /**
  * Internal shorthand for creating the boundary comment of an empty view.
  */
-function empty(setBoundary: ViewSetBoundaryFn, env: Env): void {
+function empty(setBoundary: ViewSetBoundaryFn, env: typeof globalThis): void {
 	const node = createPlaceholder(env);
 	setBoundary(node, node);
 }
@@ -15,7 +15,7 @@ function empty(setBoundary: ViewSetBoundaryFn, env: Env): void {
 /**
  * Internal shorthand for using the children of a node as boundary.
  */
-function use(setBoundary: ViewSetBoundaryFn, node: Node, env: Env): void {
+function use(setBoundary: ViewSetBoundaryFn, node: Node, env: typeof globalThis): void {
 	if (node.firstChild === null) {
 		empty(setBoundary, env);
 	} else {

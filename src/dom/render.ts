@@ -12,7 +12,7 @@ export function renderToString<P>(component: Component<P>, props: P): string;
 export function renderToString<P>(component: Component<P>, props?: P): string {
 	let html: string;
 	capture(() => {
-		ENV.inject(WINDOW as any, () => {
+		ENV.inject(WINDOW, () => {
 			const view = render(component(props!));
 			const root = view.take();
 			if (root instanceof Node) {
@@ -30,7 +30,7 @@ export async function renderToStringAsync<P>(component: Component<P>, props?: P)
 	let view: View;
 	const dispose = capture(() => {
 		Context.inject([
-			ENV.with(WINDOW as any),
+			ENV.with(WINDOW),
 			ASYNC.with(asyncCtx),
 		], () => {
 			view = render(component(props!));
