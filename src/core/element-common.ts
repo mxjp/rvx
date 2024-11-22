@@ -23,18 +23,27 @@ export type XMLNS = typeof HTML | typeof SVG | typeof MATHML;
  */
 export const XMLNS = new Context<XMLNS>(HTML);
 
+/**
+ * Represents any supported "class" attribute value.
+ */
 export type ClassValue = Expression<undefined | null | false | string | Record<string, Expression<boolean | undefined>> | ClassValue[]>;
 
 type HyphenCase<T> = T extends `${infer A}${infer B}`
 	? `${A extends Capitalize<A> ? "-" : ""}${Lowercase<A>}${HyphenCase<B>}`
 	: T;
 
+/**
+ * An object with css property expressions used in {@link StyleValue}.
+ */
 export type StyleMap = {
 	[K in keyof CSSStyleDeclaration as HyphenCase<K>]?: Expression<undefined | null | string>;
 } & {
 	[K in string]?: Expression<undefined | null | string>;
 };
 
+/**
+ * Represents any supported "style" attribute value.
+ */
 export type StyleValue = Expression<undefined | StyleMap | StyleValue[]>;
 
 export type EventListener<E extends Event> = (event: E) => void;
