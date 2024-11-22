@@ -1,6 +1,14 @@
 
+/**
+ * Stack of context windows.
+ *
+ * Each context window is a stack of contexts where a value was provided during that window.
+ */
 const WINDOWS: Context<unknown>[][] = [[]];
 
+/**
+ * Internal function to capture the current state of the specified context.
+ */
 const _capture = <T>(context: Context<T>): ContextState<T> => {
 	return {
 		context: context,
@@ -23,7 +31,16 @@ export class Context<T> {
 		this.default = defaultValue!;
 	}
 
+	/**
+	 * The stack of provided values.
+	 */
 	#stack: (T | null | undefined)[] = [];
+
+	/**
+	 * The innermost context window id (index in the context window stack) in which a value has been provided.
+	 *
+	 * Provided values are ignored if this mismatches the current context window.
+	 */
 	#windowId = 0;
 
 	/**
@@ -95,7 +112,7 @@ export class Context<T> {
 	/**
 	 * Run a function while injecting the specified states.
 	 *
-	 * @param states The states to inject.
+	 * @param states The states to inject. When providing multiple values for the same context, the last one is used.
 	 * @param fn The function to run.
 	 * @param args The function arguments.
 	 * @returns The function's return value.
@@ -141,12 +158,21 @@ export class Context<T> {
 export const DefaultContext = Context;
 
 interface ActiveState<T> {
+	/** The active context. */
 	c: Context<T>;
+	/** The context window id before this state has been activated. */
 	p: number;
 }
 
+/**
+ * A context-value pair.
+ */
 export interface ContextState<T> {
 	context: Context<T>;
+
+	/**
+	 * The value that is injected when using this state with {@link Inject `<Inject>`}, {@link Context.inject} or {@link Context.window}.
+	 */
 	value: T | null | undefined;
 }
 
