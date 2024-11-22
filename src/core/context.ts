@@ -26,7 +26,7 @@ export class Context<T> {
 	 * @param defaultValue The default value. This is used if the {@link current} value is `null` or `undefined`.
 	 */
 	constructor(defaultValue: T);
-	constructor(...defaultValue: T extends undefined ? [] : never);
+	constructor(...defaultValue: T extends undefined ? [] : [T]);
 	constructor(defaultValue?: T) {
 		this.default = defaultValue!;
 	}
