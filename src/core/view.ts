@@ -124,10 +124,16 @@ export class View {
 	 * If there are multiple nodes, a document fragment containing all nodes of this view is returned.
 	 */
 	take(): Node | DocumentFragment {
-		if (this.#first === this.#last) {
-			return this.#first;
+		const first = this.#first;
+		const last = this.#last;
+		if (first === last) {
+			return first;
 		}
-		return extractRange(this.#first, this.#last, this.#env);
+		const parent = first.parentNode!;
+		if (parent.nodeType === 11 && parent.firstChild === first && parent.lastChild === last) {
+			return parent;
+		}
+		return extractRange(first, last, this.#env);
 	}
 
 	/**
@@ -136,10 +142,12 @@ export class View {
 	 * If there are multiple nodes, they are moved into a new document fragment to allow the view implementation to stay alive.
 	 */
 	detach(): void {
-		if (this.#first === this.#last) {
-			this.#first?.parentNode?.removeChild(this.#first);
+		const first = this.#first;
+		const last = this.#last;
+		if (first === last) {
+			first?.parentNode?.removeChild(first);
 		} else {
-			extractRange(this.#first, this.#last, this.#env);
+			extractRange(first, last, this.#env);
 		}
 	}
 }

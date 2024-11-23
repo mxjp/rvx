@@ -89,12 +89,60 @@ await suite("view", async () => {
 		strictEqual(node.parentNode, null);
 	});
 
-	await test("take multiple nodes", () => {
-		const { view } = testView();
-		const frag = view.take();
-		strictEqual(frag instanceof ENV.current.DocumentFragment, true);
-		strictEqual(view.first, frag.firstChild);
-		strictEqual(view.last, frag.lastChild);
+	await test("take multiple nodes (extract from node)", () => {
+		const first = <div /> as HTMLElement;
+		const last = <div /> as HTMLElement;
+		const parent = <div>{first}{last}</div> as HTMLElement;
+		const view = new View(setBoundary => setBoundary(first, last));
+		strictEqual(first.parentNode, parent);
+		strictEqual(last.parentNode, parent);
+		const fragment = view.take();
+		strictEqual(fragment instanceof ENV.current.DocumentFragment, true);
+		strictEqual(fragment.firstChild, first);
+		strictEqual(fragment.lastChild, last);
+	});
+
+	await test("take multiple nodes (extract from fragment start)", () => {
+		const parent = ENV.current.document.createDocumentFragment();
+		let first = <div /> as HTMLElement;
+		parent.appendChild(first);
+		let last = <div /> as HTMLElement;
+		parent.appendChild(last);
+		parent.appendChild(<div /> as HTMLElement);
+		const view = new View(setBoundary => setBoundary(first, last));
+		const fragment = view.take();
+		strictEqual(fragment instanceof ENV.current.DocumentFragment, true);
+		strictEqual(fragment.firstChild, first);
+		strictEqual(fragment.lastChild, last);
+		strictEqual(parent.childNodes.length, 1);
+	});
+
+	await test("take multiple nodes (extract from fragment end)", () => {
+		const parent = ENV.current.document.createDocumentFragment();
+		parent.appendChild(<div /> as HTMLElement);
+		let first = <div /> as HTMLElement;
+		parent.appendChild(first);
+		let last = <div /> as HTMLElement;
+		parent.appendChild(last);
+		const view = new View(setBoundary => setBoundary(first, last));
+		const fragment = view.take();
+		strictEqual(fragment instanceof ENV.current.DocumentFragment, true);
+		strictEqual(fragment.firstChild, first);
+		strictEqual(fragment.lastChild, last);
+		strictEqual(parent.childNodes.length, 1);
+	});
+
+	await test("take multiple nodes (reuse parent fragment)", () => {
+		const parent = ENV.current.document.createDocumentFragment();
+		let first = <div /> as HTMLElement;
+		parent.appendChild(first);
+		let last = <div /> as HTMLElement;
+		parent.appendChild(last);
+		const view = new View(setBoundary => setBoundary(first, last));
+		const fragment = view.take();
+		strictEqual(parent, fragment);
+		strictEqual(fragment.firstChild, first);
+		strictEqual(fragment.lastChild, last);
 	});
 
 	await test("detach multiple nodes", () => {

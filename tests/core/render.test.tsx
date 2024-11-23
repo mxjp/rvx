@@ -48,10 +48,6 @@ await suite("render", async () => {
 		deepStrictEqual(nodes, [a, b]);
 		strictEqual(a.parentNode, fragment);
 		strictEqual(b.parentNode, fragment);
-		const next = view.take();
-		notStrictEqual(fragment, next);
-		strictEqual(a.parentNode, next);
-		strictEqual(b.parentNode, next);
 	});
 
 	await test("node target", () => {
