@@ -7,13 +7,15 @@
 	</head>
 	<body>
 		<script type="module">
-			const START_SAMPLE_SIZE = 10;
-			const TARGET_DURATION = 250;
-			const MIN_DURATION = 200;
-			const MIN_SAMPLES = 5;
-			const MAX_SAMPLE_TRIES = 20;
 
 			globalThis[Symbol.for("rvx:benchmark")] = async args => {
+				const START_SAMPLE_SIZE = 10;
+				const TARGET_DURATION = 250;
+				const MIN_DURATION = 200;
+				const MIN_SAMPLES = args.extended ? 20 : 5;
+				const MAX_SAMPLE_TRIES = args.extended ? 200 : 50;
+				const WARMUP_SAMPLES = args.extended ? 5 : 3;
+
 				const benchmark = await import(`./benchmarks/${args.benchmark}`);
 				const multiplier = benchmark.multiplier ?? 1;
 
@@ -28,7 +30,7 @@
 				});
 
 				let tries = 0;
-				while (entries.some(e => e.samples.length < MIN_SAMPLES)) {
+				while (entries.some(e => e.samples.length < MIN_SAMPLES + WARMUP_SAMPLES)) {
 					if (++tries > MAX_SAMPLE_TRIES) {
 						throw new Error("max sample tries exceeded");
 					}
@@ -54,7 +56,7 @@
 				}
 
 				return {
-					entries: entries.map(e => e.samples),
+					entries: entries.map(e => e.samples.slice(WARMUP_SAMPLES)),
 					tries,
 				};
 			};

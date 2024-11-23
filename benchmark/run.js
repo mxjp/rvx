@@ -9,12 +9,13 @@ import yargsParser from "yargs-parser";
 
 const ctx = dirname(fileURLToPath(import.meta.url));
 const args = yargsParser(process.argv.slice(2), {
-	boolean: ["headless"],
+	boolean: ["headless", "extended"],
 	default: {
 		headless: true,
 	},
 	string: ["only"],
 });
+const extended = args.extended ?? false;
 const headless = args.headless ?? false;
 
 const app = express();
@@ -59,14 +60,15 @@ for (const browserDef of browsers) {
 			try {
 				console.group(benchmark);
 				await page.goto(`http://127.0.0.1:${server.address().port}/`);
-				const { entries, tries } = await page.evaluate(args => globalThis[Symbol.for("rvx:benchmark")](args), { benchmark, snapshots });
+				const { entries, tries } = await page.evaluate(args => globalThis[Symbol.for("rvx:benchmark")](args), { benchmark, snapshots, extended });
 				console.log(`${entries[0].length} samples (${tries - entries[0].length} warmup)`);
 				for (let i = 0; i < snapshots.length; i++) {
-					const ops = entries[i].map(r => 1000 * r.size / r.duration);
+					const samples = entries[i];
+					const ops = samples.map(r => 1000 * r.size / r.duration);
 					const average = ops.reduce((a, s) => a + s, 0) / ops.length;
 					const span = Math.max(...ops) - Math.min(...ops);
 					const spanPercent = 100 * span / average;
-					console.log(`  => ${snapshots[i].padStart(snapshotNameLength, " ")}: ${Math.round(average)} ops/s (±${Number(spanPercent.toFixed(2))}%)`);
+					console.log(`  => ${snapshots[i].padStart(snapshotNameLength, " ")}: ${Math.round(average)} ops/s (±${Number(spanPercent.toFixed(2))}%, ${samples.length} samples)`);
 				}
 			} finally {
 				console.groupEnd();
