@@ -8,10 +8,6 @@ pre {
 	white-space: pre-wrap;
 }
 
-.md-grid {
-	max-width: 60rem;
-}
-
 rvx-example {
 	display: block;
 	padding: .65rem;
