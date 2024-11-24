@@ -1,6 +1,8 @@
-> This guide assumes that you have basic JavaScript knowledge. If not, [MDN](https://developer.mozilla.org/docs/Web/JavaScript) is a good place to start.
-
 # Introduction
+
+!!! info
+	This framework assumes that you have a good fundamental understanding of JavaScript and HTML. If not, [MDN](https://developer.mozilla.org/docs/Web/JavaScript) is a good place to start.
+
 To develop a rvx application locally, you need a recent version of [NodeJS](https://nodejs.org/) or any other compatible JavaScript runtime.
 
 You can use the commands below to setup a minimal rvx project using [Vite](https://vitejs.dev/) or [Webpack](https://webpack.js.org/) and [TypeScript](https://www.typescriptlang.org/):
