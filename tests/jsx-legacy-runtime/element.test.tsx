@@ -71,4 +71,20 @@ await suite("jsx-legacy-runtime", async () => {
 	await test("fragment compat", () => {
 		strictEqual(Fragment, R17Fragment);
 	});
+
+	await test("element key property", () => {
+		const elem = uncapture(() => {
+			return <div key="foo" bar="baz" /> as HTMLElement;
+		});
+		strictEqual(elem.getAttribute("key"), "foo");
+		strictEqual(elem.getAttribute("bar"), "baz");
+	});
+
+	await test("component key property", () => {
+		function Component(props: { key: number, bar: string }) {
+			return props;
+		}
+		const props = <Component key={42} bar="baz" />;
+		deepStrictEqual(props, { key: 42, bar: "baz" });
+	});
 });
