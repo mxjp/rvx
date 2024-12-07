@@ -9,8 +9,8 @@ You can use the commands below to setup a minimal rvx project using [Vite](https
 
 === "Vite"
 	```bash
-	# Create a "my-app" directory from rvx's "vite-ts" template project:
-	npx degit mxjp/rvx/templates/vite-ts my-app
+	# Create a "my-app" directory from rvx's "vite" template project:
+	npx degit mxjp/rvx/templates/vite my-app
 
 	# Move into "my-app":
 	cd my-app
@@ -24,8 +24,8 @@ You can use the commands below to setup a minimal rvx project using [Vite](https
 
 === "Webpack"
 	```bash
-	# Create a "my-app" directory from rvx's "webpack-ts" template project:
-	npx degit mxjp/rvx/templates/webpack-ts my-app
+	# Create a "my-app" directory from rvx's "webpack" template project:
+	npx degit mxjp/rvx/templates/webpack my-app
 
 	# Move into "my-app":
 	cd my-app
