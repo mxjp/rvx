@@ -12,6 +12,7 @@ theme:
     - tac.follow
     - toc.integrate
     - content.tabs.link
+    - content.code.copy
   palette:
     scheme: slate
     primary: black
