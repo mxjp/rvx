@@ -5,7 +5,10 @@
 		"moduleResolution": "Bundler",
 		"jsx": "react-jsx",
 		"jsxImportSource": "rvx",
-		"strict": true
+		"strict": true,
+		"types": [
+			"vite/client"
+		]
 	},
 	"include": [
 		"src"
