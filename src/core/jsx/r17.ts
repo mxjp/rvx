@@ -18,7 +18,7 @@ export namespace JSX {
 	export type ElementClass = never;
 }
 
-export const Fragment = Symbol.for("rvx:jsx-fragment");
+export const Fragment = Symbol.for("rvx:jsx-fragment") as unknown as () => unknown;
 
 export function jsx(type: any, props: any, key: any): unknown {
 	if (type === Fragment) {

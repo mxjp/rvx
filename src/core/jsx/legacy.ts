@@ -20,7 +20,7 @@ declare global {
 	}
 }
 
-export const Fragment = Symbol.for("rvx:jsx-fragment");
+export const Fragment = Symbol.for("rvx:jsx-fragment") as unknown as () => unknown;
 
 const NO_PROPS = {};
 
