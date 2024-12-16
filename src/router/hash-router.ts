@@ -27,14 +27,18 @@ export class HashRouter implements Router {
 	constructor(options?: HashRouterOptions) {
 		const env = this.#env;
 		const parseEvents = options?.parseEvents ?? ["hashchange"];
+		const parse = this.parse.bind(this);
 		for (const name of parseEvents) {
-			env.window.addEventListener(name, this.#parse, { passive: true });
-			teardown(() => env.window.removeEventListener(name, this.#parse));
+			env.window.addEventListener(name, parse, { passive: true });
+			teardown(() => env.window.removeEventListener(name, parse));
 		}
-		this.#parse();
+		this.parse();
 	}
 
-	#parse = () => {
+	/**
+	 * Called to parse & update this router's state from the current browser location.
+	 */
+	parse() {
 		batch(() => {
 			const hash = this.#env.location.hash.slice(1);
 			const queryStart = hash.indexOf("?");

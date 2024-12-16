@@ -1,5 +1,8 @@
 # Changelog
 
+## 18.7
++ Expose router's internal `parse` function for manual invocation & overriding.
+
 ## 18.6
 + Add experimental `ENV` context API.
 + Add experimental `"rvx/dom"` module.

@@ -34,14 +34,18 @@ export class HistoryRouter implements Router {
 		const env = this.#env;
 		this.#basePath = options?.basePath ?? "";
 		const parseEvents = options?.parseEvents ?? ["popstate", "rvx:router:update"];
+		const parse = this.parse.bind(this);
 		for (const name of parseEvents) {
-			env.window.addEventListener(name, this.#parse, { passive: true });
-			teardown(() => env.window.removeEventListener(name, this.#parse));
+			env.window.addEventListener(name, parse, { passive: true });
+			teardown(() => env.window.removeEventListener(name, parse));
 		}
-		this.#parse();
+		this.parse();
 	}
 
-	#parse = () => {
+	/**
+	 * Called to parse & update this router's state from the current browser location.
+	 */
+	parse() {
 		batch(() => {
 			const env = this.#env;
 			this.#path.value = relative(this.#basePath, env.location.pathname);
