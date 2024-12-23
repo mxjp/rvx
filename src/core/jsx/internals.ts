@@ -5,6 +5,13 @@ import { appendContent, setAttr, setClass, setStyle } from "../internals.js";
 import { watch } from "../signals.js";
 
 /**
+ * The jsx fragment component that returns it's children as is.
+ */
+export function Fragment(props: { children?: unknown }) {
+	return props.children;
+}
+
+/**
  * Internal function to create a jsx element.
  *
  * @param tagName The tag name.
@@ -18,6 +25,9 @@ export function createElement(tagName: string, attrs: Attributes<TagNameMap[keyo
 	const env = ENV.current;
 	const elem = env.document.createElementNS(XMLNS.current, tagName);
 	for (const name in attrs) {
+		if (name === "children") {
+			continue;
+		}
 		const value = attrs[name];
 		if (value !== undefined) {
 			if (name.startsWith("on:")) {

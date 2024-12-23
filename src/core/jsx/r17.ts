@@ -1,6 +1,8 @@
 import type { Attributes, TagNameMap } from "../element-common.js";
 import { createElement } from "./internals.js";
 
+export { Fragment } from "./internals.js";
+
 type NativeElement = Element;
 
 export namespace JSX {
@@ -18,21 +20,14 @@ export namespace JSX {
 	export type ElementClass = never;
 }
 
-export const Fragment = Symbol.for("rvx:jsx-fragment") as unknown as () => unknown;
-
 export function jsx(type: any, props: any, key: any): unknown {
-	if (type === Fragment) {
-		return props.children;
-	}
 	if (key !== undefined) {
 		props.key = key;
 	}
 	if (typeof type === "function") {
 		return type(props);
 	}
-	const children = props.children;
-	delete props.children;
-	return createElement(type, props, children);
+	return createElement(type, props, props.children);
 }
 
 export const jsxs = jsx;

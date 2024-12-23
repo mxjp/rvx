@@ -23,7 +23,7 @@ await suite("jsx-legacy-runtime", async () => {
 	});
 
 	await test("jsx fragment", () => {
-		deepStrictEqual(<></>, []);
+		deepStrictEqual(<></>, undefined);
 		deepStrictEqual(<>test</>, ["test"]);
 		deepStrictEqual(<>{1}{2}</>, [1, 2]);
 	});
