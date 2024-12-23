@@ -15,22 +15,20 @@ export function Fragment(props: { children?: unknown }) {
  * Internal function to create a jsx element.
  *
  * @param tagName The tag name.
- * @param attrs The attributes to set.
- * @param content The content to append.
+ * @param attrs The attributes to set with optional children.
  * @returns The element.
  */
-export function createElement<K extends keyof TagNameMap>(tagName: K, attrs: Attributes<TagNameMap[K]>, content: unknown): TagNameMap[K];
-export function createElement<E extends Element>(tagName: string, attrs: Attributes<E>, content: unknown): E;
-export function createElement(tagName: string, attrs: Attributes<TagNameMap[keyof TagNameMap]>, content: unknown): Element {
+export function createElement<K extends keyof TagNameMap>(tagName: K, attrs: Attributes<TagNameMap[K]>): TagNameMap[K];
+export function createElement<E extends Element>(tagName: string, attrs: Attributes<E>): E;
+export function createElement(tagName: string, attrs: Attributes<TagNameMap[keyof TagNameMap]>): Element {
 	const env = ENV.current;
 	const elem = env.document.createElementNS(XMLNS.current, tagName);
 	for (const name in attrs) {
-		if (name === "children") {
-			continue;
-		}
 		const value = attrs[name];
 		if (value !== undefined) {
-			if (name.startsWith("on:")) {
+			if (name === "children") {
+				appendContent(elem, value, env);
+			} else if (name.startsWith("on:")) {
 				let listener: EventListener<Event>;
 				let options: AddEventListenerOptions | undefined;
 				if (Array.isArray(value)) {
@@ -61,6 +59,5 @@ export function createElement(tagName: string, attrs: Attributes<TagNameMap[keyo
 			}
 		}
 	}
-	appendContent(elem, content, env);
 	return elem;
 }

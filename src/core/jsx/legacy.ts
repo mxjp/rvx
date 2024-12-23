@@ -22,15 +22,13 @@ declare global {
 	}
 }
 
-const NO_PROPS = {};
-
 export function jsx(type: any, props: any, ...children: any[]): unknown {
+	props ??= {};
+	if (children.length > 0) {
+		props.children ??= children;
+	}
 	if (typeof type === "function") {
-		props ??= {};
-		if (children.length > 0) {
-			props.children = children;
-		}
 		return type(props);
 	}
-	return createElement(type, props ?? NO_PROPS, children);
+	return createElement(type, props);
 }

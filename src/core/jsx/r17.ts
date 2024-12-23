@@ -27,7 +27,7 @@ export function jsx(type: any, props: any, key: any): unknown {
 	if (typeof type === "function") {
 		return type(props);
 	}
-	return createElement(type, props, props.children);
+	return createElement(type, props);
 }
 
 export const jsxs = jsx;
