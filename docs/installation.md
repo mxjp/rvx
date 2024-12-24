@@ -8,13 +8,13 @@ You can find all of these bundles in the [npm package's](#npm-package) `dist/` d
 === "unpkg.com"
 	| Modules | Human Readable | Minified | Types |
 	|-|-|-|-|
-	| Core + Builder API | [rvx.js](https://unpkg.com/rvx/dist/rvx.js) | [rvx.min.js](https://unpkg.com/rvx/dist/rvx.min.js) | [rvx.d.ts](https://unpkg.com/rvx/dist/rvx.d.ts) |
+	| Core | [rvx.js](https://unpkg.com/rvx/dist/rvx.js) | [rvx.min.js](https://unpkg.com/rvx/dist/rvx.min.js) | [rvx.d.ts](https://unpkg.com/rvx/dist/rvx.d.ts) |
 	| All | [rvx.all.js](https://unpkg.com/rvx/dist/rvx.all.js) | [rvx.all.min.js](https://unpkg.com/rvx/dist/rvx.all.min.js) | [rvx.all.d.ts](https://unpkg.com/rvx/dist/rvx.all.d.ts) |
 
 === "jsdelivr.com"
 	| Modules | Human Readable | Minified | Types |
 	|-|-|-|-|
-	| Core + Builder API | [rvx.js](https://cdn.jsdelivr.net/npm/rvx/dist/rvx.js) | [rvx.min.js](https://cdn.jsdelivr.net/npm/rvx/dist/rvx.min.js) | [rvx.d.ts](https://cdn.jsdelivr.net/npm/rvx/dist/rvx.d.ts) |
+	| Core | [rvx.js](https://cdn.jsdelivr.net/npm/rvx/dist/rvx.js) | [rvx.min.js](https://cdn.jsdelivr.net/npm/rvx/dist/rvx.min.js) | [rvx.d.ts](https://cdn.jsdelivr.net/npm/rvx/dist/rvx.d.ts) |
 	| All | [rvx.all.js](https://cdn.jsdelivr.net/npm/rvx/dist/rvx.all.js) | [rvx.all.min.js](https://cdn.jsdelivr.net/npm/rvx/dist/rvx.all.min.js) | [rvx.all.d.ts](https://cdn.jsdelivr.net/npm/rvx/dist/rvx.all.d.ts) |
 
 If none of these fit your needs, you can [create a custom bundle](#custom-bundles).
