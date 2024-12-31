@@ -126,7 +126,10 @@ export function teardownOnError<T>(fn: () => T): T {
  * @throws An error if teardown hooks are {@link nocapture explicitly un-supported}.
  */
 export function teardown(hook: TeardownHook): void {
-	TEARDOWN_STACK[TEARDOWN_STACK.length - 1]?.push(hook);
+	const length = TEARDOWN_STACK.length;
+	if (length > 0) {
+		TEARDOWN_STACK[length - 1]?.push(hook);
+	}
 }
 
 /**
