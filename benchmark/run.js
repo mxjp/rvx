@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import express from "express";
-import { readdir } from "node:fs/promises";
+import { mkdir, readdir } from "node:fs/promises";
 import { createServer } from "node:http";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,7 +9,7 @@ import yargsParser from "yargs-parser";
 
 const ctx = dirname(fileURLToPath(import.meta.url));
 const args = yargsParser(process.argv.slice(2), {
-	boolean: ["headless", "extended"],
+	boolean: ["headless", "extended", "trace"],
 	default: {
 		headless: true,
 	},
@@ -17,6 +17,12 @@ const args = yargsParser(process.argv.slice(2), {
 });
 const extended = args.extended ?? false;
 const headless = args.headless ?? false;
+const trace = args.trace ?? false;
+
+const traces = join(ctx, "traces");
+if (trace) {
+	await mkdir(traces, { recursive: true });
+}
 
 const app = express();
 app.use((_req, res, next) => {
@@ -37,7 +43,7 @@ const server = await new Promise((resolve, reject) => {
 	server.on("error", reject);
 });
 
-const browsers = [chromium, firefox];
+const browsers = trace ? [chromium] : [chromium, firefox];
 
 const snapshots = await readdir(join(ctx, "src/snapshots"));
 const snapshotNameLength = Math.max(...snapshots.map(s => s.length));
@@ -50,6 +56,8 @@ if (args.only) {
 	});
 }
 
+const runId = Math.floor(Date.now() / 1000);
+
 for (const browserDef of browsers) {
 	console.group(browserDef.name());
 	const browser = await browserDef.launch({ headless });
@@ -57,8 +65,17 @@ for (const browserDef of browsers) {
 		const page = await browser.newPage();
 		page.on("console", msg => console.log("[client]", msg.text()));
 		for (const benchmark of benchmarks) {
+			const benchmarkName = benchmark.replace(/\.js$/, "");
 			try {
-				console.group(benchmark);
+				console.group(benchmarkName);
+				if (trace) {
+					const path = join(traces, `${runId}-${benchmarkName}.json`);
+					console.log(`Recording trace: ${path}`);
+					await browser.startTracing(page, {
+						screenshots: false,
+						path,
+					});
+				}
 				await page.goto(`http://127.0.0.1:${server.address().port}/`);
 				const { entries, tries } = await page.evaluate(args => globalThis[Symbol.for("rvx:benchmark")](args), { benchmark, snapshots, extended });
 				console.log(`${entries[0].length} samples (${tries - entries[0].length} warmup)`);
@@ -69,6 +86,9 @@ for (const browserDef of browsers) {
 					const span = Math.max(...ops) - Math.min(...ops);
 					const spanPercent = 100 * span / average;
 					console.log(`  => ${snapshots[i].padStart(snapshotNameLength, " ")}: ${Math.round(average)} ops/s (±${Number(spanPercent.toFixed(2))}%, ${samples.length} samples)`);
+				}
+				if (trace) {
+					await browser.stopTracing();
 				}
 			} finally {
 				console.groupEnd();
