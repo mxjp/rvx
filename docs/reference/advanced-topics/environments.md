@@ -1,9 +1,4 @@
-
 # Environments
-
-!!! warning
-	All API documented on this page is currently **experimental** and may change at any time.
-
 Rvx accesses all browser related APIs through the `ENV` context which provides a `window` like object.
 ```jsx
 import { ENV } from "rvx";
@@ -21,6 +16,10 @@ ENV.current.document.createElement("div");
 ```
 
 ## Rvx DOM
+
+!!! warning
+	The Rvx DOM API is currently **experimental** and may change at any time.
+
 The `"rvx/dom"` module provides a fast minimal DOM implementation with the single purpose of rendering HTML strings on the server or during a build process.
 
 The `renderToString` utility can be used to synchronously render a [component](../components.md) to HTML:

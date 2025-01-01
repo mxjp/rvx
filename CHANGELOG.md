@@ -1,6 +1,7 @@
 # Changelog
 
 ## 18.7
++ Stabelize `ENV` context API.
 + Expose router's internal `parse` function for manual invocation & overriding.
 
 ## 18.6

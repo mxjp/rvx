@@ -5,8 +5,6 @@ interface EnvContext extends Context<unknown> {
 }
 
 /**
- * **This is experimental API.**
- *
  * A context that is used to access all DOM related APIs.
  *
  * This can be used to run rvx applications in non browser environments.
