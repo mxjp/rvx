@@ -9,7 +9,7 @@ import yargsParser from "yargs-parser";
 
 const ctx = dirname(fileURLToPath(import.meta.url));
 const args = yargsParser(process.argv.slice(2), {
-	boolean: ["headless", "extended", "trace"],
+	boolean: ["headless", "extended", "trace", "trace-all"],
 	default: {
 		headless: true,
 	},
@@ -17,10 +17,11 @@ const args = yargsParser(process.argv.slice(2), {
 });
 const extended = args.extended ?? false;
 const headless = args.headless ?? false;
-const trace = args.trace ?? false;
+const traceAll = args["trace-all"] ?? false;
+const trace = traceAll ? false : (args.trace ?? false);
 
 const traces = join(ctx, "traces");
-if (trace) {
+if (trace || traceAll) {
 	await mkdir(traces, { recursive: true });
 }
 
@@ -43,7 +44,7 @@ const server = await new Promise((resolve, reject) => {
 	server.on("error", reject);
 });
 
-const browsers = trace ? [chromium] : [chromium, firefox];
+const browsers = (trace || traceAll) ? [chromium] : [chromium, firefox];
 
 const snapshots = await readdir(join(ctx, "src/snapshots"));
 const snapshotNameLength = Math.max(...snapshots.map(s => s.length));
@@ -64,6 +65,14 @@ for (const browserDef of browsers) {
 	try {
 		const page = await browser.newPage();
 		page.on("console", msg => console.log("[client]", msg.text()));
+		if (traceAll) {
+			const path = join(traces, `${runId}-all.json`);
+			console.log(`Recording trace: ${path}`);
+			await browser.startTracing(page, {
+				screenshots: false,
+				path,
+			});
+		}
 		for (const benchmark of benchmarks) {
 			const benchmarkName = benchmark.replace(/\.js$/, "");
 			try {
@@ -93,6 +102,9 @@ for (const browserDef of browsers) {
 			} finally {
 				console.groupEnd();
 			}
+		}
+		if (traceAll) {
+			await browser.stopTracing();
 		}
 	} finally {
 		await browser.close();
