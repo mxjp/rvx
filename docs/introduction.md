@@ -3,9 +3,9 @@
 !!! info
 	This framework assumes that you have a good fundamental understanding of JavaScript and HTML. If not, [MDN](https://developer.mozilla.org/docs/Web/JavaScript) is a good place to start.
 
-To develop a rvx application locally, you need a recent version of [NodeJS](https://nodejs.org/) or any other compatible JavaScript runtime.
+To develop an rvx application locally, you need a recent version of [NodeJS](https://nodejs.org/) or any other compatible JavaScript runtime.
 
-You can use the commands below to setup a minimal rvx project using [Vite](https://vitejs.dev/) or [Webpack](https://webpack.js.org/) and [TypeScript](https://www.typescriptlang.org/):
+You can use the commands below to setup a minimal rvx project using [TypeScript](https://www.typescriptlang.org/) and [Vite](https://vitejs.dev/) or [Webpack](https://webpack.js.org/):
 
 === "Vite"
 	```bash
@@ -47,7 +47,7 @@ mount(
 	<h1>Hello World!</h1>
 );
 ```
-The `<h1>Hello World!</h1>` expression directly creates an element and the `mount` function takes whatever content is supported by rvx and appends it to the document body.
+The `<h1>Hello World!</h1>` expression directly creates an element and the `mount` function takes whatever content is supported by rvx and appends it to the specified element.
 
 ## State & Reactivity
 Reactivity is entirely based on signals which are objects that hold an arbitrary value:
@@ -122,6 +122,12 @@ Attributes prefixed with `prop:` are set using JavaScript properties:
 <input type="text" prop:value="Hello World!" />
 ```
 
+Signals or functions used as attribute values are reactive:
+```jsx
+<input type="number" prop:value={count}>
+<input type="number" prop:value={() => count.value}>
+```
+
 ## Event Listeners
 Attributes prefixed with `on:` are added as event listeners.
 ```jsx
@@ -188,7 +194,7 @@ function Message() {
 <Message />;
 ```
 
-Properties are passed as is via the `props` argument. Properties are static by default.
+Properties are passed as is via the `props` argument and are static by default.
 ```jsx
 function Message(props: { message: string; }) {
 	return <h1>{props.message}</h1>;
@@ -212,12 +218,15 @@ function Message(props: { message: Expression<string>; }) {
 <Message message={someSignal} />;
 ```
 
-To compute something from an expression value or evaluate it, you can use the `map` and `get` functions:
+To compute something from an expression or to evaluate it, you can use the `map` and `get` functions:
 ```jsx
 import { Expression, map, get } from "rvx";
 
 function Message(props: { message: Expression<string>; }) {
+	// "get" reactively returns the current value of an expression:
 	console.log("Initial message:", get(props.message));
+
+	// "map" applies a function to the expression result:
 	return <h1>{map(props.message, m => m.toUpperCase())}</h1>;
 }
 ```
