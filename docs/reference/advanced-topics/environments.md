@@ -69,10 +69,10 @@ Rvx does not directly support hydration. Instead, you can render content off scr
 	);
 
 	// Replace a specific element:
-	document.getElementById("app-root").replace(app.take());
+	document.getElementById("app-root").replace(app.detach());
 
 	// Replace the entire page:
-	document.body.replaceChildren(app.take());
+	document.body.replaceChildren(app.detach());
 	```
 
 === "No Build"
@@ -84,10 +84,10 @@ Rvx does not directly support hydration. Instead, you can render content off scr
 	);
 
 	// Replace a specific element:
-	document.getElementById("app-root").replace(app.take());
+	document.getElementById("app-root").replace(app.detach());
 
 	// Replace the entire page:
-	document.body.replaceChildren(app.take());
+	document.body.replaceChildren(app.detach());
 	```
 
 If needed, you can wait for [`<Async>`](../async-utilities/async.md) parts to complete before replacing any elements:
@@ -110,7 +110,7 @@ If needed, you can wait for [`<Async>`](../async-utilities/async.md) parts to co
 	await asyncCtx.complete();
 
 	// Replace the entire page:
-	document.body.replaceChildren(app.take());
+	document.body.replaceChildren(app.detach());
 	```
 
 === "No Build"
@@ -131,7 +131,7 @@ If needed, you can wait for [`<Async>`](../async-utilities/async.md) parts to co
 	await asyncCtx.complete();
 
 	// Replace the entire page:
-	document.body.replaceChildren(app.take());
+	document.body.replaceChildren(app.detach());
 	```
 
 ## JSDOM

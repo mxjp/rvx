@@ -60,7 +60,7 @@ function RotateOrder(props: {
 
 		// Views need to keep track of their first and last nodes.
 		for (const view of views) {
-			parent.appendChild(view.take());
+			view.appendTo(parent);
 
 			// Keep track of child view boundary updates to
 			// update this view's boundary:
@@ -87,7 +87,7 @@ function RotateOrder(props: {
 			if (parent) {
 				// Rotate the order in the view array and DOM nodes:
 				const view = views.pop()!;
-				parent.insertBefore(view.take(), views[0].first);
+				view.insertBefore(parent, views[0].first);
 				views.unshift(view);
 
 				// Notify the custom view that our boundary has changed:
