@@ -1,5 +1,13 @@
 # Changelog
 
+## 18.8
++ Add `View.appendTo`, `View.insertBefore` utilities.
++ **Deprecated:** `View.take` will be removed in the next major version. Use `View.appendTo`, `View.insertBefore` or `View.detach` instead.
++ Improve initial render & update performance when using nested components with multiple child nodes in `<Nest>`, `<Show>`, `<Attach>`, `<For>` and `<IndexFor>`:
+	+ Updates are about 300-500x faster in chromium based browsers.
+	+ Initial render & updates are about 1-4x faster in firefox.
+	+ This was mostly caused by the use of the `Range` and `View.take()` APIs encouraging unnecessary or slow DOM modifications.
+
 ## 18.7
 + Stabelize `ENV` context API.
 + Expose router's internal `parse` function for manual invocation & overriding.
