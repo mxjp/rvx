@@ -73,7 +73,7 @@ export class View {
 			this.#owner?.(this.#first, this.#last);
 		}, this);
 		if (!this.#first || !this.#last) {
-			// View boundary was not completely initialized.
+			// View boundary was not completely initialized:
 			throw new Error("G1");
 		}
 	}
@@ -112,6 +112,7 @@ export class View {
 	 */
 	setBoundaryOwner(owner: ViewBoundaryOwner): void {
 		if (this.#owner !== undefined) {
+			// View already has a boundary owner:
 			throw new Error("G2");
 		}
 		this.#owner = owner;
@@ -147,10 +148,7 @@ export class View {
 			if (node === last) {
 				break;
 			}
-			if (next === null) {
-				throw new Error("G5");
-			}
-			node = next;
+			node = next!;
 		}
 	}
 
@@ -169,10 +167,7 @@ export class View {
 			if (node === last) {
 				break;
 			}
-			if (next === null) {
-				throw new Error("G5");
-			}
-			node = next;
+			node = next!;
 		}
 	}
 

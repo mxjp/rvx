@@ -10,7 +10,7 @@ export type TeardownLeakHook = (hooK: TeardownHook) => void;
  */
 export function onTeardownLeak(hook: TeardownLeakHook): void {
 	if (TEARDOWN_STACK.length > 0) {
-		// onTeardownLeak must only be called once and outside of any capture calls.
+		// onTeardownLeak must only be called once and outside of any capture calls:
 		throw new Error("G4");
 	}
 	TEARDOWN_STACK.push({ push: hook });
