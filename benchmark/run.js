@@ -13,7 +13,7 @@ const args = yargsParser(process.argv.slice(2), {
 	default: {
 		headless: true,
 	},
-	string: ["only"],
+	string: ["only", "snapshot"],
 });
 const extended = args.extended ?? false;
 const headless = args.headless ?? false;
@@ -46,7 +46,13 @@ const server = await new Promise((resolve, reject) => {
 
 const browsers = (trace || traceAll) ? [chromium] : [chromium, firefox];
 
-const snapshots = await readdir(join(ctx, "src/snapshots"));
+let snapshots = await readdir(join(ctx, "src/snapshots"));
+if (args.snapshot) {
+	snapshots = snapshots.filter(name => {
+		return name.startsWith(args.snapshot);
+	});
+}
+
 const snapshotNameLength = Math.max(...snapshots.map(s => s.length));
 
 let benchmarks = await readdir(join(ctx, "src/benchmarks"));

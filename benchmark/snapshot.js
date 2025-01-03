@@ -9,7 +9,10 @@ const ctx = dirname(fileURLToPath(import.meta.url));
 const repo = join(ctx, "..");
 const snapshots = join(ctx, "src/snapshots");
 
-const args = yargsParser(process.argv.slice(2));
+const args = yargsParser(process.argv.slice(2), {
+	boolean: ["build", "bundle"],
+	string: ["name"],
+});
 
 await mkdir(snapshots, { recursive: true });
 const baseExists = await access(join(snapshots, "base.js")).then(() => true, () => false);

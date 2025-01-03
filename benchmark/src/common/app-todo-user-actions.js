@@ -1,12 +1,17 @@
+import { mulberry32 } from "./mulberry32.js";
 
-const seed = 12345;
-const addCount = 50;
-const setDoneAndRemoveCount = 20;
+const addCount = 100;
+const setDoneAndRemoveCount = 50;
 
 export const multiplier = addCount + (setDoneAndRemoveCount * 2);
 
-/** @param {import("rvx")} */
-export function create({ capture, render, sig, e, For, Show }) {
+/**
+ * @param {import("rvx")}
+ * @param {boolean} onscreen
+ */
+export function createBenchmark({ capture, render, sig, e, teardown, For, Show }, onscreen) {
+	const random = mulberry32();
+
 	/**
 	 * @param {object} props
 	 * @param {import("rvx").Signal<string>} props.value
@@ -81,7 +86,7 @@ export function create({ capture, render, sig, e, For, Show }) {
 				e("ul").append(
 					For({
 						each: todos,
-						children: (item, index) => {
+						children: item => {
 							return e("li")
 								.class({
 									"item": true,
@@ -117,6 +122,10 @@ export function create({ capture, render, sig, e, For, Show }) {
 					})
 				),
 			]);
+			if (onscreen) {
+				document.body.appendChild(app.take());
+				teardown(() => app.detach());
+			}
 		});
 
 		/**
@@ -138,7 +147,7 @@ export function create({ capture, render, sig, e, For, Show }) {
 		function setDoneAndRemoveRandom() {
 			const items = app.last;
 			const count = items.childNodes.length - 1; // 1 for the <For> placeholder comment.
-			const item = items.childNodes.item((mulberry32() % count) + 1); // 1 for the <For> placeholder comment.
+			const item = items.childNodes.item((random() % count) + 1); // 1 for the <For> placeholder comment.
 			if (item.lastChild.textContent !== "Done") {
 				throw new Error("done button not found");
 			}
@@ -150,14 +159,6 @@ export function create({ capture, render, sig, e, For, Show }) {
 			if (items.childNodes.length - 1 !== count - 1 || item.parentNode) {
 				throw new Error("item was not removed");
 			}
-		}
-
-		let m32state = seed;
-		function mulberry32() {
-			let x = m32state += 0x6D2B79F5;
-			x = Math.imul(x ^ x >>> 15, x | 1);
-			x ^= x + Math.imul(x ^ x >>> 7, x | 61);
-			return (x ^ x >>> 14) >>> 0;
 		}
 
 		try {
