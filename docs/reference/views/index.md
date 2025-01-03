@@ -94,6 +94,11 @@ A view is created using the `View` constructor. The example below creates a view
 	});
 	```
 
+!!! warning
+	The `self` parameter is the view that is currently being created.
+
+	Before the boundary is initialized, `first`, `last` and `parent` may return `undefined` and using anything else will result in undefined behavior.
+
 Most of the view implementations provided by rvx are returned from component functions like in the example below:
 
 === "JSX"
