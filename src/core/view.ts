@@ -48,7 +48,6 @@ export interface ViewInitFn {
  * + If there are multiple nodes, all nodes must have a common parent node at all time.
  */
 export class View {
-	#env = ENV.current;
 	#first!: Node;
 	#last!: Node;
 	#owner: ViewBoundaryOwner | undefined;
