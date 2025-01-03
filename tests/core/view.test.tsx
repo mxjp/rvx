@@ -4,7 +4,7 @@ import test, { suite } from "node:test";
 import { Attach, capture, Component, ENV, For, IndexFor, memo, mount, movable, Nest, render, Show, sig, teardown, uncapture, View, watch, watchUpdates } from "rvx";
 import { wrap } from "rvx/store";
 
-import { assertEvents, boundaryEvents, lifecycleEvent, TestView, testView, text, withMsg } from "../common.js";
+import { assertEvents, boundaryEvents, lifecycleEvent, TestView, testView, text, viewText, withMsg } from "../common.js";
 
 await suite("view", async () => {
 	await test("init incomplete", () => {
@@ -63,95 +63,132 @@ await suite("view", async () => {
 		assertEvents(events, []);
 	});
 
-	await test("take single node", () => {
-		let node!: Node;
-		let parent!: Node;
-		const view = new View(setBoundary => {
-			node = <div>test</div> as HTMLElement;
-			parent = <div>{node}</div> as HTMLElement;
-			setBoundary(node, node);
+	await suite("appendTo", async () => {
+		await test("single node", () => {
+			const view = render(<div>a</div>);
+			const parent = <div>p</div> as HTMLElement;
+			view.appendTo(parent);
+			strictEqual(parent.textContent, "pa");
+			strictEqual(view.parent, parent);
 		});
-		strictEqual(node.parentNode, parent);
-		strictEqual(node, view.take());
-		strictEqual(node.parentNode, parent);
-	});
 
-	await test("detach single node", () => {
-		let node!: Node;
-		let parent!: Node;
-		const view = new View(setBoundary => {
-			node = <div>test</div> as HTMLElement;
-			parent = <div>{node}</div> as HTMLElement;
-			setBoundary(node, node);
+		await test("multiple nodes", () => {
+			const view = render([
+				<div>a</div>,
+				<div>b</div>,
+				<div>c</div>
+			]);
+			notStrictEqual(view.first, view.last);
+			const parent = <div>p</div> as HTMLElement;
+			view.appendTo(parent);
+			strictEqual(parent.textContent, "pabc");
+			strictEqual(view.parent, parent);
 		});
-		strictEqual(node.parentNode, parent);
-		view.detach();
-		strictEqual(node.parentNode, null);
 	});
 
-	await test("take multiple nodes (extract from node)", () => {
-		const first = <div /> as HTMLElement;
-		const last = <div /> as HTMLElement;
-		const parent = <div>{first}{last}</div> as HTMLElement;
-		const view = new View(setBoundary => setBoundary(first, last));
-		strictEqual(first.parentNode, parent);
-		strictEqual(last.parentNode, parent);
-		const fragment = view.take();
-		strictEqual(fragment instanceof ENV.current.DocumentFragment, true);
-		strictEqual(fragment.firstChild, first);
-		strictEqual(fragment.lastChild, last);
+	await suite("insertBefore", async () => {
+		await test("single node", () => {
+			const view = render(<div>c</div>);
+			const parent = <div>{["a", "b"]}</div> as HTMLElement;
+			view.insertBefore(parent, parent.lastChild!);
+			strictEqual(parent.textContent, "acb");
+			strictEqual(view.parent, parent);
+		});
+
+		await test("multiple nodes", () => {
+			const view = render([
+				<div>c</div>,
+				<div>d</div>,
+				<div>e</div>
+			]);
+			notStrictEqual(view.first, view.last);
+			const parent = <div>{["a", "b"]}</div> as HTMLElement;
+			view.insertBefore(parent, parent.lastChild!);
+			strictEqual(parent.textContent, "acdeb");
+			strictEqual(view.parent, parent);
+		});
 	});
 
-	await test("take multiple nodes (extract from fragment start)", () => {
-		const parent = ENV.current.document.createDocumentFragment();
-		let first = <div /> as HTMLElement;
-		parent.appendChild(first);
-		let last = <div /> as HTMLElement;
-		parent.appendChild(last);
-		parent.appendChild(<div /> as HTMLElement);
-		const view = new View(setBoundary => setBoundary(first, last));
-		const fragment = view.take();
-		strictEqual(fragment instanceof ENV.current.DocumentFragment, true);
-		strictEqual(fragment.firstChild, first);
-		strictEqual(fragment.lastChild, last);
-		strictEqual(parent.childNodes.length, 1);
+	await suite("take", async () => {
+		await test("single node", () => {
+			let node!: Node;
+			let parent!: Node;
+			const view = new View(setBoundary => {
+				node = <div>test</div> as HTMLElement;
+				parent = <div>{node}</div> as HTMLElement;
+				setBoundary(node, node);
+			});
+			strictEqual(node.parentNode, parent);
+			strictEqual(node, view.take());
+			strictEqual(node.parentNode, parent);
+		});
+
+		await test("take multiple nodes (extract from node)", () => {
+			const first = <div /> as HTMLElement;
+			const last = <div /> as HTMLElement;
+			const parent = <div>{first}{last}</div> as HTMLElement;
+			const view = new View(setBoundary => setBoundary(first, last));
+			strictEqual(first.parentNode, parent);
+			strictEqual(last.parentNode, parent);
+			const fragment = view.take();
+			strictEqual(fragment instanceof ENV.current.DocumentFragment, true);
+			strictEqual(fragment.firstChild, first);
+			strictEqual(fragment.lastChild, last);
+		});
+
+		await test("take multiple nodes (extract from fragment start)", () => {
+			const parent = ENV.current.document.createDocumentFragment();
+			let first = <div /> as HTMLElement;
+			parent.appendChild(first);
+			let last = <div /> as HTMLElement;
+			parent.appendChild(last);
+			parent.appendChild(<div /> as HTMLElement);
+			const view = new View(setBoundary => setBoundary(first, last));
+			const fragment = view.take();
+			strictEqual(fragment instanceof ENV.current.DocumentFragment, true);
+			strictEqual(fragment.firstChild, first);
+			strictEqual(fragment.lastChild, last);
+			strictEqual(parent.childNodes.length, 1);
+		});
+
+		await test("take multiple nodes (extract from fragment end)", () => {
+			const parent = ENV.current.document.createDocumentFragment();
+			parent.appendChild(<div /> as HTMLElement);
+			let first = <div /> as HTMLElement;
+			parent.appendChild(first);
+			let last = <div /> as HTMLElement;
+			parent.appendChild(last);
+			const view = new View(setBoundary => setBoundary(first, last));
+			const fragment = view.take();
+			strictEqual(fragment instanceof ENV.current.DocumentFragment, true);
+			strictEqual(fragment.firstChild, first);
+			strictEqual(fragment.lastChild, last);
+			strictEqual(parent.childNodes.length, 1);
+		});
 	});
 
-	await test("take multiple nodes (extract from fragment end)", () => {
-		const parent = ENV.current.document.createDocumentFragment();
-		parent.appendChild(<div /> as HTMLElement);
-		let first = <div /> as HTMLElement;
-		parent.appendChild(first);
-		let last = <div /> as HTMLElement;
-		parent.appendChild(last);
-		const view = new View(setBoundary => setBoundary(first, last));
-		const fragment = view.take();
-		strictEqual(fragment instanceof ENV.current.DocumentFragment, true);
-		strictEqual(fragment.firstChild, first);
-		strictEqual(fragment.lastChild, last);
-		strictEqual(parent.childNodes.length, 1);
-	});
+	await suite("detach", async () => {
+		await test("single node", () => {
+			let node!: Node;
+			let parent!: Node;
+			const view = new View(setBoundary => {
+				node = <div>test</div> as HTMLElement;
+				parent = <div>{node}</div> as HTMLElement;
+				setBoundary(node, node);
+			});
+			strictEqual(node.parentNode, parent);
+			view.detach();
+			strictEqual(node.parentNode, null);
+		});
 
-	await test("take multiple nodes (reuse parent fragment)", () => {
-		const parent = ENV.current.document.createDocumentFragment();
-		let first = <div /> as HTMLElement;
-		parent.appendChild(first);
-		let last = <div /> as HTMLElement;
-		parent.appendChild(last);
-		const view = new View(setBoundary => setBoundary(first, last));
-		const fragment = view.take();
-		strictEqual(parent, fragment);
-		strictEqual(fragment.firstChild, first);
-		strictEqual(fragment.lastChild, last);
-	});
-
-	await test("detach multiple nodes", () => {
-		const { view } = testView();
-		const parent = view.parent;
-		view.detach();
-		strictEqual(view.first.parentNode instanceof ENV.current.DocumentFragment, true);
-		strictEqual(view.first.parentNode, view.last.parentNode);
-		notStrictEqual(view.first.parentNode, parent);
+		await test("detach multiple nodes", () => {
+			const { view } = testView();
+			const parent = view.parent;
+			view.detach();
+			strictEqual(view.first.parentNode instanceof ENV.current.DocumentFragment, true);
+			strictEqual(view.first.parentNode, view.last.parentNode);
+			notStrictEqual(view.first.parentNode, parent);
+		});
 	});
 
 	await test("mount", async () => {
@@ -167,9 +204,9 @@ await suite("view", async () => {
 		strictEqual(text(root), "test2");
 		dispose();
 		strictEqual(text(root), "");
-		strictEqual(text(view.take()), "test2");
+		strictEqual(viewText(view), "test2");
 		signal.value = 3;
-		strictEqual(text(view.take()), "test2");
+		strictEqual(viewText(view), "test2");
 	});
 
 	await suite("Nest", async () => {
@@ -196,15 +233,15 @@ await suite("view", async () => {
 				</Nest> as View;
 			});
 
-			strictEqual(text(view.take()), "");
+			strictEqual(viewText(view), "");
 			assertEvents(events, []);
 
 			signal.value = 1;
-			strictEqual(text(view.take()), "1");
+			strictEqual(viewText(view), "1");
 			assertEvents(events, ["+1"]);
 
 			signal.value = 2;
-			strictEqual(text(view.take()), "2");
+			strictEqual(viewText(view), "2");
 			assertEvents(events, ["-1", "+2"]);
 
 			dispose();
@@ -227,26 +264,26 @@ await suite("view", async () => {
 				view.setBoundaryOwner(boundaryEvents(events));
 			});
 
-			strictEqual(text(view.take()), "");
+			strictEqual(viewText(view), "");
 
 			inner.value = testView("a");
-			strictEqual(text(view.take()), "afl");
+			strictEqual(viewText(view), "afl");
 			assertEvents(events, ["afl"]);
 
 			inner.value.nextFirst();
-			strictEqual(text(view.take()), "af0l");
+			strictEqual(viewText(view), "af0l");
 			assertEvents(events, ["af0l"]);
 
 			inner.value.nextLast();
-			strictEqual(text(view.take()), "af0l1");
+			strictEqual(viewText(view), "af0l1");
 			assertEvents(events, ["af0l1"]);
 
 			inner.value = testView("b");
-			strictEqual(text(view.take()), "bfl");
+			strictEqual(viewText(view), "bfl");
 			assertEvents(events, ["bfl"]);
 
 			inner.value = undefined;
-			strictEqual(text(view.take()), "");
+			strictEqual(viewText(view), "");
 			assertEvents(events, [""]);
 		});
 
@@ -268,7 +305,7 @@ await suite("view", async () => {
 					}}
 				</Nest> as View;
 			});
-			strictEqual(text(view.take()), "3");
+			strictEqual(viewText(view), "3");
 			assertEvents(events, ["s:0", "e:0", "s:1", "e:1", "s:2", "e:2", "s:3"]);
 		});
 
@@ -302,19 +339,19 @@ await suite("view", async () => {
 						}}
 					</Nest> as View;
 				});
-				strictEqual(text(view.take()), "42");
+				strictEqual(viewText(view), "42");
 
 				throws(() => {
 					signal.value = 77;
 				}, withMsg("test"));
-				strictEqual(text(view.take()), "42");
+				strictEqual(viewText(view), "42");
 
 				signal.value = 123;
-				strictEqual(text(view.take()), "123");
+				strictEqual(viewText(view), "123");
 
 				dispose();
 				signal.value = 11;
-				strictEqual(text(view.take()), "123");
+				strictEqual(viewText(view), "123");
 			});
 
 			await test("component, initialization", () => {
@@ -350,19 +387,19 @@ await suite("view", async () => {
 						}}
 					</Nest> as View;
 				});
-				strictEqual(text(view.take()), "42");
+				strictEqual(viewText(view), "42");
 
 				throws(() => {
 					signal.value = 77;
 				}, withMsg("test"));
-				strictEqual(text(view.take()), "42");
+				strictEqual(viewText(view), "42");
 
 				signal.value = 123;
-				strictEqual(text(view.take()), "123");
+				strictEqual(viewText(view), "123");
 
 				dispose();
 				signal.value = 11;
-				strictEqual(text(view.take()), "123");
+				strictEqual(viewText(view), "123");
 			});
 		});
 
@@ -372,12 +409,12 @@ await suite("view", async () => {
 
 			function A() {
 				lifecycleEvent(events, "a");
-				return <>a {signal}</>;
+				return <>a{signal}</>;
 			}
 
 			function B() {
 				lifecycleEvent(events, "b");
-				return <>b {signal}</>;
+				return <>b{signal}</>;
 			}
 
 			const view = uncapture(() => {
@@ -387,19 +424,19 @@ await suite("view", async () => {
 			});
 
 			assertEvents(events, ["s:a"]);
-			strictEqual(text(view.take()), "a 0");
+			strictEqual(viewText(view), "a0");
 
 			signal.value = 1;
 			assertEvents(events, []);
-			strictEqual(text(view.take()), "a 1");
+			strictEqual(viewText(view), "a1");
 
 			signal.value = 2;
 			assertEvents(events, ["e:a", "s:b"]);
-			strictEqual(text(view.take()), "b 2");
+			strictEqual(viewText(view), "b2");
 
 			signal.value = 3;
 			assertEvents(events, []);
-			strictEqual(text(view.take()), "b 3");
+			strictEqual(viewText(view), "b3");
 		});
 
 		await test("external state reset", () => {
@@ -410,7 +447,7 @@ await suite("view", async () => {
 			function Content() {
 				const version = `v${count.value}`;
 				lifecycleEvent(events, version);
-				return <>{version} {count}</>;
+				return <>{version}:{count}</>;
 			}
 
 			const view = uncapture(() => {
@@ -423,19 +460,19 @@ await suite("view", async () => {
 			});
 
 			assertEvents(events, ["s:v0"]);
-			strictEqual(text(view.take()), "v0 0");
+			strictEqual(viewText(view), "v0:0");
 
 			count.value++;
 			assertEvents(events, []);
-			strictEqual(text(view.take()), "v0 1");
+			strictEqual(viewText(view), "v0:1");
 
 			signal.notify();
 			assertEvents(events, ["e:v0", "s:v1"]);
-			strictEqual(text(view.take()), "v1 1");
+			strictEqual(viewText(view), "v1:1");
 
 			count.value++;
 			assertEvents(events, []);
-			strictEqual(text(view.take()), "v1 2");
+			strictEqual(viewText(view), "v1:2");
 		});
 
 		await test("internal state reset", () => {
@@ -450,26 +487,26 @@ await suite("view", async () => {
 						return () => {
 							const version = `v${count.value}`;
 							lifecycleEvent(events, version);
-							return <>{version} {count}</>;
+							return <>{version}:{count}</>;
 						};
 					}}
 				</Nest> as View;
 			});
 
 			assertEvents(events, ["s:v0"]);
-			strictEqual(text(view.take()), "v0 0");
+			strictEqual(viewText(view), "v0:0");
 
 			count.value++;
 			assertEvents(events, []);
-			strictEqual(text(view.take()), "v0 1");
+			strictEqual(viewText(view), "v0:1");
 
 			signal.notify();
 			assertEvents(events, ["e:v0", "s:v1"]);
-			strictEqual(text(view.take()), "v1 1");
+			strictEqual(viewText(view), "v1:1");
 
 			count.value++;
 			assertEvents(events, []);
-			strictEqual(text(view.take()), "v1 2");
+			strictEqual(viewText(view), "v1:2");
 		});
 
 		await test("component from signal", () => {
@@ -478,25 +515,25 @@ await suite("view", async () => {
 			const view = uncapture(() => <Nest>{comp}</Nest> as View);
 
 			assertEvents(events, []);
-			strictEqual(text(view.take()), "");
+			strictEqual(viewText(view), "");
 
 			comp.value = () => {
 				lifecycleEvent(events, "a");
 				return "a";
 			};
 			assertEvents(events, ["s:a"]);
-			strictEqual(text(view.take()), "a");
+			strictEqual(viewText(view), "a");
 
 			comp.value = () => {
 				lifecycleEvent(events, "b");
 				return "b";
 			};
 			assertEvents(events, ["e:a", "s:b"]);
-			strictEqual(text(view.take()), "b");
+			strictEqual(viewText(view), "b");
 
 			comp.notify();
 			assertEvents(events, ["e:b", "s:b"]);
-			strictEqual(text(view.take()), "b");
+			strictEqual(viewText(view), "b");
 		});
 	});
 
@@ -523,11 +560,11 @@ await suite("view", async () => {
 			</Show> as View;
 		});
 
-		strictEqual(text(view.take()), "f");
+		strictEqual(viewText(view), "f");
 		assertEvents(events, ["+f"]);
 
 		signal.value = 1;
-		strictEqual(text(view.take()), "1");
+		strictEqual(viewText(view), "1");
 		assertEvents(events, ["-f", "+1"]);
 
 		capture(() => {
@@ -535,19 +572,19 @@ await suite("view", async () => {
 			assertEvents(events, ["e1"]);
 
 			signal.value = 2;
-			strictEqual(text(view.take()), "2");
+			strictEqual(viewText(view), "2");
 			assertEvents(events, ["-1", "+2", "e2"]);
 
 			signal.value = 2;
 			assertEvents(events, []);
 
 			signal.notify();
-			strictEqual(text(view.take()), "2");
+			strictEqual(viewText(view), "2");
 			assertEvents(events, ["e2"]);
 		})();
 
 		signal.value = 0;
-		strictEqual(text(view.take()), "f");
+		strictEqual(viewText(view), "f");
 		assertEvents(events, ["-2", "+f"]);
 
 		capture(() => {
@@ -558,7 +595,7 @@ await suite("view", async () => {
 			assertEvents(events, []);
 
 			signal.notify();
-			strictEqual(text(view.take()), "f");
+			strictEqual(viewText(view), "f");
 			assertEvents(events, ["e0"]);
 		})();
 	});
@@ -604,7 +641,7 @@ await suite("view", async () => {
 				}
 
 				if (assertContent) {
-					strictEqual(text(view.take()), [...new Set(values)].map((v, i) => `[${v}:${i}]`).join(""));
+					strictEqual(viewText(view), [...new Set(values)].map((v, i) => `[${v}:${i}]`).join(""));
 				}
 
 				const valueSet = new Set(values);
@@ -637,10 +674,10 @@ await suite("view", async () => {
 				assertItems(sequence[i], errorIndex, true);
 			}
 
-			const lastContent = text(view.take());
+			const lastContent = viewText(view);
 			dispose();
 			assertItems([], -1, false);
-			strictEqual(text(view.take()), lastContent);
+			strictEqual(viewText(view), lastContent);
 		}
 
 		for (const withErrors of [false, true]) {
@@ -768,11 +805,11 @@ await suite("view", async () => {
 				</For> as View;
 			});
 			assertEvents(events, ["s:1"]);
-			strictEqual(text(view.take()), "1");
+			strictEqual(viewText(view), "1");
 			signal.value = [2, 3, 4];
 			deepStrictEqual(signal.value, [5]);
 			assertEvents(events, ["s:2", "s:3", "s:4", "e:1", "s:5", "e:2", "e:3", "e:4"]);
-			strictEqual(text(view.take()), "5");
+			strictEqual(viewText(view), "5");
 		});
 
 		function lifecycleTest(options: {
@@ -878,9 +915,9 @@ await suite("view", async () => {
 			const view = uncapture(() => {
 				return <For each={proxy}>{v => v}</For> as View;
 			});
-			strictEqual(text(view.take()), "ab");
+			strictEqual(viewText(view), "ab");
 			proxy.splice(1, 0, "c");
-			strictEqual(text(view.take()), "acb");
+			strictEqual(viewText(view), "acb");
 		});
 	});
 
@@ -919,7 +956,7 @@ await suite("view", async () => {
 				}
 
 				if (assertContent) {
-					strictEqual(text(view.take()), values.map((v, i) => `[${v}:${i}]`).join(""));
+					strictEqual(viewText(view), values.map((v, i) => `[${v}:${i}]`).join(""));
 				}
 
 				const expectedEvents: unknown[] = [];
@@ -957,7 +994,7 @@ await suite("view", async () => {
 			const lastContent = text(view!.take());
 			dispose();
 			assertItems([], -1, false);
-			strictEqual(text(view.take()), lastContent);
+			strictEqual(viewText(view), lastContent);
 		}
 
 		for (const withErrors of [false, true]) {
@@ -1058,11 +1095,11 @@ await suite("view", async () => {
 				</IndexFor> as View;
 			});
 			assertEvents(events, ["s:1"]);
-			strictEqual(text(view.take()), "1");
+			strictEqual(viewText(view), "1");
 			signal.value = [2, 3, 4];
 			deepStrictEqual(signal.value, [5]);
 			assertEvents(events, ["e:1", "s:2", "s:3", "s:4", "e:2", "s:5", "e:3", "e:4"]);
-			strictEqual(text(view.take()), "5");
+			strictEqual(viewText(view), "5");
 		});
 
 		function lifecycleTest(options: {
@@ -1169,28 +1206,28 @@ await suite("view", async () => {
 			const view = uncapture(() => {
 				return <IndexFor each={proxy}>{v => v}</IndexFor> as View;
 			});
-			strictEqual(text(view.take()), "ab");
+			strictEqual(viewText(view), "ab");
 			proxy.splice(1, 0, "c");
-			strictEqual(text(view.take()), "acb");
+			strictEqual(viewText(view), "acb");
 		});
 	});
 
 	await test("movable", async () => {
 		const inner = sig(1);
 		const view = uncapture(() => movable(<>
-			inner: {inner}
+			inner:{inner}
 		</>));
 
 		const a = render(view.move());
-		strictEqual(text(a.take()), "inner: 1");
+		strictEqual(text(a.take()), "inner:1");
 
 		const b = render(view.move());
 		strictEqual(text(a.take()), "");
 		strictEqual(a.first instanceof ENV.current.Comment, true);
 		strictEqual(a.first, a.last);
-		strictEqual(text(b.take()), "inner: 1");
+		strictEqual(text(b.take()), "inner:1");
 		inner.value = 2;
-		strictEqual(text(b.take()), "inner: 2");
+		strictEqual(text(b.take()), "inner:2");
 
 		view.detach();
 		inner.value = 3;
@@ -1200,7 +1237,7 @@ await suite("view", async () => {
 		notStrictEqual(a.first, b.first);
 
 		const c = render(view.move());
-		strictEqual(text(c.take()), "inner: 3");
+		strictEqual(text(c.take()), "inner:3");
 	});
 
 	await test("Attach", async () => {
@@ -1209,21 +1246,21 @@ await suite("view", async () => {
 
 		const view = uncapture(() => {
 			return <Attach when={signal}>
-				inner: {inner}
+				inner:{inner}
 			</Attach> as View;
 		});
 
 		inner.value = 2;
-		strictEqual(text(view.take()), "");
+		strictEqual(viewText(view), "");
 		signal.value = true;
-		strictEqual(text(view.take()), "inner: 2");
+		strictEqual(viewText(view), "inner:2");
 		inner.value = 3;
-		strictEqual(text(view.take()), "inner: 3");
+		strictEqual(viewText(view), "inner:3");
 		signal.value = false;
-		strictEqual(text(view.take()), "");
+		strictEqual(viewText(view), "");
 		inner.value = 4;
-		strictEqual(text(view.take()), "");
+		strictEqual(viewText(view), "");
 		signal.value = true;
-		strictEqual(text(view.take()), "inner: 4");
+		strictEqual(viewText(view), "inner:4");
 	});
 });

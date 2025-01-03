@@ -1,6 +1,6 @@
 import { Component } from "./component.js";
 import { ENV } from "./env.js";
-import { createParent, createPlaceholder, extractRange, Falsy, NOOP } from "./internals.js";
+import { createParent, createPlaceholder, Falsy, NOOP } from "./internals.js";
 import { capture, nocapture, teardown, TeardownHook } from "./lifecycle.js";
 import { render } from "./render.js";
 import { effect, Expression, get, memo, sig, Signal, watch } from "./signals.js";
@@ -122,32 +122,77 @@ export class View {
 	 * Get all nodes of this view as a single node for moving them into a new place.
 	 *
 	 * If there are multiple nodes, a document fragment containing all nodes of this view is returned.
+	 *
+	 * @deprecated This will be removed in the next major release. Use {@link appendTo}, {@link insertBefore} or {@link detach} instead.
 	 */
 	take(): Node | DocumentFragment {
-		const first = this.#first;
+		if (this.#first === this.#last) {
+			return this.#first;
+		} else {
+			return this.detach();
+		}
+	}
+
+	/**
+	 * Append all nodes of this view to the specified parent.
+	 *
+	 * @param parent The parent to append to.
+	 */
+	appendTo(parent: Node): void {
+		let node = this.#first;
 		const last = this.#last;
-		if (first === last) {
-			return first;
+		for (;;) {
+			const next = node.nextSibling;
+			parent.appendChild(node);
+			if (node === last) {
+				break;
+			}
+			if (next === null) {
+				throw new Error("G5");
+			}
+			node = next;
 		}
-		const parent = first.parentNode!;
-		if (parent.nodeType === 11 && parent.firstChild === first && parent.lastChild === last) {
-			return parent;
+	}
+
+	/**
+	 * Insert all nodes of this view before a reference child of the specified parent.
+	 *
+	 * @param parent The parent to insert into.
+	 * @param ref The reference child to insert before.
+	 */
+	insertBefore(parent: Node, ref: Node): void {
+		let node = this.#first;
+		const last = this.#last;
+		for (;;) {
+			const next = node.nextSibling;
+			parent.insertBefore(node, ref);
+			if (node === last) {
+				break;
+			}
+			if (next === null) {
+				throw new Error("G5");
+			}
+			node = next;
 		}
-		return extractRange(first, last, this.#env);
 	}
 
 	/**
 	 * Detach all nodes of this view from the current parent if there is one.
 	 *
 	 * If there are multiple nodes, they are moved into a new document fragment to allow the view implementation to stay alive.
+	 *
+	 * @returns The single removed node or the document fragment they have been moved into.
 	 */
-	detach(): void {
+	detach(): Node | DocumentFragment {
 		const first = this.#first;
 		const last = this.#last;
 		if (first === last) {
-			first?.parentNode?.removeChild(first);
+			first.parentNode?.removeChild(first);
+			return first;
 		} else {
-			extractRange(first, last, this.#env);
+			const fragment = ENV.current.document.createDocumentFragment();
+			this.appendTo(fragment);
+			return fragment;
 		}
 	}
 }
@@ -211,8 +256,13 @@ export function Nest(props: {
 	return new View((setBoundary, self) => {
 		watch(props.children, value => {
 			const view = render(value?.());
-			self.parent?.insertBefore(view.take(), self.first);
-			self.detach();
+			const parent = self.parent;
+			if (parent !== undefined) {
+				view.insertBefore(parent, self.first);
+			}
+			if (self.first) {
+				self.detach();
+			}
 			setBoundary(view.first, view.last);
 			view.setBoundaryOwner(setBoundary);
 		});
@@ -277,12 +327,12 @@ export interface ForContentFn<T> {
 	(value: T, index: () => number): unknown;
 }
 
-function insertView(parent: Node, prev: Node, view: View): void {
+function insertViewAfter(parent: Node, prev: Node, view: View): void {
 	const next = prev.nextSibling;
 	if (next) {
-		parent.insertBefore(view.take(), next);
+		view.insertBefore(parent, next);
 	} else {
-		parent.appendChild(view.take());
+		view.appendTo(parent);
 	}
 }
 
@@ -293,13 +343,13 @@ function insertView(parent: Node, prev: Node, view: View): void {
  *
  * @example
  * ```tsx
- * import { ForUnique, sig } from "rvx";
+ * import { For, sig } from "rvx";
  *
  * const items = sig([1, 2, 3]);
  *
- * <ForUnique each={items}>
+ * <For each={items}>
  *   {value => <li>{value}</li>}
- * </ForUnique>
+ * </For>
  * ```
  */
 export function For<T>(props: {
@@ -384,7 +434,7 @@ export function For<T>(props: {
 								});
 							});
 
-							insertView(parent, last, instance.v);
+							insertViewAfter(parent, last, instance.v);
 							instances.splice(index, 0, instance);
 							instanceMap.set(value, instance);
 							last = instance.v.last;
@@ -396,7 +446,7 @@ export function For<T>(props: {
 							const currentIndex = instances.indexOf(instance, index);
 							if (currentIndex < 0) {
 								detach(instances.splice(index, instances.length - index, instance));
-								insertView(parent, last, instance.v);
+								insertViewAfter(parent, last, instance.v);
 							} else {
 								detach(instances.splice(index, currentIndex - index));
 							}
@@ -521,7 +571,7 @@ export function IndexFor<T>(props: {
 						});
 					});
 
-					insertView(parent, last, instance.v);
+					insertViewAfter(parent, last, instance.v);
 					instances[index] = instance;
 					last = instance.v.last;
 					index++;

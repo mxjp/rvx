@@ -1,6 +1,6 @@
 import { deepStrictEqual } from "node:assert";
 
-import { ENV, teardown, View, ViewBoundaryOwner } from "rvx";
+import { ENV, teardown, View, ViewBoundaryOwner, viewNodes } from "rvx";
 
 export function assertEvents(events: unknown[], expected: unknown[]): void {
 	deepStrictEqual(events, expected);
@@ -12,6 +12,14 @@ export function text(node: Node): string {
 		return "";
 	}
 	return (node.textContent ?? "").trim();
+}
+
+export function viewText(view: View): string {
+	let str = "";
+	for (const node of viewNodes(view)) {
+		str += text(node);
+	}
+	return str;
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types

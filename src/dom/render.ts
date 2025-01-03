@@ -7,6 +7,18 @@ import { render } from "../core/render.js";
 import { View } from "../core/view.js";
 import { Node, WINDOW } from "./model.js";
 
+function renderDetachedView(view: View) {
+	const { first, last } = view;
+	if (!(first instanceof Node)) {
+		throw new Error("root is not an rvx dom node");
+	}
+	if (first === last) {
+		return first.outerHTML;
+	} else {
+		return first.parentNode!.outerHTML;
+	}
+}
+
 export function renderToString(component: Component): string;
 export function renderToString<P>(component: Component<P>, props: P): string;
 export function renderToString<P>(component: Component<P>, props?: P): string {
@@ -14,12 +26,7 @@ export function renderToString<P>(component: Component<P>, props?: P): string {
 	capture(() => {
 		ENV.inject(WINDOW, () => {
 			const view = render(component(props!));
-			const root = view.take();
-			if (root instanceof Node) {
-				html = root.outerHTML;
-			} else {
-				throw new Error("root is not an rvx dom node");
-			}
+			html = renderDetachedView(view);
 		});
 	})();
 	return html!;
@@ -38,12 +45,7 @@ export async function renderToStringAsync<P>(component: Component<P>, props?: P)
 	});
 	try {
 		await asyncCtx.complete();
-		const root = view!.take();
-		if (root instanceof Node) {
-			return root.outerHTML;
-		} else {
-			throw new Error("root is not an rvx dom node");
-		}
+		return renderDetachedView(view!);
 	} finally {
 		dispose();
 	}

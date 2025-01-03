@@ -34,16 +34,6 @@ export function createParent(env: typeof globalThis): Node {
 }
 
 /**
- * Internal utility to extract an inclusive range of nodes.
- */
-export function extractRange(first: Node, last: Node, env: typeof globalThis): DocumentFragment {
-	const r = new env.Range();
-	r.setStartBefore(first);
-	r.setEndAfter(last);
-	return r.extractContents();
-}
-
-/**
  * Internal utility to call a function with a specific stack frame.
  */
 export function useStack<T, R>(stack: T[], frame: T, fn: () => R): R {
@@ -83,7 +73,7 @@ export function appendContent(node: Node, content: unknown, env: typeof globalTh
 	} else if (content instanceof env.Node) {
 		node.appendChild(content);
 	} else if (content instanceof View) {
-		node.appendChild(content.take());
+		content.appendTo(node);
 	} else if (typeof content === "object" && NODE in content) {
 		node.appendChild((content as NodeTarget)[NODE]);
 	} else {

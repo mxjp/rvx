@@ -1,10 +1,8 @@
 import { deepStrictEqual, notStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-
 import { For, uncapture, View, watch } from "rvx";
 import { unwrap, wrap, wrapInstancesOf } from "rvx/store";
-
-import { assertEvents, text } from "../common.js";
+import { assertEvents, viewText } from "../common.js";
 import { WrapTest } from "./common.js";
 
 await suite("store/reactive-proxy", async () => {
@@ -199,13 +197,13 @@ await suite("store/reactive-proxy", async () => {
 		const view = uncapture(() => {
 			return <For each={() => Object.entries(proxy)}>{v => `(${v[0]}:${v[1]})`}</For> as View;
 		});
-		strictEqual(text(view.take()), "(foo:0)");
+		strictEqual(viewText(view), "(foo:0)");
 		proxy.foo = 1;
-		strictEqual(text(view.take()), "(foo:1)");
+		strictEqual(viewText(view), "(foo:1)");
 		proxy.bar = 2;
-		strictEqual(text(view.take()), "(foo:1)(bar:2)");
+		strictEqual(viewText(view), "(foo:1)(bar:2)");
 		delete proxy.foo;
-		strictEqual(text(view.take()), "(bar:2)");
+		strictEqual(viewText(view), "(bar:2)");
 	});
 
 	function assertEntries<T extends object>(targets: T[], entries: [keyof T, T[keyof T]][]) {

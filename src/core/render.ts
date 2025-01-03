@@ -92,7 +92,7 @@ export function render(content: unknown): View {
 								parent.appendChild(part);
 							}
 						} else if (part instanceof View) {
-							parent.appendChild(part.take());
+							part.appendTo(parent);
 							if (i === 0) {
 								part.setBoundaryOwner((first, _last) => setBoundary(first, undefined));
 							} else if (i === flat.length - 1) {
@@ -183,7 +183,7 @@ export function render(content: unknown): View {
  */
 export function mount(parent: Node, content: unknown): View {
 	const view = render(content);
-	parent.appendChild(view.take());
+	view.appendTo(parent);
 	teardown(() => view.detach());
 	return view;
 }

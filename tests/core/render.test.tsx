@@ -2,7 +2,7 @@ import { deepStrictEqual, notStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 import { ENV, NODE, render, sig, uncapture, View, viewNodes } from "rvx";
 import { createText } from "../../dist/es/core/internals.js";
-import { assertEvents, boundaryEvents, testView, text } from "../common.js";
+import { assertEvents, boundaryEvents, testView, text, viewText } from "../common.js";
 
 await suite("render", async () => {
 	function renderToNodes(content: unknown) {
@@ -54,7 +54,7 @@ await suite("render", async () => {
 		const view = render({ [NODE]: ENV.current.document.createTextNode("test") });
 		strictEqual(view.first instanceof ENV.current.Text, true);
 		strictEqual(view.first, view.last);
-		strictEqual(text(view.take()), "test");
+		strictEqual(viewText(view), "test");
 	});
 
 	await test("node targets", () => {
@@ -62,7 +62,7 @@ await suite("render", async () => {
 			{ [NODE]: ENV.current.document.createTextNode("a") },
 			{ [NODE]: ENV.current.document.createTextNode("b") },
 		]);
-		strictEqual(text(view.take()), "ab");
+		strictEqual(viewText(view), "ab");
 	});
 
 	await test("empty document fragment", () => {
@@ -90,7 +90,7 @@ await suite("render", async () => {
 				ENV.current.document.createDocumentFragment(),
 			]);
 		});
-		strictEqual(text(view.take()), "fl");
+		strictEqual(viewText(view), "fl");
 		uncapture(() => view.setBoundaryOwner(boundaryEvents(events)));
 		inner.nextFirst();
 		inner.nextLast();
@@ -109,7 +109,7 @@ await suite("render", async () => {
 				ENV.current.document.createDocumentFragment(),
 			]);
 		});
-		strictEqual(text(view.take()), "fl");
+		strictEqual(viewText(view), "fl");
 		uncapture(() => view.setBoundaryOwner(boundaryEvents(events)));
 		strictEqual(view.first instanceof ENV.current.Comment, true);
 		strictEqual(view.last instanceof ENV.current.Comment, true);
@@ -132,7 +132,7 @@ await suite("render", async () => {
 				ENV.current.document.createDocumentFragment(),
 			]);
 		});
-		strictEqual(text(view.take()), "12fl34");
+		strictEqual(viewText(view), "12fl34");
 		uncapture(() => view.setBoundaryOwner(boundaryEvents(events)));
 		inner.nextFirst();
 		inner.nextLast();

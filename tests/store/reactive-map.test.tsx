@@ -1,10 +1,8 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-
 import { For, uncapture, View, watch } from "rvx";
 import { ReactiveMap, wrap } from "rvx/store";
-
-import { assertEvents, text } from "../common.js";
+import { assertEvents, viewText } from "../common.js";
 import { WrapTest } from "./common.js";
 
 await suite("store/reactive-map", async () => {
@@ -142,13 +140,13 @@ await suite("store/reactive-map", async () => {
 		const view = uncapture(() => {
 			return <For each={proxy}>{v => `(${v[0]}:${v[1]})`}</For> as View;
 		});
-		strictEqual(text(view.take()), "(foo:0)");
+		strictEqual(viewText(view), "(foo:0)");
 		proxy.set("foo", 1);
-		strictEqual(text(view.take()), "(foo:1)");
+		strictEqual(viewText(view), "(foo:1)");
 		proxy.set("bar", 2);
-		strictEqual(text(view.take()), "(foo:1)(bar:2)");
+		strictEqual(viewText(view), "(foo:1)(bar:2)");
 		proxy.delete("foo");
-		strictEqual(text(view.take()), "(bar:2)");
+		strictEqual(viewText(view), "(bar:2)");
 	});
 
 	function assertEntries<K, V>(targets: Map<K, V>[], entries: [K, V][]) {

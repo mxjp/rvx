@@ -4,7 +4,7 @@ import test, { suite } from "node:test";
 import { For, uncapture, View, watchUpdates } from "rvx";
 import { wrap } from "rvx/store";
 
-import { assertEvents, text } from "../common.js";
+import { assertEvents, viewText } from "../common.js";
 import { WrapTest } from "./common.js";
 
 await suite("store/reactive-array-proxy", async () => {
@@ -365,9 +365,9 @@ await suite("store/reactive-array-proxy", async () => {
 		const view = uncapture(() => {
 			return <For each={proxy}>{v => v}</For> as View;
 		});
-		strictEqual(text(view.take()), "ab");
+		strictEqual(viewText(view), "ab");
 		proxy.splice(1, 0, "c");
-		strictEqual(text(view.take()), "acb");
+		strictEqual(viewText(view), "acb");
 	});
 
 	function assertEntries<T>(targets: T[][], entries: T[]) {
