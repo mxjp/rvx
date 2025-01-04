@@ -123,7 +123,7 @@ export function createBenchmark({ capture, render, sig, e, teardown, For, Show }
 				),
 			]);
 			if (onscreen) {
-				document.body.appendChild(app.take());
+				app.appendTo(document.body);
 				teardown(() => app.detach());
 			}
 		});
