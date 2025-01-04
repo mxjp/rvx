@@ -29,6 +29,8 @@ if (args.bundle ?? true) {
 	await exec(repo, `node scripts/bundle.js --no-minified --no-types --no-license -m core core/jsx/r17 dom -o ${join(relative(repo, snapshots), name)}`);
 }
 
+console.log(`Created snapshot: ${name}.js`);
+
 function exec(cwd, command) {
 	return new Promise((resolve, reject) => {
 		const proc = spawn(command, { cwd, shell: true, stdio: "inherit" });
