@@ -1,6 +1,4 @@
 
-export const startSampleSize = 1000;
-
 /** @param {import("rvx") & import("rvx/dom")} */
 export function create({ e, ENV, WINDOW }) {
 	const props = {};

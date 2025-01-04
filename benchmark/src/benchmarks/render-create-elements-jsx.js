@@ -1,6 +1,4 @@
 
-export const startSampleSize = 1000;
-
 /** @param {import("rvx")} */
 export function create({ jsx }) {
 	return () => {

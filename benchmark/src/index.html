@@ -7,59 +7,48 @@
 	</head>
 	<body>
 		<script type="module">
-
 			globalThis[Symbol.for("rvx:benchmark")] = async args => {
-				const START_SAMPLE_SIZE = 10;
-				const TARGET_DURATION = 250;
-				const MIN_DURATION = 200;
-				const MIN_SAMPLES = args.extended ? 20 : 5;
-				const MAX_SAMPLE_TRIES = args.extended ? 200 : 50;
-				const WARMUP_SAMPLES = args.extended ? 5 : 3;
+				const TARGET_DURATION_MS = 250;
+				const MIN_DURATION_MS = 200;
+				const MIN_SIZE = 10;
+				const SAMPLES = args.extended ? 20 : 5;
 
 				const benchmark = await import(`./benchmarks/${args.benchmark}`);
+				const snapshot = await import(`./snapshots/${args.snapshot}`);
+
 				const multiplier = benchmark.multiplier ?? 1;
+				const cycle = benchmark.create(snapshot);
+				const samples = [];
 
-				const snapshots = await Promise.all(args.snapshots.map(s => import(`./snapshots/${s}`)));
+				let size = MIN_SIZE;
+				let warmup = true;
 
-				const entries = snapshots.map(s => {
-					return {
-						cycle: benchmark.create(s),
-						size: benchmark.startSampleSize ?? START_SAMPLE_SIZE,
-						samples: [],
-					};
-				});
-
-				let tries = 0;
-				while (entries.some(e => e.samples.length < MIN_SAMPLES + WARMUP_SAMPLES)) {
-					if (++tries > MAX_SAMPLE_TRIES) {
-						throw new Error("max sample tries exceeded");
+				await idle();
+				while (samples.length < SAMPLES) {
+					const start = performance.now();
+					for (let i = 0; i < size; i++) {
+						cycle();
 					}
-					for (let e = 0; e < entries.length; e++) {
-						const { cycle, size, samples } = entries[e];
-
-						const start = performance.now();
-						for (let i = 0; i < size; i++) {
-							cycle();
+					const end = performance.now();
+					const durationMs = end - start;
+					if (warmup) {
+						if (durationMs > MIN_DURATION_MS) {
+							warmup = false;
+						} else {
+							size = Math.max(Math.round(size * Math.min(TARGET_DURATION_MS / durationMs, 4)), MIN_SIZE);
 						}
-						const end = performance.now();
-						const duration = end - start;
-
-						if (duration > MIN_DURATION) {
-							samples.push({ duration, size: size * multiplier });
-						}
-
-						entries[e].size = Math.round(size * Math.min(TARGET_DURATION / duration, 2));
-						if (entries[e].size < 1) {
-							throw new Error("sample took too long");
-						}
+					} else {
+						samples.push({ duration: durationMs / 1000, size: size * multiplier });
 					}
+					await idle();
 				}
 
-				return {
-					entries: entries.map(e => e.samples.slice(WARMUP_SAMPLES)),
-					tries,
-				};
+				return { samples };
 			};
+
+			function idle() {
+				return new Promise(r => requestIdleCallback(r, { timeout: 1000 }));
+			}
 		</script>
 	</body>
 </html>
