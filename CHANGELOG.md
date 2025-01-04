@@ -1,5 +1,8 @@
 # Changelog
 
+## 18.10
++ Add `Context.capture` utility.
+
 ## 18.9
 + Add `RouteProps` interface.
 

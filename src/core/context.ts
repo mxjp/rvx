@@ -141,13 +141,20 @@ export class Context<T> {
 	}
 
 	/**
+	 * Capture all current context states.
+	 */
+	static capture(): ContextState<unknown>[] {
+		return WINDOWS[WINDOWS.length - 1].map(_capture);
+	}
+
+	/**
 	 * Capture all current context states and wrap a function to always run with only these states injected.
 	 *
 	 * @param fn The function to wrap.
 	 * @returns The wrapped function.
 	 */
 	static wrap<T extends (...args: any) => any>(fn: T): T {
-		const states = WINDOWS[WINDOWS.length - 1].map(_capture);
+		const states = Context.capture();
 		return ((...args) => Context.window<any>(states, fn, ...args)) as T;
 	}
 }
