@@ -1,5 +1,8 @@
 # Changelog
 
+## 18.9
++ Add `RouteProps` interface.
+
 ## 18.8
 + Add `View.appendTo`, `View.insertBefore` utilities.
 + **Deprecated:** `View.take` will be removed in the next major version. Use `View.appendTo`, `View.insertBefore` or `View.detach` instead.

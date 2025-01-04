@@ -138,15 +138,18 @@ export function watchRoutes<T extends Route>(path: Expression<string>, routes: E
 }
 
 /**
+ * Props passed to the root component of a {@link ComponentRoute}.
+ */
+export interface RouteProps<P = unknown> {
+	/** Matched route parameters. */
+	params: P;
+}
+
+/**
  * A route where the content is a component to render.
  */
-export interface ComponentRoute extends Route {
-	content: (props: {
-		/**
-		 * Matched route parameters.
-		 */
-		params: unknown;
-	}) => unknown;
+export interface ComponentRoute<P> extends Route {
+	content: (props: RouteProps<P>) => unknown;
 }
 
 /**
@@ -158,7 +161,7 @@ export function Routes(props: {
 	/**
 	 * The routes to match.
 	 */
-	routes: Expression<Iterable<ComponentRoute>>;
+	routes: Expression<Iterable<ComponentRoute<unknown>>>;
 }): unknown {
 	const router = ROUTER.current;
 	if (!router) {
