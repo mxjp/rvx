@@ -330,9 +330,9 @@ export function watch<T>(expr: Expression<T>, fn: (value: T) => void): void {
 		let value: T;
 		let disposed = false;
 		let dispose: TeardownHook | undefined;
-		const runExpr = Context.wrap(() => value = get(expr));
-		const runFn = Context.wrap(() => fn(value));
-		const entry = _unfold(() => {
+		const runExpr = () => value = get(expr);
+		const runFn = () => fn(value);
+		const entry = _unfold(Context.wrap(() => {
 			if (disposed) {
 				// This covers an edge case where this observer is notified during a batch and then disposed immediately.
 				return;
@@ -349,7 +349,7 @@ export function watch<T>(expr: Expression<T>, fn: (value: T) => void): void {
 			}
 			dispose?.();
 			dispose = capture(runFn);
-		});
+		}));
 		const { c: clear, a: access } = _observer(entry);
 		teardown(() => {
 			disposed = true;
