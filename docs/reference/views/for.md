@@ -54,4 +54,4 @@ When the view itself is disposed, instances are disposed in the latest iteration
 If an error is thrown by iterating or by rendering an item, the update is stopped as if the previous item was the last one and the error is re-thrown.
 
 ### Performance
-The current implementation has a best case performance of `O(n)` and a practical worst case performance of `O(n * log(n))` with `n` being the new number of items. In practice, this is mostly irrelevant because the majority of time is spend updating the DOM.
+The current implementation has a best case performance of `O(n)` and a practical worst case performance of `O(n * log(n))` with `n` being the new number of items. In practice, this is mostly irrelevant because the majority of time is spent updating the DOM.
