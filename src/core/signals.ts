@@ -326,11 +326,14 @@ const _observer = (hook: NotifyHook): Observer => {
  * ```
  */
 export function watch<T>(expr: Expression<T>, fn: (value: T) => void): void {
-	if (expr instanceof Signal || typeof expr === "function") {
+	const isSignal = expr instanceof Signal;
+	if (isSignal || typeof expr === "function") {
 		let value: T;
 		let disposed = false;
 		let dispose: TeardownHook | undefined;
-		const runExpr = () => value = get(expr);
+		const runExpr = isSignal
+			? () => value = (expr as Signal<T>).value
+			: () => value = (expr as () => T)();
 		const runFn = () => fn(value);
 		const entry = _unfold(Context.wrap(() => {
 			if (disposed) {

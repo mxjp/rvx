@@ -36,9 +36,10 @@ export function capture(fn: () => void): TeardownHook {
 		dispose(hooks);
 		throw error;
 	}
-	return hooks.length > 1
-		? () => dispose(hooks)
-		: hooks[0] ?? NOOP;
+	const length = hooks.length;
+	return length === 1
+		? hooks[0]
+		: (length === 0 ? NOOP : () => dispose(hooks));
 }
 
 /**

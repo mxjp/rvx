@@ -107,12 +107,13 @@ class ClassBucket {
 	a(token: string): void {
 		const entries = this.#entries;
 		teardown(() => {
+			const removeQueue = this.#removeQueue;
 			for (let i = 0; i < entries.length; i++) {
 				const entry = entries[i];
 				if (entry.t === token) {
 					if (--entry.c === 0) {
 						entries.splice(i, 1);
-						this.#removeQueue.push(token);
+						removeQueue.push(token);
 					}
 					return;
 				}
@@ -133,17 +134,18 @@ class ClassBucket {
 	 * Flush token additions & removals.
 	 */
 	f(): void {
+		const target = this.#target;
 		const removeQueue = this.#removeQueue;
 		const addQueue = this.#addQueue;
 		if (removeQueue.length > 0) {
-			this.#target.classList.remove(...removeQueue);
+			target.classList.remove(...removeQueue);
 			removeQueue.length = 0;
 		}
 		if (addQueue.length > 0) {
-			if (this.#target.hasAttribute("class")) {
-				this.#target.classList.add(...addQueue);
+			if (target.hasAttribute("class")) {
+				target.classList.add(...addQueue);
 			} else {
-				this.#target.setAttribute("class", addQueue.join(" "));
+				target.setAttribute("class", addQueue.join(" "));
 			}
 			addQueue.length = 0;
 		}
