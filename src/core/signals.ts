@@ -144,7 +144,10 @@ export class Signal<T> {
 	 */
 	access(): void {
 		if (TRACKING_STACK[TRACKING_STACK.length - 1]) {
-			ACCESS_STACK[ACCESS_STACK.length - 1]?.(this.#hooks);
+			const length = ACCESS_STACK.length;
+			if (length > 0) {
+				ACCESS_STACK[length - 1](this.#hooks);
+			}
 		}
 	}
 
