@@ -545,7 +545,7 @@ export function track<T>(fn: () => T): T {
  * Check if a currently evaluating expression is tracking signal accesses.
  */
 export function isTracking(): boolean {
-	return TRACKING_STACK[TRACKING_STACK.length - 1] && ACCESS_STACK[ACCESS_STACK.length - 1]?.length > 0;
+	return TRACKING_STACK[TRACKING_STACK.length - 1] && ACCESS_STACK.length > 0;
 }
 
 /**
