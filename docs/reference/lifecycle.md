@@ -35,6 +35,9 @@ Register a hook to be called when the current lifecycle is disposed:
 
 Calling `teardown` outside of any functions listed below has no effect and "leaks" the teardown hook. When running tests, this behavior can be [configured](./testing.md#leak-detection) to log leaks or to throw an error.
 
+!!! warning
+	Teardown hooks always run in the context from which they are called in instead of the context they have been registered in.
+
 ## `created`
 Register a hook to be called as a microtask.
 
