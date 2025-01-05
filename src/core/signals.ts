@@ -577,17 +577,22 @@ export function trigger(fn: () => void): TriggerPipe {
 	return <T>(expr: Expression<T>) => {
 		clear();
 		try {
-			const outer = ACCESS_STACK[ACCESS_STACK.length - 1] as AccessHook | undefined;
-			ACCESS_STACK.push(hooks => {
-				/*
-					Tracking accesses using this observer before any outer ones also
-					guarantees the order in which observers are notified because:
-					+ Hooks in Signal.#hooks are called in iteration order.
-					+ Set iteration order matches the order in which observers add their hooks.
-				*/
-				access(hooks);
-				outer?.(hooks);
-			});
+			const outerLength = ACCESS_STACK.length;
+			if (outerLength > 0) {
+				const outer = ACCESS_STACK[outerLength - 1];
+				ACCESS_STACK.push(hooks => {
+					/*
+						Tracking accesses using this observer before any outer ones also
+						guarantees the order in which observers are notified because:
+						+ Hooks in Signal.#hooks are called in iteration order.
+						+ Set iteration order matches the order in which observers add their hooks.
+					*/
+					access(hooks);
+					outer(hooks);
+				});
+			} else {
+				ACCESS_STACK.push(access);
+			}
 			return get(expr);
 		} finally {
 			ACCESS_STACK.pop();
