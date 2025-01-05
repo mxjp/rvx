@@ -157,12 +157,16 @@ export class Signal<T> {
 	 * During batches, notifications are deferred.
 	 */
 	notify(): void {
+		const hooks = this.#hooks;
+		if (hooks.size === 0) {
+			return;
+		}
 		if (BATCH === undefined) {
-			const hooks = Array.from(this.#hooks);
-			this.#hooks.clear();
-			hooks.forEach(notify);
+			const record = Array.from(hooks);
+			hooks.clear();
+			record.forEach(notify);
 		} else {
-			this.#hooks.forEach(queueBatch);
+			hooks.forEach(queueBatch);
 			/*
 				Hooks are not cleared during batches to prevent breaking
 				other observers if an error is thrown during the batch.
