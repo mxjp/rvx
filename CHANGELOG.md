@@ -1,5 +1,8 @@
 # Changelog
 
+## 18.11
++ `MovableView.move` is now bound by default.
+
 ## 18.10
 + Add `Context.capture` utility.
 

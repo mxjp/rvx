@@ -600,7 +600,7 @@ export class MovableView {
 	/**
 	 * Create a new view that contains the wrapped view until it is moved again or detached.
 	 */
-	move(): View {
+	move: Component<void, View> = () => {
 		return new View((setBoundary, self) => {
 			this.#dispose?.();
 			this.#dispose = capture(() => {
@@ -614,7 +614,7 @@ export class MovableView {
 				});
 			});
 		});
-	}
+	};
 
 	/**
 	 * Detach the wrapped view if attached.
