@@ -33,6 +33,7 @@ capture(() => {
 ```
 
 Lifecycle hooks are automatically captured in:
+
 + `capture`
 + `captureSelf`
 + `teardownOnError`
@@ -44,25 +45,25 @@ Lifecycle hooks are automatically captured in:
 ## Render Errors
 Rvx has no dedicated error handling while rendering. If something in the synchronous render tree fails, the entire tree will fail to render and lifecycle hooks are called as [specified above](#lifecycle-hooks).
 
-If you need some kind of error boundary, you can use a component like in the example below.
+If you need some kind of error boundary, you can use a component like the one below.
 
 === "JSX"
 	```jsx
 	import { teardownOnError } from "rvx";
 
 	function TryRender(props: {
-		onError: (error: unknown) => unknown;
+		fallback: (error: unknown) => unknown;
 		children: () => unknown;
 	}) {
 		try {
 			return teardownOnError(props.children);
 		} catch (error) {
 			console.error(error);
-			return props.onError(error);
+			return props.fallback(error);
 		}
 	}
 
-	<TryRender onError={error => "Something went wrong."}>
+	<TryRender fallback={error => "Something went wrong."}>
 		{() => <>
 			<SomethingDangerous />
 			Hello World!
@@ -75,19 +76,19 @@ If you need some kind of error boundary, you can use a component like in the exa
 	import { teardownOnError } from "./rvx.js";
 
 	function TryRender(props: {
-		onError: (error: unknown) => unknown;
+		fallback: (error: unknown) => unknown;
 		children: () => unknown;
 	}) {
 		try {
 			return teardownOnError(props.children);
 		} catch (error) {
 			console.error(error);
-			return props.onError(error);
+			return props.fallback(error);
 		}
 	}
 
 	TryRender({
-		onError: error => "Something went wrong.",
+		fallback: error => "Something went wrong.",
 		children: () => [
 			SomethingDangerous(),
 			"Hello World!",
