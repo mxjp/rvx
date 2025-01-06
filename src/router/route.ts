@@ -148,7 +148,7 @@ export interface RouteProps<P = unknown> {
 /**
  * A route where the content is a component to render.
  */
-export interface ComponentRoute<P> extends Route {
+export interface ComponentRoute<P = unknown> extends Route {
 	content: (props: RouteProps<P>) => unknown;
 }
 
