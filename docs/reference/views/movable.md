@@ -37,7 +37,35 @@ When you want to safely reuse, keep alive or move content, you can wrap content 
 	wrapper.detach();
 	```
 
-For instance, this can be used to safely move kept alive content into a specific position:
+For just keeping content alive and conditionally rendering it in the same place, consider using [`<Attach>`](./attach.md) instead of movable views.
+
+## Examples
+
+Rendering content from a signal:
+
+=== "JSX"
+	```jsx
+	const content = sig<MovableView | undefined>();
+
+	// .move can be directly used as a component:
+	<Nest>{() => content.value?.move}</Nest>
+
+	content.value = movable(<>Hello World!</>);
+	```
+
+=== "No Build"
+	```jsx
+	const content = sig<MovableView | undefined>();
+
+	// .move can be directly used as a component:
+	Nest({ children: () => content.value?.move })
+
+	content.value = movable(<>Hello World!</>);
+	```
+
+<br>
+
+Moving a view into a specific position in a list:
 
 === "JSX"
 	```jsx
@@ -49,7 +77,7 @@ For instance, this can be used to safely move kept alive content into a specific
 			return <li>
 				{/* Move the view into this item if it's the current one: */}
 				<Show when={() => currentIndex.value === index()}>
-					{() => wrapper.move()}
+					{wrapper.move}
 				</Show>
 			</li>;
 		}}
@@ -66,10 +94,8 @@ For instance, this can be used to safely move kept alive content into a specific
 		children: (item, index) => e("li").append(
 			Show({
 				when: () => currentIndex.value === index(),
-				children: () => wrapper.move(),
+				children: wrapper.move,
 			}),
 		),
 	})
 	```
-
-For just keeping content alive and conditionally rendering it in the same place, consider using [`<Attach>`](./attach.md) instead of movable views.
