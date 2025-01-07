@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { capture, ClassValue, Context, e, ENV, ExpressionResult, NODE, sig, StyleMap, uncapture } from "rvx";
+import { $, capture, ClassValue, Context, e, ENV, ExpressionResult, NODE, StyleMap, uncapture } from "rvx";
 import { isRvxDom } from "rvx/dom";
 import { assertEvents } from "../common.js";
 
@@ -108,7 +108,7 @@ await suite("element", async () => {
 			});
 
 			await test("removed attribute", () => {
-				const signal = sig<any>(false);
+				const signal = $<any>(false);
 				const elem = uncapture(() => {
 					return jsx
 						? <div test-attr={signal} /> as HTMLElement
@@ -183,8 +183,8 @@ await suite("element", async () => {
 				}
 
 				await test("normal usage", () => {
-					const a = sig("a");
-					const d = sig(false);
+					const a = $("a");
+					const d = $(false);
 					const elem = createElem(() => [
 						a.value,
 						"b",
@@ -217,7 +217,7 @@ await suite("element", async () => {
 
 				await test("top level updates", () => {
 					const events: unknown[] = [];
-					const signal = sig<ExpressionResult<ClassValue>>(undefined);
+					const signal = $<ExpressionResult<ClassValue>>(undefined);
 					const elem = createElem(signal, events);
 					assertClass(elem, []);
 					assertEvents(events, []);
@@ -251,7 +251,7 @@ await suite("element", async () => {
 
 				await test("external mutation behavior", () => {
 					const events: unknown[] = [];
-					const signal = sig<ExpressionResult<ClassValue>>(undefined);
+					const signal = $<ExpressionResult<ClassValue>>(undefined);
 					const elem = createElem(signal, events);
 					assertEvents(events, []);
 					elem.classList.add("a");
@@ -274,7 +274,7 @@ await suite("element", async () => {
 
 				await test("nested updates", () => {
 					const events: unknown[] = [];
-					const signal = sig<ExpressionResult<ClassValue>>(undefined);
+					const signal = $<ExpressionResult<ClassValue>>(undefined);
 					const elem = createElem(["a", signal, "b"], events);
 					assertClass(elem, ["a", "b"]);
 					assertEvents(events, [["setAttribute", "class", "a b"]]);
@@ -287,8 +287,8 @@ await suite("element", async () => {
 					assertClass(elem, ["a", "b", "d"]);
 					assertEvents(events, [["remove", "c"], ["add", "d"]]);
 
-					const nestedA = sig(false);
-					const nestedC = sig(true);
+					const nestedA = $(false);
+					const nestedC = $(true);
 					signal.value = { "a": nestedA, "c": nestedC };
 					assertClass(elem, ["a", "b", "c"]);
 					assertEvents(events, [["remove", "d"], ["add", "c"]]);
@@ -335,8 +335,8 @@ await suite("element", async () => {
 
 				await test("teardown", () => {
 					let elem!: HTMLElement;
-					const signalA = sig(["c"]);
-					const signalB = sig(false);
+					const signalA = $(["c"]);
+					const signalB = $(false);
 					const value: ClassValue = ["a", { b: true }, signalA, () => ({ d: signalB })];
 					const dispose = capture(() => {
 						elem = jsx
@@ -356,9 +356,9 @@ await suite("element", async () => {
 			});
 
 			await test("style attribute", () => {
-				const a = sig<StyleMap>({ color: "blue" });
-				const b = sig("red");
-				const c = sig<StyleMap>({ width: "42px" });
+				const a = $<StyleMap>({ color: "blue" });
+				const b = $("red");
+				const c = $<StyleMap>({ width: "42px" });
 				const elem = uncapture(() => {
 					return jsx
 						? <div style={[

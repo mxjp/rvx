@@ -7,19 +7,19 @@ Note, that this example doesn't include any storage error handling or validation
 
 */
 
-import { For, Show, Signal, e, sig, watch } from "rvx";
+import { $, For, Show, Signal, e, watch } from "rvx";
 
 const STORAGE_KEY = "rvx-examples:todo-app";
 
 export function Example() {
-	const name = sig("");
+	const name = $("");
 
 	// Load items from storage by converting the
 	// json representation into objects with signals:
-	const items = sig<Item[]>([]);
+	const items = $<Item[]>([]);
 	try {
 		const json = JSON.parse(localStorage.getItem(STORAGE_KEY)!) as ItemJson[];
-		items.value = json.map(item => ({ name: sig(item.name), done: sig(item.done) }));
+		items.value = json.map(item => ({ name: $(item.name), done: $(item.done) }));
 	} catch (error) {
 		console.error(error);
 	}
@@ -27,7 +27,7 @@ export function Example() {
 	function add() {
 		if (name.value) {
 			items.update(items => {
-				items.push({ name: sig(name.value), done: sig(false) });
+				items.push({ name: $(name.value), done: $(false) });
 			});
 			name.value = "";
 		}

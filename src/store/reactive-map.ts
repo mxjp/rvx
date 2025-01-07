@@ -1,4 +1,4 @@
-import { batch, sig, Signal } from "../core/signals.js";
+import { $, batch, Signal } from "../core/signals.js";
 import type { Barrier } from "./barrier.js";
 import { ProbeMap } from "./probes.js";
 
@@ -23,8 +23,8 @@ export class ReactiveMap<K, V> extends Map<K, V> {
 		super();
 		this.#target = target;
 		this.#barrier = barrier;
-		this.#size = sig(target.size);
-		this.#iterators = sig();
+		this.#size = $(target.size);
+		this.#iterators = $();
 		this.#getProbes = new ProbeMap(key => target.get(key));
 		this.#hasProbes = new ProbeMap(key => target.has(key));
 	}

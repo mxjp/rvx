@@ -7,10 +7,10 @@ This example shows two functions `trim` and `debounce` that can be combined to c
 
 */
 
-import { Signal, sig, teardown, watchUpdates } from "rvx";
+import { $, Signal, teardown, watchUpdates } from "rvx";
 
 function trim(source: Signal<string>) {
-	const input = sig(source.value);
+	const input = $(source.value);
 
 	// Trim and write into the source signal:
 	watchUpdates(input, value => {
@@ -28,7 +28,7 @@ function trim(source: Signal<string>) {
 }
 
 function debounce<T>(source: Signal<T>, delay: number) {
-	const input = sig<T>(source.value);
+	const input = $<T>(source.value);
 
 	let timer: number | undefined;
 
@@ -55,7 +55,7 @@ function debounce<T>(source: Signal<T>, delay: number) {
 }
 
 export function Example() {
-	const text = sig("Hello World!");
+	const text = $("Hello World!");
 	return <div class="column">
 		<div class="row">
 			Trim: <TextInput value={text.pipe(trim)} />

@@ -7,13 +7,13 @@ Note, that this example doesn't include any storage error handling or validation
 
 */
 
-import { For, Show, Signal, effect, sig } from "rvx";
+import { $, For, Show, Signal, effect } from "rvx";
 import { reflect, wrap } from "rvx/store";
 
 const STORAGE_KEY = "rvx-examples:todo-app";
 
 export function Example() {
-	const name = sig("");
+	const name = $("");
 
 	// Load items from storage by creating a
 	// deep reactive wrapper for the items array:

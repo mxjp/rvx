@@ -1,7 +1,7 @@
 import { Context } from "../core/context.js";
 import { ENV } from "../core/env.js";
 import { teardown } from "../core/lifecycle.js";
-import { sig, watch } from "../core/signals.js";
+import { $, watch } from "../core/signals.js";
 
 export type TaskSource = (() => unknown) | Promise<unknown> | null | undefined;
 
@@ -21,7 +21,7 @@ export interface TasksOptions {
  */
 export class Tasks {
 	#pendingCount = 0;
-	#pending = sig(false);
+	#pending = $(false);
 	#restoreFocus: boolean;
 	#parent: Tasks | undefined;
 

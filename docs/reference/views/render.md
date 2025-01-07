@@ -64,10 +64,10 @@ This can be used to implement things like popovers, dialogs or any other kind of
 
 === "JSX"
 	```jsx
-	import { mount, watch, sig } from "rvx";
+	import { $, mount, watch } from "rvx";
 
 	function ExamplePopover() {
-		const visible = sig(false);
+		const visible = $(false);
 
 		// Watch automatically takes care of the lifecycle:
 		watch(visible, visible => {
@@ -84,10 +84,10 @@ This can be used to implement things like popovers, dialogs or any other kind of
 
 === "No Build"
 	```jsx
-	import { mount, watch, sig, e } from "./rvx.js";
+	import { $, mount, watch, e } from "./rvx.js";
 
 	function ExamplePopover() {
-		const visible = sig(false);
+		const visible = $(false);
 
 		// Watch automatically takes care of the lifecycle:
 		watch(visible, visible => {

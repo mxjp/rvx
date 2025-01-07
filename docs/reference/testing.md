@@ -3,9 +3,9 @@ Testing rvx based applications is usually very simple because all of it's signal
 
 === "JSX"
 	```jsx
-	import { sig } from "rvx";
+	import { $ } from "rvx";
 
-	const count = sig(7);
+	const count = $(7);
 	const element = <div>Current count: {count}</div> as HTMLDivElement;
 	assert(element.innerText === "Current count: 7");
 	count.value = 42;
@@ -14,9 +14,9 @@ Testing rvx based applications is usually very simple because all of it's signal
 
 === "No Build"
 	```jsx
-	import { sig, e } from "./rvx.js";
+	import { $, e } from "./rvx.js";
 
-	const count = sig(7);
+	const count = $(7);
 	const element = e("div").append("Current count: ", count).elem;
 	assert(element.innerText === "Current count: 7");
 	count.value = 42;
@@ -30,10 +30,11 @@ Rvx provides a lightweight wrapper for running small synchronous tests that take
 
 === "JSX"
 	```jsx
+	import { $ } from "rvx";
 	import { runTest, querySelector } from "rvx/test";
 
 	runTest(() => {
-		const count = sig(0);
+		const count = $(0);
 		const view = mount(
 			document.body,
 			<button on:click={() => { count.value++; }}>Click me!</button>,
@@ -45,10 +46,10 @@ Rvx provides a lightweight wrapper for running small synchronous tests that take
 
 === "No Build"
 	```jsx
-	import { runTest, querySelector } from "./rvx.js";
+	import { $, runTest, querySelector } from "./rvx.js";
 
 	runTest(() => {
-		const count = sig(0);
+		const count = $(0);
 		const view = mount(
 			document.body,
 			e("button").on("click", () => { count.value++; }).append("Click me!"),
@@ -125,11 +126,11 @@ You can watch arbitrary [expressions](./signals.md#expressions) using the `watch
 
 === "JSX"
 	```jsx
-	import { sig } from "rvx";
+	import { $ } from "rvx";
 	import { watchFor, isPending } from "rvx/async";
 
 	// Wait for a specific signal value:
-	const count = sig(0);
+	const count = $(0);
 	setInterval(() => { count.value++ }, 1000);
 	await watchFor(() => count.value > 7);
 
@@ -142,10 +143,10 @@ You can watch arbitrary [expressions](./signals.md#expressions) using the `watch
 
 === "No Build"
 	```jsx
-	import { sig, watchFor, isPending } from "./rvx.js";
+	import { $, watchFor, isPending } from "./rvx.js";
 
 	// Wait for a specific signal value:
-	const count = sig(0);
+	const count = $(0);
 	setInterval(() => { count.value++ }, 1000);
 	await watchFor(() => count.value > 7);
 

@@ -7,13 +7,13 @@ You can toggle the visibility of the entire view or one of it's children to demo
 
 */
 
-import { Attach, View, render, sig } from "rvx";
+import { $, Attach, View, render } from "rvx";
 import { Emitter, Event } from "rvx/event";
 
 export function Example() {
 	const rotate = new Emitter<[]>();
-	const allVisible = sig(true);
-	const innerVisible = sig(true);
+	const allVisible = $(true);
+	const innerVisible = $(true);
 
 	return <div class="column">
 		<div class="row">

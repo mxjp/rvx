@@ -6,7 +6,7 @@ This shows a minimal [i18next](https://www.i18next.com/) integration.
 */
 
 import i18next from "i18next";
-import { sig } from "rvx";
+import { $ } from "rvx";
 
 await i18next.init({
 	lng: "en",
@@ -25,7 +25,7 @@ await i18next.init({
 });
 
 // Create a signal for notifying translation expressions:
-const lang = sig(i18next.language);
+const lang = $(i18next.language);
 
 // Notify the "lang" signal when anything that could
 // affect the result of the ".t" function changes:

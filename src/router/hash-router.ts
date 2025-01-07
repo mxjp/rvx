@@ -1,6 +1,6 @@
 import { ENV } from "../core/env.js";
 import { teardown } from "../core/lifecycle.js";
-import { batch, sig } from "../core/signals.js";
+import { $, batch } from "../core/signals.js";
 import { normalize } from "./path.js";
 import { Query, QueryInit } from "./query.js";
 import { Router } from "./router.js";
@@ -21,8 +21,8 @@ export interface HashRouterOptions {
  */
 export class HashRouter implements Router {
 	#env = ENV.current;
-	#path = sig<string>(undefined!);
-	#query = sig<Query | undefined>(undefined);
+	#path = $<string>(undefined!);
+	#query = $<Query | undefined>(undefined);
 
 	constructor(options?: HashRouterOptions) {
 		const env = this.#env;

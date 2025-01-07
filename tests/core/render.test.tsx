@@ -1,6 +1,6 @@
 import { deepStrictEqual, notStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { ENV, NODE, render, sig, uncapture, View, viewNodes } from "rvx";
+import { $, ENV, NODE, render, uncapture, View, viewNodes } from "rvx";
 import { createText } from "../../dist/es/core/internals.js";
 import { assertEvents, boundaryEvents, testView, text, viewText } from "../common.js";
 
@@ -10,7 +10,7 @@ await suite("render", async () => {
 	}
 
 	await test("createText (internal)", () => {
-		const signal = sig<unknown>(undefined);
+		const signal = $<unknown>(undefined);
 		const text = uncapture(() => createText(signal, ENV.current));
 		strictEqual(text.textContent, "");
 		signal.value = null;
@@ -153,7 +153,7 @@ await suite("render", async () => {
 			for (const nodes of [
 				renderToNodes(value),
 				uncapture(() => renderToNodes(() => value)),
-				uncapture(() => renderToNodes(sig(value))),
+				uncapture(() => renderToNodes($(value))),
 			]) {
 				strictEqual(nodes.length, 1);
 				strictEqual(nodes[0] instanceof ENV.current.Text, true);

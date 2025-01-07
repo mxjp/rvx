@@ -1,10 +1,10 @@
-import { batch, sig } from "rvx";
-import { formatQuery, normalize, Query, QueryInit, Router } from "rvx/router";
+import { $, batch } from "rvx";
+import { normalize, Query, QueryInit, Router } from "rvx/router";
 
 export class TestRouter implements Router {
 	#events: unknown[];
-	#path = sig(normalize(""));
-	#query = sig<Query | undefined>(undefined);
+	#path = $(normalize(""));
+	#query = $<Query | undefined>(undefined);
 
 	constructor(events?: unknown[]) {
 		this.#events = events ?? [];

@@ -1,6 +1,6 @@
-import { batch, sig } from "../core/signals.js";
+import { $, batch } from "../core/signals.js";
 import { normalize } from "./path.js";
-import { formatQuery, Query, QueryInit } from "./query.js";
+import { Query, QueryInit } from "./query.js";
 import { Router } from "./router.js";
 
 export interface MemoryRouterOptions {
@@ -19,8 +19,8 @@ export interface MemoryRouterOptions {
  * A router that keeps it's state in memory instead of the actual browser location.
  */
 export class MemoryRouter implements Router {
-	#path = sig<string>(undefined!);
-	#query = sig<Query | undefined>(undefined);
+	#path = $<string>(undefined!);
+	#query = $<Query | undefined>(undefined);
 
 	constructor(options?: MemoryRouterOptions) {
 		this.#path.value = normalize(options?.path ?? "");

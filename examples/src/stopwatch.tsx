@@ -7,7 +7,7 @@ This example also demonstrates how state and logic can be separated from it's re
 
 */
 
-import { Expression, IndexFor, Show, get, memo, sig, teardown } from "rvx";
+import { $, Expression, IndexFor, Show, get, memo, teardown } from "rvx";
 
 export function Example() {
 	// Create a reactive timer instance:
@@ -72,7 +72,7 @@ function createTimer() {
 	};
 
 	// Create a signal that is updated with the current time every frame:
-	const now = sig(performance.now());
+	const now = $(performance.now());
 	let nextFrame = requestAnimationFrame(function update() {
 		nextFrame = requestAnimationFrame(update);
 		now.value = performance.now();
@@ -80,8 +80,8 @@ function createTimer() {
 	// Stop updating the timer when this lifecycle is disposed:
 	teardown(() => cancelAnimationFrame(nextFrame));
 
-	const laps = sig<Lap[]>([]);
-	const state = sig<State>({
+	const laps = $<Lap[]>([]);
+	const state = $<State>({
 		type: "paused",
 		elapsed: 0,
 		lastLap: 0,

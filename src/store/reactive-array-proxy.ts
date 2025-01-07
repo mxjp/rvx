@@ -1,9 +1,9 @@
-import { batch, isTracking, sig } from "../core/signals.js";
+import { $, batch, isTracking } from "../core/signals.js";
 import type { Barrier } from "./barrier.js";
 import { ProbeMap } from "./probes.js";
 
 export function createReactiveArrayProxy<T>(target: T[], barrier: Barrier): T[] {
-	const length = sig(target.length);
+	const length = $(target.length);
 	const indexProbes = new ProbeMap<number, T | undefined>(i => target[i]);
 	return new Proxy(target, {
 		get(target, prop, recv) {

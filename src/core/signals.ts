@@ -89,7 +89,7 @@ export class Signal<T> {
 	 * ```tsx
 	 * import { sig, watch } from "rvx";
 	 *
-	 * const count = sig(0);
+	 * const count = $(0);
 	 *
 	 * watch(count, count => {
 	 *   console.log("Count:", count);
@@ -114,7 +114,7 @@ export class Signal<T> {
 	 * ```tsx
 	 * import { sig, watch } from "rvx";
 	 *
-	 * const items = sig([]);
+	 * const items = $([]);
 	 *
 	 * watch(items, items => {
 	 *   console.log("Items:", items);
@@ -181,7 +181,7 @@ export class Signal<T> {
 	 *
 	 * @example
 	 * ```tsx
-	 * const value = sig(42);
+	 * const value = $(42);
 	 *
 	 * <TextInput value={
 	 *   value
@@ -201,11 +201,18 @@ export class Signal<T> {
  * @param value The initial value.
  * @returns The signal.
  */
-export function sig(): Signal<void>;
-export function sig<T>(value: T): Signal<T>;
-export function sig(value?: unknown): Signal<unknown> {
+export function $(): Signal<void>;
+export function $<T>(value: T): Signal<T>;
+export function $(value?: unknown): Signal<unknown> {
 	return new Signal(value);
 }
+
+/**
+ * Create a new signal.
+ *
+ * @deprecated Use the {@link Signal} constructor or {@link $} instead.
+ */
+export const sig = $;
 
 /**
  * A value, signal or function to get a value.
@@ -214,7 +221,7 @@ export function sig(value?: unknown): Signal<unknown> {
  * ```tsx
  * import { sig, watch } from "rvx";
  *
- * const message = sig("Example");
+ * const message = $("Example");
  *
  * // Not reactive:
  * watch(message.value, message => {
@@ -314,7 +321,7 @@ const _observer = (hook: NotifyHook): Observer => {
  * ```tsx
  * import { sig, watch } from "rvx";
  *
- * const count = sig(0);
+ * const count = $(0);
  *
  * // Capture teardown hooks registered by "watch":
  * const dispose = capture(() => {
@@ -444,8 +451,8 @@ export function effect(fn: () => void): void {
  * ```tsx
  * import { batch, sig, watch } from "rvx";
  *
- * const a = sig(2);
- * const b = sig(3);
+ * const a = $(2);
+ * const b = $(3);
  *
  * watch(() => a.value + b.value, value => {
  *   console.log("Sum:", value);
@@ -494,7 +501,7 @@ export function batch<T>(fn: () => T): T {
  * ```tsx
  * import { sig, memo, watch } from "rvx";
  *
- * const count = sig(42);
+ * const count = $(42);
  *
  * const computed = memo(() => someExpensiveComputation(count.value));
  *
@@ -504,7 +511,7 @@ export function batch<T>(fn: () => T): T {
  * ```
  */
 export function memo<T>(expr: Expression<T>): () => T {
-	const signal = sig<T>(undefined!);
+	const signal = $<T>(undefined!);
 	watch(expr, value => signal.value = value);
 	return () => signal.value;
 }
@@ -521,8 +528,8 @@ export function memo<T>(expr: Expression<T>): () => T {
  * ```tsx
  * import { sig, untrack, watch } from "rvx";
  *
- * const a = sig(2);
- * const b = sig(3);
+ * const a = $(2);
+ * const b = $(3);
  *
  * watch(() => a.value + untrack(() => b.value), sum => {
  *   console.log("Sum:", sum);
@@ -619,7 +626,7 @@ export function trigger(fn: () => void): TriggerPipe {
  * ```tsx
  * import { sig, get } from "rvx";
  *
- * const count = sig(42);
+ * const count = $(42);
  *
  * get(42) // 42
  * get(count) // 42
@@ -645,7 +652,7 @@ export type MapFn<I, O> = (input: I) => O;
  * ```tsx
  * import { sig, map, get } from "rvx";
  *
- * const count = sig(42);
+ * const count = $(42);
  * const doubleCount = map(count, value => value * 2);
  *
  * get(doubleCount) // 84

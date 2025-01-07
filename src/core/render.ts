@@ -64,7 +64,7 @@ function use(setBoundary: ViewSetBoundaryFn, node: Node, env: typeof globalThis)
  * render("Hello World!");
  * render(() => "Hello World!");
  * render(42);
- * render(sig(42));
+ * render($(42));
  * ```
  */
 export function render(content: unknown): View {
@@ -159,7 +159,7 @@ export function render(content: unknown): View {
  * import { mount } from "rvx";
  *
  * function Popover(props: { text: unknown, children: unknown }) {
- *   const visible = sig(false);
+ *   const visible = $(false);
  *
  *   mount(
  *     document.body,

@@ -1,5 +1,5 @@
 import { Context } from "../core/context.js";
-import { sig } from "../core/signals.js";
+import { $ } from "../core/signals.js";
 
 export interface AsyncContextParent {
 	/**
@@ -15,7 +15,7 @@ export interface AsyncContextParent {
  */
 export class AsyncContext {
 	#parent: AsyncContextParent | undefined;
-	#tasks = sig(new Set<Promise<unknown>>());
+	#tasks = $(new Set<Promise<unknown>>());
 	#errorHandlers = new Set<unknown[]>();
 
 	constructor(parent?: AsyncContextParent) {

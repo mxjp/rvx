@@ -3,7 +3,7 @@ import { ENV } from "./env.js";
 import { createParent, createPlaceholder, Falsy, NOOP } from "./internals.js";
 import { capture, nocapture, teardown, TeardownHook } from "./lifecycle.js";
 import { render } from "./render.js";
-import { effect, Expression, get, memo, sig, Signal, watch } from "./signals.js";
+import { $, effect, Expression, get, memo, Signal, watch } from "./signals.js";
 
 /**
  * A function that is called when the view boundary may have been changed.
@@ -231,7 +231,7 @@ export function * viewNodes(view: View): IterableIterator<Node> {
  * ```tsx
  * import { Nest, sig } from "rvx";
  *
- * const count = sig(0);
+ * const count = $(0);
  *
  * <Nest>
  *   {() => {
@@ -339,7 +339,7 @@ function insertViewAfter(parent: Node, prev: Node, view: View): void {
  * ```tsx
  * import { For, sig } from "rvx";
  *
- * const items = sig([1, 2, 3]);
+ * const items = $([1, 2, 3]);
  *
  * <For each={items}>
  *   {value => <li>{value}</li>}
@@ -414,7 +414,7 @@ export function For<T>(props: {
 							const instance: Instance = {
 								u: value,
 								c: cycle,
-								i: sig(index),
+								i: $(index),
 								d: undefined!,
 								v: undefined!,
 							};
@@ -489,7 +489,7 @@ export interface IndexForContentFn<T> {
  * ```tsx
  * import { IndexFor, sig } from "rvx";
  *
- * const items = sig([1, 2, 3]);
+ * const items = $([1, 2, 3]);
  *
  * <IndexFor each={items}>
  *   {value => <li>{value}</li>}
@@ -641,7 +641,7 @@ export function movable(content: unknown): MovableView {
  * ```tsx
  * import { sig, Attach } from "rvx";
  *
- * const showMessage = sig(true);
+ * const showMessage = $(true);
  *
  * <Attach when={showMessage}>
  *   <h1>Hello World!</h1>

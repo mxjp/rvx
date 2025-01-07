@@ -45,7 +45,7 @@ Rendering content from a signal:
 
 === "JSX"
 	```jsx
-	const content = sig<MovableView | undefined>();
+	const content = $<MovableView | undefined>();
 
 	// .move can be directly used as a component:
 	<Nest>{() => content.value?.move}</Nest>
@@ -55,7 +55,7 @@ Rendering content from a signal:
 
 === "No Build"
 	```jsx
-	const content = sig<MovableView | undefined>();
+	const content = $<MovableView | undefined>();
 
 	// .move can be directly used as a component:
 	Nest({ children: () => content.value?.move })
@@ -70,7 +70,7 @@ Moving a view into a specific position in a list:
 === "JSX"
 	```jsx
 	const wrapper = movable(<>Current item</>);
-	const currentIndex = sig(0);
+	const currentIndex = $(0);
 
 	<For each={items}>
 		{(item, index) => {
@@ -87,7 +87,7 @@ Moving a view into a specific position in a list:
 === "No Build"
 	```jsx
 	const wrapper = movable(<>Current item</>);
-	const currentIndex = sig(0);
+	const currentIndex = $(0);
 
 	For({
 		each: items,

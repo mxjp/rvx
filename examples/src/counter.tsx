@@ -5,10 +5,10 @@ A simple counter to demonstrate basic signal usage.
 
 */
 
-import { sig } from "rvx";
+import { $ } from "rvx";
 
 export function Example() {
-	const count = sig(0);
+	const count = $(0);
 	return <button on:click={() => { count.value++ }}>
 		Clicked {count} {() => count.value === 1 ? "time" : "times"}!
 	</button>;

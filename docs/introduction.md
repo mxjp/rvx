@@ -52,17 +52,17 @@ The `<h1>Hello World!</h1>` expression directly creates an element and the `moun
 ## State & Reactivity
 Reactivity is entirely based on signals which are objects that hold an arbitrary value:
 ```jsx
-import { sig } from "rvx";
+import { $ } from "rvx";
 
 // Create a signal with the initial value 0:
-const count = sig(0);
+const count = $(0);
 ```
 
 When a signal is used directly or it's value is accessed through a function call, the signal can notify it's observers when the value changes:
 ```jsx
-import { mount, sig } from "rvx";
+import { $, mount } from "rvx";
 
-const count = sig(0);
+const count = $(0);
 
 mount(
 	document.body,
@@ -89,7 +89,7 @@ count.value = 1;
 
 To update an object, you can use the `update` function.
 ```jsx
-const values = sig([7, 42]);
+const values = $([7, 42]);
 
 // This will modify the inner value and then notify observers:
 values.update(values => {
@@ -141,9 +141,9 @@ To render conditional or repeated content rvx uses so called **Views** which are
 
 The `Show` component renders content when a condition is met:
 ```jsx
-import { mount, sig, Show } from "rvx";
+import { $, mount, Show } from "rvx";
 
-const showMessage = sig(false);
+const showMessage = $(false);
 
 mount(
 	document.body,
@@ -161,9 +161,9 @@ mount(
 
 The `For` component repeats content for each unique item in an iterable:
 ```jsx
-import { mount, sig, For } from "rvx";
+import { $, mount, For } from "rvx";
 
-const values = sig<number[]>([]);
+const values = $<number[]>([]);
 
 mount(
 	document.body,
@@ -233,7 +233,7 @@ function Message(props: { message: Expression<string>; }) {
 
 To allow components to update a value, you can use the `Signal` type:
 ```jsx
-import { mount, sig, Signal } from "rvx";
+import { $, mount, Signal } from "rvx";
 
 function TextInput(props: { value: Signal<string>; }) {
 	return <input
@@ -245,7 +245,7 @@ function TextInput(props: { value: Signal<string>; }) {
 	/>;
 }
 
-const text = sig("Hello World!");
+const text = $("Hello World!");
 <TextInput value={text} />;
 ```
 

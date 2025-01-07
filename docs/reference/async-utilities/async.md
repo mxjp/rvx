@@ -98,7 +98,7 @@ When there are multiple async parts in the same place, tracking can be used to h
 
 === "JSX"
 	```jsx
-	import { Inject, sig, movable } from "rvx";
+	import { $, Inject, movable } from "rvx";
 	import { ASYNC, Async, AsyncContext } from "rvx/async";
 
 	const innerCtx = new AsyncContext();
@@ -119,7 +119,7 @@ When there are multiple async parts in the same place, tracking can be used to h
 
 === "No Build"
 	```jsx
-	import { sig, movable, ASYNC, Async, AsyncContext } from "./rvx.js";
+	import { $, movable, ASYNC, Async, AsyncContext } from "./rvx.js";
 
 	const innerCtx = new AsyncContext();
 	const inner = movable(ASYNC.inject(innerCtx, () => [
@@ -156,7 +156,7 @@ The example below fetches a file and aborts pending requests when the file name 
 
 === "JSX"
 	```jsx
-	const name = sig("example.txt");
+	const name = $("example.txt");
 
 	<Nest>
 		{() => {
@@ -170,7 +170,7 @@ The example below fetches a file and aborts pending requests when the file name 
 
 === "No Build"
 	```jsx
-	const name = sig("example.txt");
+	const name = $("example.txt");
 
 	Nest({
 		children: () => {

@@ -3,9 +3,9 @@ Render a [component](../components.md) returned from an expression.
 
 === "JSX"
 	```jsx
-	import { Nest, sig } from "rvx";
+	import { $, Nest } from "rvx";
 
-	const message = sig({ type: "heading", value: "Hello World!" });
+	const message = $({ type: "heading", value: "Hello World!" });
 
 	<Nest>
 		{() => {
@@ -20,9 +20,9 @@ Render a [component](../components.md) returned from an expression.
 
 === "No Build"
 	```jsx
-	import { Nest, sig, e } from "./rvx.js";
+	import { $, Nest, e } from "./rvx.js";
 
-	const message = sig({ type: "heading", value: "Hello World!" });
+	const message = $({ type: "heading", value: "Hello World!" });
 
 	Nest({
 		children: () => {
@@ -78,7 +78,7 @@ To avoid re-rendering the component, you can use [`memo`](../signals.md#memo) or
 	```
 
 	```jsx
-	const component = sig<Component | undefined>();
+	const component = $<Component | undefined>();
 	<Nest>{component}</Nest>
 
 	// Replace the component:
@@ -101,7 +101,7 @@ To avoid re-rendering the component, you can use [`memo`](../signals.md#memo) or
 	```
 
 	```jsx
-	const component = sig();
+	const component = $();
 	Nest({ children: component })
 
 	// Replace the component:

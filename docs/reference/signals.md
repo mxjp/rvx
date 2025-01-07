@@ -5,22 +5,22 @@ To create a signal, you can use the `Signal` constructor or the `sig` shorthand:
 
 === "JSX"
 	```jsx
-	import { Signal, sig } from "rvx";
+	import { $, Signal } from "rvx";
 
 	// using the constructor:
 	const count = new Signal(42);
 	// or using the shorthand:
-	const count = sig(42);
+	const count = $(42);
 	```
 
 === "No Build"
 	```jsx
-	import { Signal, sig } from "./rvx.js";
+	import { $, Signal } from "./rvx.js";
 
 	// using the constructor:
 	const count = new Signal(42);
 	// or using the shorthand:
-	const count = sig(42);
+	const count = $(42);
 	```
 
 The current value can be accessed or updated using the `value` property:
@@ -30,7 +30,7 @@ count.value++;
 
 To deeply change a value and then notify the signal observers, use the `update` function:
 ```jsx
-const items = sig(["a", "b"]);
+const items = $(["a", "b"]);
 
 items.update(items => {
 	items.push("c");
@@ -49,7 +49,7 @@ count.notify();
 ## Equality
 By default, setting a signal's `value` property only notifies it's observers if the value is not the same.
 ```jsx
-const count = sig(42);
+const count = $(42);
 // This does nothing since the value is already 42:
 count.value = 42;
 ```
@@ -60,7 +60,7 @@ In rvx, an `Expression` can be a static value, a signal or a function that acces
 // A static value:
 42;
 // A signal itself:
-sig(42);
+$(42);
 // A function that accesses signals:
 () => a.value * b.value;
 ```
@@ -153,8 +153,8 @@ Signal updates are always processed immediately. The `batch` function can be use
 	```jsx
 	import { batch } from "rvx";
 
-	const a = sig(1);
-	const b = sig(2);
+	const a = $(1);
+	const b = $(2);
 
 	batch(() => {
 		a.value++;
@@ -166,8 +166,8 @@ Signal updates are always processed immediately. The `batch` function can be use
 	```jsx
 	import { batch } from "./rvx.js";
 
-	const a = sig(1);
-	const b = sig(2);
+	const a = $(1);
+	const b = $(2);
 
 	batch(() => {
 		a.value++;
@@ -225,7 +225,7 @@ Manually evaluate an expression of an unknown type.
 
 	get(42); // 42
 	get(() => 42); // 42
-	get(sig(42)); // 42
+	get($(42)); // 42
 	```
 
 === "No Build"
@@ -234,7 +234,7 @@ Manually evaluate an expression of an unknown type.
 
 	get(42); // 42
 	get(() => 42); // 42
-	get(sig(42)); // 42
+	get($(42)); // 42
 	```
 
 ## `map`
@@ -248,7 +248,7 @@ Map an expression value while preserving if the expression is static or not.
 	map(6, value => value * 7);
 
 	// This returns a function to compute the value:
-	map(sig(6), value => value * 7);
+	map($(6), value => value * 7);
 	```
 
 === "No Build"
@@ -259,7 +259,7 @@ Map an expression value while preserving if the expression is static or not.
 	map(6, value => value * 7);
 
 	// This returns a function to compute the value:
-	map(sig(6), value => value * 7);
+	map($(6), value => value * 7);
 	```
 
 ## `trigger`
@@ -269,14 +269,14 @@ When the lifecycle at which the pipe was created is disposed, the callback funct
 
 === "JSX"
 	```jsx
-	import { trigger, sig } from "rvx";
+	import { $, trigger } from "rvx";
 
 	// Create a new pipe that is bound to the current lifecycle:
 	const pipe = trigger(() => {
 		console.log("Signal has been updated.");
 	});
 
-	const signal = sig(42);
+	const signal = $(42);
 
 	// Evaluating an expression through the pipe will track all signal accesses:
 	console.log(pipe(signal)); // 42
@@ -288,14 +288,14 @@ When the lifecycle at which the pipe was created is disposed, the callback funct
 
 === "No Build"
 	```jsx
-	import { trigger, sig } from "./rvx.js";
+	import { $, trigger } from "./rvx.js";
 
 	// Create a new pipe that is bound to the current lifecycle:
 	const pipe = trigger(() => {
 		console.log("Signal has been updated.");
 	});
 
-	const signal = sig(42);
+	const signal = $(42);
 
 	// Evaluating an expression through the pipe will track all signal accesses:
 	console.log(pipe(signal)); // 42
@@ -309,13 +309,13 @@ It is guaranteed that the function is called before any other observers like [`w
 
 === "JSX"
 	```jsx
-	import { trigger, sig, watch } from "rvx";
+	import { $, trigger, watch } from "rvx";
 
 	const pipe = trigger(() => {
 		console.log("Signal has been updated.");
 	});
 
-	const signal = sig(42);
+	const signal = $(42);
 	watch(() => {
 		console.log("Evaluating...");
 		return pipe(signal);
@@ -328,13 +328,13 @@ It is guaranteed that the function is called before any other observers like [`w
 
 === "No Build"
 	```jsx
-	import { trigger, sig, watch } from "./rvx.js";
+	import { $, trigger, watch } from "./rvx.js";
 
 	const pipe = trigger(() => {
 		console.log("Signal has been updated.");
 	});
 
-	const signal = sig(42);
+	const signal = $(42);
 	watch(() => {
 		console.log("Evaluating...");
 		return pipe(signal);
@@ -357,12 +357,12 @@ If pipes are nested, the callback for the most inner one is called first. In the
 
 === "JSX"
 	```jsx
-	import { trigger, sig } from "rvx";
+	import { $, trigger } from "rvx";
 
 	const pipeA = trigger(() => console.log("Pipe A"));
 	const pipeB = trigger(() => console.log("Pipe B"));
 
-	const signal = sig(42);
+	const signal = $(42);
 	pipeA(() => pipeB(signal)); // 42
 
 	signal.value = 77;
@@ -370,12 +370,12 @@ If pipes are nested, the callback for the most inner one is called first. In the
 
 === "No Build"
 	```jsx
-	import { trigger, sig } from "./rvx.js";
+	import { $, trigger } from "./rvx.js";
 
 	const pipeA = trigger(() => console.log("Pipe A"));
 	const pipeB = trigger(() => console.log("Pipe B"));
 
-	const signal = sig(42);
+	const signal = $(42);
 	pipeA(() => pipeB(signal)); // 42
 
 	signal.value = 77;
@@ -388,9 +388,9 @@ By default, signal updates are processed immediately. If an update causes recurs
 
 === "JSX"
 	```jsx
-	import { sig, watch } from "rvx";
+	import { $, watch } from "rvx";
 
-	const count = sig(0);
+	const count = $(0);
 
 	watch(count, value => {
 		console.group("Count:", value);
@@ -406,9 +406,9 @@ By default, signal updates are processed immediately. If an update causes recurs
 
 === "No Build"
 	```jsx
-	import { sig, watch } from "./rvx.js";
+	import { $, watch } from "./rvx.js";
 
-	const count = sig(0);
+	const count = $(0);
 
 	watch(count, value => {
 		console.group("Count:", value);
@@ -525,16 +525,16 @@ For signal based reactivity to work, the following is required:
 ### Deep Updates
 Signals don't automatically detect when values are deeply changed. They only detect when values are entirely replaced.
 ```jsx
-const counter = sig({ count: 0 });
+const counter = $({ count: 0 });
 // This will not trigger any updates:
 counter.value.count++;
 ```
 
 When possible, you should wrap the inner values into signals:
 ```jsx
-const counter = { count: sig(0) };
+const counter = { count: $(0) };
 // Signals can also be deeply nested:
-const counter = sig({ count: sig(0) });
+const counter = $({ count: $(0) });
 ```
 
 When this isn't possible, you can use one of the following options:
@@ -559,7 +559,7 @@ The value of signals or expressions can always be used in a non reactive ways:
 
 === "JSX"
 	```jsx
-	const count = sig(0);
+	const count = $(0);
 
 	// This isn't reactive:
 	<>{count.value}</>;
@@ -568,7 +568,7 @@ The value of signals or expressions can always be used in a non reactive ways:
 
 === "No Build"
 	```jsx
-	const count = sig(0);
+	const count = $(0);
 
 	// This isn't reactive:
 	count.value;

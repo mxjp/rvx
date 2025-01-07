@@ -1,4 +1,4 @@
-import { batch, sig, Signal } from "../core/signals.js";
+import { $, batch, Signal } from "../core/signals.js";
 import type { Barrier } from "./barrier.js";
 import { ProbeMap } from "./probes.js";
 
@@ -22,8 +22,8 @@ export class ReactiveSet<T> extends Set<T> {
 		super();
 		this.#target = target;
 		this.#barrier = barrier;
-		this.#size = sig(target.size);
-		this.#iterators = sig();
+		this.#size = $(target.size);
+		this.#iterators = $();
 		this.#probes = new ProbeMap(key => target.has(key));
 	}
 

@@ -25,7 +25,7 @@ Truthy condition results are passed to the child callback as the first argument.
 
 === "JSX"
 	```jsx
-	const message = sig("Hello World!");
+	const message = $("Hello World!");
 
 	<Show when={message}>
 		{value => <h1>{value}</h1>}
@@ -34,7 +34,7 @@ Truthy condition results are passed to the child callback as the first argument.
 
 === "No Build"
 	```jsx
-	const message = sig("Hello World!");
+	const message = $("Hello World!");
 
 	Show({
 		when: message,

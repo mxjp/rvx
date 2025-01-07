@@ -1,7 +1,7 @@
 import { deepStrictEqual, notStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
 
-import { Attach, capture, Component, ENV, For, IndexFor, memo, mount, movable, Nest, render, Show, sig, teardown, uncapture, View, watch, watchUpdates } from "rvx";
+import { $, Attach, capture, Component, ENV, For, IndexFor, memo, mount, movable, Nest, render, Show, teardown, uncapture, View, watch, watchUpdates } from "rvx";
 import { wrap } from "rvx/store";
 
 import { assertEvents, boundaryEvents, lifecycleEvent, TestView, testView, text, viewText, withMsg } from "../common.js";
@@ -195,7 +195,7 @@ await suite("view", async () => {
 		const root = <div /> as HTMLElement;
 		strictEqual(text(root), "");
 		let view!: View;
-		const signal = sig(1);
+		const signal = $(1);
 		const dispose = capture(() => {
 			view = mount(root, () => `test${signal.value}`);
 		});
@@ -212,7 +212,7 @@ await suite("view", async () => {
 	await suite("Nest", async () => {
 		await test("lifecycle", () => {
 			const events: unknown[] = [];
-			const signal = sig(0);
+			const signal = $(0);
 
 			let view!: View;
 			const dispose = capture(() => {
@@ -251,7 +251,7 @@ await suite("view", async () => {
 		await test("boundary", () => {
 			const events: unknown[] = [];
 
-			const inner = sig<TestView | undefined>(undefined);
+			const inner = $<TestView | undefined>(undefined);
 
 			let view!: View;
 			capture(() => {
@@ -289,7 +289,7 @@ await suite("view", async () => {
 
 		await test("render side effects", () => {
 			const events: unknown[] = [];
-			const signal = sig(0);
+			const signal = $(0);
 			let view!: View;
 			uncapture(() => {
 				view = <Nest>
@@ -311,7 +311,7 @@ await suite("view", async () => {
 
 		await suite("error handling", async () => {
 			await test("expression, initialization", () => {
-				const signal = sig(42);
+				const signal = $(42);
 				throws(() => {
 					capture(() => {
 						<Nest>
@@ -326,7 +326,7 @@ await suite("view", async () => {
 			});
 
 			await test("expression, signal update", () => {
-				const signal = sig(42);
+				const signal = $(42);
 				let view!: View;
 				const dispose = capture(() => {
 					view = <Nest>
@@ -355,7 +355,7 @@ await suite("view", async () => {
 			});
 
 			await test("component, initialization", () => {
-				const signal = sig(42);
+				const signal = $(42);
 				throws(() => {
 					capture(() => {
 						<Nest>
@@ -372,7 +372,7 @@ await suite("view", async () => {
 			});
 
 			await test("component, signal update", () => {
-				const signal = sig(42);
+				const signal = $(42);
 				let view!: View;
 				const dispose = capture(() => {
 					view = <Nest>
@@ -405,7 +405,7 @@ await suite("view", async () => {
 
 		await test("component memo", () => {
 			const events: unknown[] = [];
-			const signal = sig(0);
+			const signal = $(0);
 
 			function A() {
 				lifecycleEvent(events, "a");
@@ -441,8 +441,8 @@ await suite("view", async () => {
 
 		await test("external state reset", () => {
 			const events: unknown[] = [];
-			const signal = sig();
-			const count = sig(0);
+			const signal = $();
+			const count = $(0);
 
 			function Content() {
 				const version = `v${count.value}`;
@@ -477,8 +477,8 @@ await suite("view", async () => {
 
 		await test("internal state reset", () => {
 			const events: unknown[] = [];
-			const signal = sig();
-			const count = sig(0);
+			const signal = $();
+			const count = $(0);
 
 			const view = uncapture(() => {
 				return <Nest>
@@ -511,7 +511,7 @@ await suite("view", async () => {
 
 		await test("component from signal", () => {
 			const events: unknown[] = [];
-			const comp = sig<Component | undefined>(undefined);
+			const comp = $<Component | undefined>(undefined);
 			const view = uncapture(() => <Nest>{comp}</Nest> as View);
 
 			assertEvents(events, []);
@@ -540,7 +540,7 @@ await suite("view", async () => {
 	await test("Show", () => {
 		const events: unknown[] = [];
 
-		const signal = sig(0);
+		const signal = $(0);
 
 		const view = uncapture(() => {
 			return <Show when={signal} else={() => {
@@ -610,7 +610,7 @@ await suite("view", async () => {
 			}
 
 			const events: unknown[] = [];
-			const signal = sig(sequence[0]);
+			const signal = $(sequence[0]);
 
 			let view!: View;
 			const dispose = capture(() => {
@@ -792,7 +792,7 @@ await suite("view", async () => {
 
 		await test("sequential item render side effects", () => {
 			const events: unknown[] = [];
-			const signal = sig([1]);
+			const signal = $([1]);
 			const view = uncapture(() => {
 				return <For each={signal}>
 					{value => {
@@ -817,7 +817,7 @@ await suite("view", async () => {
 			disposeEvents: unknown[];
 		}): void {
 			const events: unknown[] = [];
-			const signal = sig<unknown[]>([]);
+			const signal = $<unknown[]>([]);
 
 			const dispose = capture(() => {
 				<For each={signal}>
@@ -931,7 +931,7 @@ await suite("view", async () => {
 			}
 
 			const events: unknown[] = [];
-			const signal = sig(sequence[0]);
+			const signal = $(sequence[0]);
 
 			let view!: View;
 			const dispose = capture(() => {
@@ -1082,7 +1082,7 @@ await suite("view", async () => {
 
 		await test("sequential item render side effects", () => {
 			const events: unknown[] = [];
-			const signal = sig([1]);
+			const signal = $([1]);
 			const view = uncapture(() => {
 				return <IndexFor each={signal}>
 					{value => {
@@ -1107,7 +1107,7 @@ await suite("view", async () => {
 			disposeEvents: unknown[];
 		}): void {
 			const events: unknown[] = [];
-			const signal = sig<unknown[]>([]);
+			const signal = $<unknown[]>([]);
 
 			const dispose = capture(() => {
 				<IndexFor each={signal}>
@@ -1213,7 +1213,7 @@ await suite("view", async () => {
 	});
 
 	await test("movable", async () => {
-		const inner = sig(1);
+		const inner = $(1);
 		const view = uncapture(() => movable(<>
 			inner:{inner}
 		</>));
@@ -1241,8 +1241,8 @@ await suite("view", async () => {
 	});
 
 	await test("Attach", async () => {
-		const signal = sig(false);
-		const inner = sig(1);
+		const signal = $(false);
+		const inner = $(1);
 
 		const view = uncapture(() => {
 			return <Attach when={signal}>

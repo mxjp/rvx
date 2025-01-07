@@ -12,9 +12,9 @@ This is a signal based frontend framework.
 
 === "JSX"
 	```jsx
-	import { mount, sig } from "rvx";
+	import { $, mount } from "rvx";
 
-	const count = sig(0);
+	const count = $(0);
 
 	mount(
 		document.body,
@@ -26,9 +26,9 @@ This is a signal based frontend framework.
 
 === "No Build"
 	```jsx
-	import { mount, sig, e } from "./rvx.js";
+	import { $, mount, e } from "./rvx.js";
 
-	const count = sig(0);
+	const count = $(0);
 
 	mount(
 		document.body,
@@ -63,7 +63,7 @@ Everything in rvx is composable without any restrictions. You can define reactiv
 ??? note "Example"
 	Using state from somewhere else:
 	```jsx
-	const count = sig(0);
+	const count = $(0);
 
 	function GlobalCounter() {
 		return <button on:click={() => { count.value++ }}>
@@ -155,7 +155,7 @@ Signal updates are processed immediately. This ensures that your application sta
 
 ??? note "Example"
 	```jsx
-	const message = sig("");
+	const message = $("");
 	const elem = <h1>{message}</h1> as HTMLElement;
 
 	message.value = "Hello World!";
@@ -164,7 +164,7 @@ Signal updates are processed immediately. This ensures that your application sta
 
 	Immediate side effects run synchronously in sequence:
 	```jsx
-	const count = sig(0);
+	const count = $(0);
 	effect(() => {
 		console.group("Current:", count.value);
 		if (count.value < 2) {
@@ -190,8 +190,8 @@ Reactive expressions can be separated from their side effects. This reduces the 
 ??? note "Example"
 	The code below shows how many times a checkbox has been checked using the `watch` primitive:
 	```jsx
-	const checked = sig(false);
-	const count = sig(0);
+	const checked = $(false);
+	const count = $(0);
 
 	watch(checked, value => {
 		if (value) {

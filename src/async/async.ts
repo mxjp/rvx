@@ -1,4 +1,4 @@
-import { sig } from "../core/signals.js";
+import { $ } from "../core/signals.js";
 import { Nest, View } from "../core/view.js";
 import { ASYNC } from "./async-context.js";
 
@@ -35,7 +35,7 @@ export function Async<T>(props: {
 	rejected?: (value: unknown) => unknown;
 }): View {
 	const { source, pending, children, rejected } = props;
-	const state = sig({ type: 0, value: undefined as unknown });
+	const state = $({ type: 0, value: undefined as unknown });
 
 	let promise: Promise<T>;
 	if (typeof source === "function") {

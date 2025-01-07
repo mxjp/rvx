@@ -1,9 +1,7 @@
 import { strictEqual } from "node:assert";
 import test from "node:test";
-
-import { sig, uncapture, watch } from "rvx";
+import { $, uncapture, watch } from "rvx";
 import { ChildRouter, normalize } from "rvx/router";
-
 import { assertEvents } from "../common.js";
 import { TestRouter } from "./common.js";
 
@@ -13,7 +11,7 @@ await test("router/child router", async () => {
 	root.push("/test");
 	events.length = 0;
 
-	const path = sig(normalize(""));
+	const path = $(normalize(""));
 	const child = new ChildRouter(root, "/test", path);
 
 	strictEqual(child.root, root);

@@ -4,9 +4,9 @@
 This is a signal based frontend framework.
 
 ```jsx
-import { mount, sig } from "rvx";
+import { $, mount } from "rvx";
 
-const count = sig(0);
+const count = $(0);
 
 mount(
   document.body,

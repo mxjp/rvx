@@ -85,7 +85,7 @@ Event listeners running while signal accesses are tracked will be able to access
 	import { Emitter } from "rvx/event";
 
 	const emitter = new Emitter<[]>();
-	const signal = sig(42);
+	const signal = $(42);
 
 	emitter.event(() => {
 		// This access is tracked inside the effect below:
@@ -102,7 +102,7 @@ Event listeners running while signal accesses are tracked will be able to access
 	import { effect, Emitter } from "./rvx.js";
 
 	const emitter = new Emitter();
-	const signal = sig(42);
+	const signal = $(42);
 
 	emitter.event(() => {
 		// This access is tracked inside the effect below:

@@ -1,4 +1,4 @@
-import { Expression, get, sig, watch } from "../core/signals.js";
+import { $, Expression, get, watch } from "../core/signals.js";
 import { Nest } from "../core/view.js";
 import { ChildRouter } from "./child-router.js";
 import { normalize } from "./path.js";
@@ -118,8 +118,8 @@ export interface WatchedRoutes<T extends Route> {
  * @returns An object with individually watchable route match and the unmatched rest path.
  */
 export function watchRoutes<T extends Route>(path: Expression<string>, routes: Expression<Iterable<T>>): WatchedRoutes<T> {
-	const parent = sig<ParentRouteMatch<T> | undefined>(undefined);
-	const rest = sig<string>(undefined!);
+	const parent = $<ParentRouteMatch<T> | undefined>(undefined);
+	const rest = $<string>(undefined!);
 	watch(() => matchRoute(get(path), get(routes)), match => {
 		if (match) {
 			if (!parent.value || parent.value.path !== match.path || parent.value.route !== match.route) {

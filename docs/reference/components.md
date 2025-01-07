@@ -75,13 +75,13 @@ By default, all component properties are static. To accept reactive inputs, use 
 
 === "JSX"
 	```jsx
-	import { Expression, sig } from "rvx";
+	import { $, Expression } from "rvx";
 
 	function Counter(props: { value: Expression<number>; }) {
 		return <>Current count: {props.value}</>;
 	}
 
-	const count = sig(42);
+	const count = $(42);
 
 	// Static values:
 	<Counter value={count.value} />
@@ -93,7 +93,7 @@ By default, all component properties are static. To accept reactive inputs, use 
 
 === "No Build"
 	```jsx
-	import { sig } from "./rvx.js";
+	import { $ } from "./rvx.js";
 
 	/**
 	 * @param {object} props
@@ -103,7 +103,7 @@ By default, all component properties are static. To accept reactive inputs, use 
 		return ["Current count: ", props.value];
 	}
 
-	const count = sig(42);
+	const count = $(42);
 
 	// Static values:
 	Counter({ count: 42 })
@@ -141,7 +141,7 @@ To support data flow in both directions, you can use [signals](signals.md) as pr
 
 === "JSX"
 	```jsx
-	import { Signal, sig } from "rvx";
+	import { $, Signal } from "rvx";
 
 	function Counter(props: { value: Signal<number>; }) {
 		return <button on:click={() => { props.value.value++ }}>
@@ -149,13 +149,13 @@ To support data flow in both directions, you can use [signals](signals.md) as pr
 		</button>;
 	}
 
-	const count = sig(0);
+	const count = $(0);
 	<Counter value={count} />
 	```
 
 === "No Build"
 	```jsx
-	import { sig, e } from "./rvx.js";
+	import { $, e } from "./rvx.js";
 
 	/**
 	 * @param {object} props
@@ -167,7 +167,7 @@ To support data flow in both directions, you can use [signals](signals.md) as pr
 		);
 	}
 
-	const count = sig(0);
+	const count = $(0);
 	Counter({ value: count })
 	```
 
@@ -177,7 +177,7 @@ The example below shows a basic text input and a `trim` function for trimming us
 
 === "JSX"
 	```jsx
-	import { Signal, sig, watchUpdates } from "rvx";
+	import { $, Signal, watchUpdates } from "rvx";
 
 	function TextInput(props: { value: Signal<string>; }) {
 		return <input
@@ -190,7 +190,7 @@ The example below shows a basic text input and a `trim` function for trimming us
 	}
 
 	function trim(source: Signal<string>) {
-		const input = sig(source.value);
+		const input = $(source.value);
 
 		// Update the source signal if the input changes:
 		watchUpdates(input, value => {
@@ -207,7 +207,7 @@ The example below shows a basic text input and a `trim` function for trimming us
 		return input;
 	}
 
-	const text = sig("");
+	const text = $("");
 
 	// This input uses the "text" signal as is:
 	<TextInput value={text} />
@@ -223,7 +223,7 @@ The example below shows a basic text input and a `trim` function for trimming us
 
 === "No Build"
 	```jsx
-	import { sig, watchUpdates, e } from "./rvx.js";
+	import { $, watchUpdates, e } from "./rvx.js";
 
 	/**
 	 * @param {object} props
@@ -240,7 +240,7 @@ The example below shows a basic text input and a `trim` function for trimming us
 	 * @param {import("./rvx.js").Signal<string>} source
 	 */
 	function trim(source) {
-		const input = sig(source.value);
+		const input = $(source.value);
 
 		// Update the source signal if the input changes:
 		watchUpdates(input, value => {
@@ -257,7 +257,7 @@ The example below shows a basic text input and a `trim` function for trimming us
 		return input;
 	}
 
-	const text = sig("");
+	const text = $("");
 
 	// This input uses the "text" signal as is:
 	TextInput({ value: text })
@@ -355,7 +355,7 @@ In case of the `class` and `style` attributes, you can use an array as value to 
 	import { teardown } from "rvx";
 
 	function Timer() {
-		const elapsed = sig(0);
+		const elapsed = $(0);
 		const timer = setInterval(() => { elapsed.value++ }, 1000);
 		teardown(() => clearInterval(timer));
 		return elapsed;
@@ -367,7 +367,7 @@ In case of the `class` and `style` attributes, you can use an array as value to 
 	import { teardown } from "./rvx.js";
 
 	function Timer() {
-		const elapsed = sig(0);
+		const elapsed = $(0);
 		const timer = setInterval(() => { elapsed.value++ }, 1000);
 		teardown(() => clearInterval(timer));
 		return elapsed;

@@ -1,5 +1,9 @@
 # Changelog
 
+## 18.12
++ Add `$` shorthand for creating signals.
++ **Deprecated:** The `sig` shorthand will be removed in the next major version.
+
 ## 18.11
 + `MovableView.move` is now bound by default.
 

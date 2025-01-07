@@ -1,6 +1,6 @@
 import { ENV } from "../core/env.js";
 import { teardown } from "../core/lifecycle.js";
-import { batch, sig } from "../core/signals.js";
+import { $, batch } from "../core/signals.js";
 import { join, relative } from "./path.js";
 import { formatQuery, Query, QueryInit } from "./query.js";
 import { Router } from "./router.js";
@@ -27,8 +27,8 @@ export interface HistoryRouterOptions {
 export class HistoryRouter implements Router {
 	#env = ENV.current;
 	#basePath: string;
-	#path = sig<string>(undefined!);
-	#query = sig<Query | undefined>(undefined!);
+	#path = $<string>(undefined!);
+	#query = $<Query | undefined>(undefined!);
 
 	constructor(options?: HistoryRouterOptions) {
 		const env = this.#env;

@@ -1,7 +1,7 @@
 import { ENV } from "../core/env.js";
 import { capture, TeardownHook, uncapture } from "../core/lifecycle.js";
 import { render } from "../core/render.js";
-import { sig, Signal, watchUpdates } from "../core/signals.js";
+import { $, Signal, watchUpdates } from "../core/signals.js";
 
 export type StartTrigger = "on-connect" | "manual";
 export type DisposeTrigger = "on-disconnect" | "manual";
@@ -75,7 +75,7 @@ export abstract class RvxElement extends moduleEnv.HTMLElement {
 	reflect(name: string): Signal<string | null> {
 		let signal = this.#signals.get(name);
 		if (signal === undefined) {
-			signal = sig(this.getAttribute(name));
+			signal = $(this.getAttribute(name));
 			this.#signals.set(name, signal);
 			uncapture(() => {
 				watchUpdates(signal!, value => {

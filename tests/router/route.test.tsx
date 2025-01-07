@@ -1,9 +1,7 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-
-import { Inject, sig, uncapture, watch } from "rvx";
+import { $, Inject, uncapture, watch } from "rvx";
 import { ChildRouter, matchRoute, Route, ROUTER, Routes, watchRoutes } from "rvx/router";
-
 import { assertEvents, lifecycleEvent, text } from "../common.js";
 import { TestRouter } from "./common.js";
 
@@ -76,7 +74,7 @@ await suite("router/route", async () => {
 			{ match: /^\/foo(\/|$)/ },
 		];
 
-		const path = sig("");
+		const path = $("");
 		const watched = uncapture(() => watchRoutes(path, routes));
 		uncapture(() => {
 			watch(watched.match, () => events.push("match"));
