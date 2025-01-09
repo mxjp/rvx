@@ -1,0 +1,14 @@
+{
+	"name": "rvx-quick-start",
+	"type": "module",
+	"scripts": {
+		"start": "vite --open",
+		"build": "vite build"
+	},
+	"devDependencies": {
+		"vite": "^6.0.7"
+	},
+	"dependencies": {
+		"rvx": "^18.12.0"
+	}
+}
