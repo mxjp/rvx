@@ -23,7 +23,9 @@ Attributes are set using `setAttribute` or `removeAttribute` by default.
 === "JSX"
 	+ Attributes prefixed with `prop:` are always set using the respective JavaScript properties.
 	+ Attributes prefixed with `attr:` are always set using the default behavior.
-	+ Attributes prefixed with `on:` are added as regular event listeners. An array can be used to pass the event listener with additional options.
+	+ Attributes prefixed with `on:` are added as event listeners.
+		+ An array can be used to pass the event listener with additional options.
+		+ The current [context](./context.md) is available within the listener.
 	+ The [`class`](#classes) and [`style`](#styles) attributes are special cases described below.
 
 	```jsx
@@ -60,6 +62,7 @@ Attributes are set using `setAttribute` or `removeAttribute` by default.
 	e("input").set("disabled", false)
 
 	// Adding event listeners:
+	// (The current context is available within the listener)
 	e("input").on("click", event => { ... })
 	e("input").on("click", event => { ... }, { capture: true, passive: true })
 	```
@@ -139,6 +142,7 @@ The `class` attribute can be any combination of class tokens, arrays and objects
 === "No Build"
 	```jsx
 	e("div").class("example")
+
 	e("div").class([
 		"foo",
 		() => "bar",
@@ -157,7 +161,7 @@ The `class` attribute can be any combination of class tokens, arrays and objects
 ## Styles
 The **style** attribute can be any combination of arrays, objects and [expressions](signals.md#expressions).
 
-Properties use the same casing as in css.
+Properties use the same casing as in css. E.g. `font-family`, not `fontFamily`.
 
 === "JSX"
 	```jsx
