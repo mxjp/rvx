@@ -345,9 +345,7 @@ export function watch<T>(expr: Expression<T>, fn: (value: T) => void): void {
 		let value: T;
 		let disposed = false;
 		let dispose: TeardownHook | undefined;
-		const runExpr = isSignal
-			? () => value = (expr as Signal<T>).value
-			: () => value = (expr as () => T)();
+		const runExpr = isSignal ? () => (expr as Signal<T>).value : (expr as () => T);
 		const runFn = () => fn(value);
 		const entry = _unfold(Context.wrap(() => {
 			if (disposed) {
@@ -359,7 +357,7 @@ export function watch<T>(expr: Expression<T>, fn: (value: T) => void): void {
 				ACCESS_STACK.push(access);
 				// Default tracking behavior is restored in case this observer is notified during an "untrack" call:
 				TRACKING_STACK.push(true);
-				nocapture(runExpr);
+				value = nocapture(runExpr);
 			} finally {
 				ACCESS_STACK.pop();
 				TRACKING_STACK.pop();
