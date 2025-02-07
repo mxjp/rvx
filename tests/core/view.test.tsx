@@ -1,7 +1,7 @@
 import { deepStrictEqual, notStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
 
-import { $, Attach, capture, Component, ENV, For, IndexFor, memo, mount, movable, Nest, render, Show, teardown, uncapture, View, watch, watchUpdates } from "rvx";
+import { $, Attach, capture, Component, ENV, For, Index, memo, mount, movable, Nest, render, Show, teardown, uncapture, View, watch, watchUpdates } from "rvx";
 import { wrap } from "rvx/store";
 
 import { assertEvents, boundaryEvents, lifecycleEvent, TestView, testView, text, viewText, withMsg } from "../common.js";
@@ -809,7 +809,7 @@ await suite("view", async () => {
 		});
 	});
 
-	await suite("IndexFor", async () => {
+	await suite("Index", async () => {
 		function sequenceTest(sequence: unknown[][], withErrors: boolean) {
 			if (withErrors) {
 				sequence = structuredClone(sequence);
@@ -823,7 +823,7 @@ await suite("view", async () => {
 
 			let view!: View;
 			const dispose = capture(() => {
-				view = <IndexFor each={signal}>
+				view = <Index each={signal}>
 					{(value, index) => {
 						if (value instanceof Error) {
 							throw value;
@@ -834,7 +834,7 @@ await suite("view", async () => {
 						});
 						return <>[{value}:{index}]</>;
 					}}
-				</IndexFor> as View;
+				</Index> as View;
 			});
 
 			let lastValues: unknown[] = [];
@@ -928,7 +928,7 @@ await suite("view", async () => {
 				const events: unknown[] = [];
 				throws(() => {
 					context(() => {
-						<IndexFor each={(function * () {
+						<Index each={(function * () {
 							yield 0;
 							yield 1;
 							events.push("e");
@@ -940,7 +940,7 @@ await suite("view", async () => {
 									events.push(`-${value}`);
 								});
 							}}
-						</IndexFor>;
+						</Index>;
 					});
 				});
 				assertEvents(events, context === capture ? ["+0", "+1", "e", "-0", "-1"] : ["+0", "+1", "e"]);
@@ -950,7 +950,7 @@ await suite("view", async () => {
 				const events: unknown[] = [];
 				throws(() => {
 					context(() => {
-						<IndexFor each={[0, 1, 2, 3]}>
+						<Index each={[0, 1, 2, 3]}>
 							{value => {
 								events.push(`+${value}`);
 								teardown(() => {
@@ -961,7 +961,7 @@ await suite("view", async () => {
 									throw new Error("test");
 								}
 							}}
-						</IndexFor>;
+						</Index>;
 					});
 				});
 				assertEvents(events, context === capture ? ["+0", "+1", "+2", "e", "-2", "-0", "-1"] : ["+0", "+1", "+2", "e", "-2"]);
@@ -972,7 +972,7 @@ await suite("view", async () => {
 			const events: unknown[] = [];
 			const signal = $([1]);
 			const view = uncapture(() => {
-				return <IndexFor each={signal}>
+				return <Index each={signal}>
 					{value => {
 						if (value === 3) {
 							signal.value = [5];
@@ -980,7 +980,7 @@ await suite("view", async () => {
 						lifecycleEvent(events, String(value));
 						return value;
 					}}
-				</IndexFor> as View;
+				</Index> as View;
 			});
 			assertEvents(events, ["s:1"]);
 			strictEqual(viewText(view), "1");
@@ -998,7 +998,7 @@ await suite("view", async () => {
 			const signal = $<unknown[]>([]);
 
 			const dispose = capture(() => {
-				<IndexFor each={signal}>
+				<Index each={signal}>
 					{(value, index) => {
 						// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 						events.push(["create", value, index]);
@@ -1010,7 +1010,7 @@ await suite("view", async () => {
 							events.push(["dispose", value, index]);
 						});
 					}}
-				</IndexFor>;
+				</Index>;
 			});
 
 			assertEvents(events, []);
@@ -1092,7 +1092,7 @@ await suite("view", async () => {
 		await test("iterator internal updates", async () => {
 			const proxy = wrap(["a", "b"]);
 			const view = uncapture(() => {
-				return <IndexFor each={proxy}>{v => v}</IndexFor> as View;
+				return <Index each={proxy}>{v => v}</Index> as View;
 			});
 			strictEqual(viewText(view), "ab");
 			proxy.splice(1, 0, "c");

@@ -1,20 +1,20 @@
-# `<IndexFor>`
+# `<Index>`
 Render [content](../elements.md#content) for each index in an iterable [expression](../signals.md#expressions).
 
 === "JSX"
 	```jsx
-	import { IndexFor } from "rvx";
+	import { Index } from "rvx";
 
-	<IndexFor each={someIterable}>
+	<Index each={someIterable}>
 		{value => <li>{value}</li>}
-	</IndexFor>
+	</Index>
 	```
 
 === "No Build"
 	```jsx
-	import { IndexFor, e } from "./rvx.js";
+	import { Index, e } from "./rvx.js";
 
-	IndexFor({
+	Index({
 		each: someIterable,
 		children: value => e("li").append(value),
 	})
@@ -25,14 +25,14 @@ The index is passed as the second argument:
 
 === "JSX"
 	```jsx
-	<IndexFor each={someIterable}>
+	<Index each={someIterable}>
 		{(value, index) => <li>{index + 1}: {value}</li>}
-	</IndexFor>
+	</Index>
 	```
 
 === "No Build"
 	```jsx
-	IndexFor({
+	Index({
 		each: someIterable,
 		children: (value, index) => e("li").append(index + 1, ": ", value),
 	})

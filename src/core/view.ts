@@ -457,7 +457,7 @@ export function For<T>(props: {
 /**
  * A function to create content for a specific index and value.
  */
-export interface IndexForContentFn<T> {
+export interface IndexContentFn<T> {
 	/**
 	 * @param value The value.
 	 * @param index The index.
@@ -467,22 +467,27 @@ export interface IndexForContentFn<T> {
 }
 
 /**
+ * @deprecated Use {@link IndexContentFn} instead.
+ */
+export type IndexForContentFn<T> = IndexContentFn<T>;
+
+/**
  * A component that renders content for each value in an iterable, keyed by index and value.
  *
  * If an error is thrown by iterating or by rendering an item, the update is stopped as if the previous item was the last one and the error is re-thrown.
  *
  * @example
  * ```tsx
- * import { IndexFor, sig } from "rvx";
+ * import { Index, sig } from "rvx";
  *
  * const items = $([1, 2, 3]);
  *
- * <IndexFor each={items}>
+ * <Index each={items}>
  *   {value => <li>{value}</li>}
- * </IndexFor>
+ * </Index>
  * ```
  */
-export function IndexFor<T>(props: {
+export function Index<T>(props: {
 	/**
 	 * The expression.
 	 */
@@ -491,7 +496,7 @@ export function IndexFor<T>(props: {
 	/**
 	 * A function to create content for a specific index and value.
 	 */
-	children: IndexForContentFn<T>;
+	children: IndexContentFn<T>;
 }): View {
 	return new View((setBoundary, self) => {
 		interface Instance {
@@ -570,6 +575,11 @@ export function IndexFor<T>(props: {
 		});
 	});
 }
+
+/**
+ * @deprecated. Use {@link Index} instead.
+ */
+export const IndexFor = Index;
 
 /**
  * A wrapper that can be used for moving and reusing views.

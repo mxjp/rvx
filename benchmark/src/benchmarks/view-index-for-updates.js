@@ -19,10 +19,10 @@ for (let s = 0; s < sequenceCount; s++) {
 export const multiplier = sequence.flat().length;
 
 /** @param {import("rvx")} */
-export function create({ IndexFor, $ }) {
+export function create({ Index, $ }) {
 	return () => {
 		const signal = $(sequence[0]);
-		const view = IndexFor({
+		const view = Index({
 			each: signal,
 			children: (item, index) => {
 				return [item, index];

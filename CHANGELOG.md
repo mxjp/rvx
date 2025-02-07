@@ -7,6 +7,7 @@
 + **Breaking:** Remove `DefaultContext`. Use `Context` instead.
 + **Breaking:** Remove `TaskSlot`. Use `Queue` instead.
 + **Breaking:** Remove `"rvx/builder"` export.
++ **Deprecated:** `IndexFor` will be removed in the next major version. Use `Index` instead.
 
 ## 18.12
 + Add `$` shorthand for creating signals.

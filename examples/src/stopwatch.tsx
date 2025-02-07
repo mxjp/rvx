@@ -7,7 +7,7 @@ This example also demonstrates how state and logic can be separated from it's re
 
 */
 
-import { $, Expression, IndexFor, Show, get, memo, teardown } from "rvx";
+import { $, Expression, Index, Show, get, memo, teardown } from "rvx";
 
 export function Example() {
 	// Create a reactive timer instance:
@@ -30,11 +30,11 @@ export function Example() {
 			</Show>
 		</div>
 		<ul>
-			<IndexFor each={timer.laps}>
+			<Index each={timer.laps}>
 				{(lap, index) => <li>
 					Lap {index + 1}: <Time value={lap.lap} />
 				</li>}
-			</IndexFor>
+			</Index>
 		</ul>
 	</div>;
 }
