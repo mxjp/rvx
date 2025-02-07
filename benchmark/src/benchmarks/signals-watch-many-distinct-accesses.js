@@ -2,11 +2,11 @@
 export const multiplier = 1000;
 
 /** @param {import("rvx")} */
-export function create({ sig, watch }) {
+export function create({ $, watch }) {
 	return () => {
 		const signals = [];
 		for (let i = 0; i < multiplier; i++) {
-			signals.push(sig(i));
+			signals.push($(i));
 		}
 		watch(() => {
 			for (let i = 0; i < multiplier; i++) {

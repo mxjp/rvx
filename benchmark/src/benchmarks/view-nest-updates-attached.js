@@ -2,9 +2,9 @@
 export const multiplier = 100;
 
 /** @param {import("rvx")} */
-export function create({ render, Nest, sig }) {
+export function create({ render, Nest, $ }) {
 	return () => {
-		const signal = sig(0);
+		const signal = $(0);
 		const view = Nest({
 			children: () => {
 				const value = signal.value;

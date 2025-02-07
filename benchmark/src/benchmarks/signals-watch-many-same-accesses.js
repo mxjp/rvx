@@ -2,9 +2,9 @@
 export const multiplier = 1000;
 
 /** @param {import("rvx")} */
-export function create({ sig, watch }) {
+export function create({ $, watch }) {
 	return () => {
-		const signal = sig(0);
+		const signal = $(0);
 		watch(() => {
 			for (let i = 0; i < multiplier; i++) {
 				signal.access();

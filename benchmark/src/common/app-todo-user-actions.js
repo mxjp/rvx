@@ -9,7 +9,7 @@ export const multiplier = addCount + (setDoneAndRemoveCount * 2);
  * @param {import("rvx")}
  * @param {boolean} onscreen
  */
-export function createBenchmark({ capture, render, sig, e, teardown, For, Show }, onscreen) {
+export function createBenchmark({ $, capture, render, e, teardown, For, Show }, onscreen) {
 	const random = mulberry32();
 
 	/**
@@ -66,8 +66,8 @@ export function createBenchmark({ capture, render, sig, e, teardown, For, Show }
 			 *   done: import("rvx").Signal<boolean>
 			 * }[]>}
 			 */
-			const todos = sig([]);
-			const name = sig("");
+			const todos = $([]);
+			const name = $("");
 
 			app = render([
 				e("h1").class("header").append("Todo App"),
@@ -76,8 +76,8 @@ export function createBenchmark({ capture, render, sig, e, teardown, For, Show }
 					Button({ children: "Add", action: () => {
 						todos.update(todos => {
 							todos.push({
-								name: sig(name.value),
-								done: sig(false),
+								name: $(name.value),
+								done: $(false),
 							});
 						});
 						name.value = "";
