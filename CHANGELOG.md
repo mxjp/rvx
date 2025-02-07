@@ -1,6 +1,7 @@
 # Changelog
 
 ## 19.0
++ **Breaking:** `<Nest>` now has a `watch` property and uses the `children` property as component directly.
 + **Breaking:** Remove the `sig` shorthand. Use `$` instead.
 + **Breaking:** Remove `View.take`. Use `View.appendTo`, `View.insertBefore` or `View.detach` instead.
 + **Breaking:** Remove `DefaultContext`. Use `Context` instead.

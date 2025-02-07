@@ -55,3 +55,20 @@ If an error is thrown by iterating or by rendering an item, the update is stoppe
 
 ### Performance
 The current implementation has a best case performance of `O(n)` and a practical worst case performance of `O(n * log(n))` with `n` being the new number of items. In practice, this is mostly irrelevant because the majority of time is spent updating the DOM.
+
+When granular updates are not important or when you only ever update the expression at most once, you can consider using [`<Nest>`](./nest.md) instead. This will just re-render everything without a diffing algorithm:
+
+=== "JSX"
+	```jsx
+	<Nest watch={items}>
+		{items => items.map(item => <li>...</li>)}
+	</Nest>
+	```
+
+=== "No Build"
+	```jsx
+	Nest({
+		watch: items,
+		children: items => items.map(item => e("li").append("...")),
+	})
+	```

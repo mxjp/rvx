@@ -56,18 +56,13 @@ export function Async<T>(props: {
 	ac?.track(promise);
 
 	return Nest({
-		children: () => {
-			switch (state.value.type) {
-				case 0: return pending;
-				case 1: {
-					const { value } = state.value;
-					return children ? (() => children(value as T)) : undefined;
-				}
-				case 2: {
-					const { value } = state.value;
-					return rejected ? (() => rejected(value)) : undefined;
-				}
+		watch: state,
+		children: state => {
+			switch (state.type) {
+				case 0: return pending?.();
+				case 1: return children?.(state.value as T);
+				case 2: return rejected?.(state.value);
 			}
-		},
+		}
 	});
 }

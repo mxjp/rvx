@@ -207,34 +207,41 @@ export function * viewNodes(view: View): IterableIterator<Node> {
 }
 
 /**
- * A component that renders content depending on an expression.
+ * Watch an expression and render content from it's result.
  *
- * + If an error is thrown by the expression or component during initialization, the error is re-thrown.
- * + If an error is thrown by the expression or component during a signal update, the previously rendered content is kept and the error is re-thrown.
+ * + If an error is thrown during initialization, the error is re-thrown.
+ * + If an error is thrown during a signal update, the previously rendered content is kept in place and the error is re-thrown.
  *
  * @example
  * ```tsx
- * import { Nest, sig } from "rvx";
+ * import { $, Nest } from "rvx";
  *
  * const count = $(0);
  *
- * <Nest>
- *   {() => {
- *     const value = count.value;
- *     return () => <>{value}</>;
+ * <Nest watch={count}>
+ *   {count => {
+ *     switch (count) {
+ *       case 0: return <h1>Hello World!</h1>;
+ *       case 1: return "Something else...";
+ *     }
  *   }}
  * </Nest>
  * ```
  */
-export function Nest(props: {
+export function Nest<T>(props: {
 	/**
-	 * An expression that returns a function to create content or null or undefined to render nothing.
+	 * The expression to watch.
 	 */
-	children: Expression<Component | null | undefined>;
-}): View {
+	watch: Expression<T>;
+
+	/**
+	 * The component to render with the expression result.
+	 */
+	children: Component<T>;
+}) {
 	return new View((setBoundary, self) => {
-		watch(props.children, value => {
-			const view = render(value?.());
+		watch(props.watch, value => {
+			const view = render(props.children(value));
 			const parent = self.parent;
 			if (parent !== undefined) {
 				view.insertBefore(parent, self.first);
@@ -282,15 +289,9 @@ export function Show<T>(props: {
 	 */
 	else?: Component;
 }): View {
-	const getValue = memo(props.when);
 	return Nest({
-		children: () => {
-			const value = getValue();
-			if (value) {
-				return () => props.children(value);
-			}
-			return props.else;
-		},
+		watch: memo<T | Falsy>(props.when),
+		children: value => value ? props.children(value) : props.else?.(),
 	});
 }
 
@@ -644,12 +645,8 @@ export function Attach(props: {
 	 */
 	children?: unknown;
 }): View {
-	const inner = render(props.children);
 	return Nest({
-		children: () => {
-			if (get(props.when)) {
-				return () => inner;
-			}
-		},
+		watch: props.when,
+		children: value => value ? props.children : undefined,
 	});
 }

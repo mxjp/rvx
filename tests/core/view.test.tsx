@@ -158,19 +158,16 @@ await suite("view", async () => {
 
 			let view!: View;
 			const dispose = capture(() => {
-				view = <Nest>
-					{() => {
-						const value = signal.value;
+				view = <Nest watch={signal}>
+					{value => {
 						if (value === 0) {
 							return undefined;
 						}
-						return () => {
-							events.push(`+${value}`);
-							teardown(() => {
-								events.push(`-${value}`);
-							});
-							return <div>{value}</div> as HTMLElement;
-						};
+						events.push(`+${value}`);
+						teardown(() => {
+							events.push(`-${value}`);
+						});
+						return <div>{value}</div> as HTMLElement;
 					}}
 				</Nest> as View;
 			});
@@ -197,11 +194,8 @@ await suite("view", async () => {
 
 			let view!: View;
 			capture(() => {
-				view = <Nest>
-					{() => {
-						const view = inner.value?.view;
-						return () => view;
-					}}
+				view = <Nest watch={inner}>
+					{inner => inner?.view}
 				</Nest> as View;
 				view.setBoundaryOwner(boundaryEvents(events));
 			});
@@ -234,16 +228,13 @@ await suite("view", async () => {
 			const signal = $(0);
 			let view!: View;
 			uncapture(() => {
-				view = <Nest>
-					{() => {
-						const value = signal.value;
-						return () => {
-							lifecycleEvent(events, `${value}`);
-							if (value < 3) {
-								signal.value++;
-							}
-							return value;
-						};
+				view = <Nest watch={signal}>
+					{value => {
+						lifecycleEvent(events, `${value}`);
+						if (value < 3) {
+							signal.value++;
+						}
+						return value;
 					}}
 				</Nest> as View;
 			});
@@ -256,11 +247,11 @@ await suite("view", async () => {
 				const signal = $(42);
 				throws(() => {
 					capture(() => {
-						<Nest>
-							{() => {
-								signal.access();
-								throw new Error("test");
-							}}
+						<Nest watch={() => {
+							signal.access();
+							throw new Error("test");
+						}}>
+							{() => {}}
 						</Nest> as View;
 					});
 				}, withMsg("test"));
@@ -271,14 +262,14 @@ await suite("view", async () => {
 				const signal = $(42);
 				let view!: View;
 				const dispose = capture(() => {
-					view = <Nest>
-						{() => {
-							const value = signal.value;
-							if (value === 77) {
-								throw new Error("test");
-							}
-							return () => value;
-						}}
+					view = <Nest watch={() => {
+						const value = signal.value;
+						if (value === 77) {
+							throw new Error("test");
+						}
+						return value;
+					}}>
+						{value => value}
 					</Nest> as View;
 				});
 				strictEqual(viewText(view), "42");
@@ -300,12 +291,9 @@ await suite("view", async () => {
 				const signal = $(42);
 				throws(() => {
 					capture(() => {
-						<Nest>
+						<Nest watch={signal}>
 							{() => {
-								signal.access();
-								return () => {
-									throw new Error("test");
-								};
+								throw new Error("test");
 							}}
 						</Nest> as View;
 					});
@@ -317,15 +305,12 @@ await suite("view", async () => {
 				const signal = $(42);
 				let view!: View;
 				const dispose = capture(() => {
-					view = <Nest>
-						{() => {
-							const value = signal.value;
-							return () => {
-								if (value === 77) {
-									throw new Error("test");
-								}
-								return value;
-							};
+					view = <Nest watch={signal}>
+						{value => {
+							if (value === 77) {
+								throw new Error("test");
+							}
+							return value;
 						}}
 					</Nest> as View;
 				});
@@ -360,8 +345,8 @@ await suite("view", async () => {
 			}
 
 			const view = uncapture(() => {
-				return <Nest>
-					{memo(() => signal.value < 2 ? A : B)}
+				return <Nest watch={memo<Component>(() => signal.value < 2 ? A : B)}>
+					{comp => comp()}
 				</Nest> as View;
 			});
 
@@ -386,51 +371,12 @@ await suite("view", async () => {
 			const signal = $();
 			const count = $(0);
 
-			function Content() {
-				const version = `v${count.value}`;
-				lifecycleEvent(events, version);
-				return <>{version}:{count}</>;
-			}
-
 			const view = uncapture(() => {
-				return <Nest>
+				return <Nest watch={signal}>
 					{() => {
-						signal.access();
-						return Content;
-					}}
-				</Nest> as View;
-			});
-
-			assertEvents(events, ["s:v0"]);
-			strictEqual(viewText(view), "v0:0");
-
-			count.value++;
-			assertEvents(events, []);
-			strictEqual(viewText(view), "v0:1");
-
-			signal.notify();
-			assertEvents(events, ["e:v0", "s:v1"]);
-			strictEqual(viewText(view), "v1:1");
-
-			count.value++;
-			assertEvents(events, []);
-			strictEqual(viewText(view), "v1:2");
-		});
-
-		await test("internal state reset", () => {
-			const events: unknown[] = [];
-			const signal = $();
-			const count = $(0);
-
-			const view = uncapture(() => {
-				return <Nest>
-					{() => {
-						signal.access();
-						return () => {
-							const version = `v${count.value}`;
-							lifecycleEvent(events, version);
-							return <>{version}:{count}</>;
-						};
+						const version = `v${count.value}`;
+						lifecycleEvent(events, version);
+						return <>{version}:{count}</>;
 					}}
 				</Nest> as View;
 			});
@@ -454,7 +400,7 @@ await suite("view", async () => {
 		await test("component from signal", () => {
 			const events: unknown[] = [];
 			const comp = $<Component | undefined>(undefined);
-			const view = uncapture(() => <Nest>{comp}</Nest> as View);
+			const view = uncapture(() => <Nest watch={comp}>{c => c?.()}</Nest> as View);
 
 			assertEvents(events, []);
 			strictEqual(viewText(view), "");

@@ -170,13 +170,13 @@ export function Routes(props: {
 	}
 	const watched = watchRoutes(() => router.path, props.routes);
 	return Nest({
-		children: () => {
-			const match = watched.match();
+		watch: watched.match,
+		children: match => {
 			if (match) {
-				return () => ROUTER.inject(new ChildRouter(router, match.path, watched.rest), () => {
+				return ROUTER.inject(new ChildRouter(router, match.path, watched.rest), () => {
 					return match.route.content({ params: match.params });
 				});
 			}
-		},
+		}
 	});
 }

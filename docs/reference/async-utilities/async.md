@@ -158,13 +158,10 @@ The example below fetches a file and aborts pending requests when the file name 
 	```jsx
 	const name = $("example.txt");
 
-	<Nest>
-		{() => {
-			const value = name.value;
-			return () => <Async source={fetch(value, { signal: useAbortSignal() }).then(r => r.text())}>
-				{text => <pre>{text}</pre>}
-			</Async>;
-		}}
+	<Nest watch={name}>
+		{name => <Async source={fetch(name, { signal: useAbortSignal() }).then(r => r.text())}>
+			{text => <pre>{text}</pre>}
+		</Async>}
 	</Nest>
 	```
 
@@ -173,12 +170,10 @@ The example below fetches a file and aborts pending requests when the file name 
 	const name = $("example.txt");
 
 	Nest({
-		children: () => {
-			const value = name.value;
-			return () => Async({
-				source: fetch(value, { signal: useAbortSignal() }).then(r => r.text()),
-				children: text => e("pre").append(text),
-			});
-		},
+		watch: name,
+		name => Async({
+			source: fetch(name, { signal: useAbortSignal() }).then(r => r.text()),
+			children: text => e("pre").append(text),
+		})
 	})
 	```
