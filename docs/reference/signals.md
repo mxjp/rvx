@@ -1,7 +1,7 @@
 # Signals
 In rvx, a `Signal` is an object which holds an arbitrary value and keeps track of things that have accessed that value.
 
-To create a signal, you can use the `Signal` constructor or the `sig` shorthand:
+To create a signal, you can use the `Signal` constructor or the `$` shorthand:
 
 === "JSX"
 	```jsx
