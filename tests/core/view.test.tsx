@@ -109,64 +109,6 @@ await suite("view", async () => {
 		});
 	});
 
-	await suite("take", async () => {
-		await test("single node", () => {
-			let node!: Node;
-			let parent!: Node;
-			const view = new View(setBoundary => {
-				node = <div>test</div> as HTMLElement;
-				parent = <div>{node}</div> as HTMLElement;
-				setBoundary(node, node);
-			});
-			strictEqual(node.parentNode, parent);
-			strictEqual(node, view.take());
-			strictEqual(node.parentNode, parent);
-		});
-
-		await test("take multiple nodes (extract from node)", () => {
-			const first = <div /> as HTMLElement;
-			const last = <div /> as HTMLElement;
-			const parent = <div>{first}{last}</div> as HTMLElement;
-			const view = new View(setBoundary => setBoundary(first, last));
-			strictEqual(first.parentNode, parent);
-			strictEqual(last.parentNode, parent);
-			const fragment = view.take();
-			strictEqual(fragment instanceof ENV.current.DocumentFragment, true);
-			strictEqual(fragment.firstChild, first);
-			strictEqual(fragment.lastChild, last);
-		});
-
-		await test("take multiple nodes (extract from fragment start)", () => {
-			const parent = ENV.current.document.createDocumentFragment();
-			let first = <div /> as HTMLElement;
-			parent.appendChild(first);
-			let last = <div /> as HTMLElement;
-			parent.appendChild(last);
-			parent.appendChild(<div /> as HTMLElement);
-			const view = new View(setBoundary => setBoundary(first, last));
-			const fragment = view.take();
-			strictEqual(fragment instanceof ENV.current.DocumentFragment, true);
-			strictEqual(fragment.firstChild, first);
-			strictEqual(fragment.lastChild, last);
-			strictEqual(parent.childNodes.length, 1);
-		});
-
-		await test("take multiple nodes (extract from fragment end)", () => {
-			const parent = ENV.current.document.createDocumentFragment();
-			parent.appendChild(<div /> as HTMLElement);
-			let first = <div /> as HTMLElement;
-			parent.appendChild(first);
-			let last = <div /> as HTMLElement;
-			parent.appendChild(last);
-			const view = new View(setBoundary => setBoundary(first, last));
-			const fragment = view.take();
-			strictEqual(fragment instanceof ENV.current.DocumentFragment, true);
-			strictEqual(fragment.firstChild, first);
-			strictEqual(fragment.lastChild, last);
-			strictEqual(parent.childNodes.length, 1);
-		});
-	});
-
 	await suite("detach", async () => {
 		await test("single node", () => {
 			let node!: Node;
@@ -991,7 +933,7 @@ await suite("view", async () => {
 				assertItems(values, errorIndex, true);
 			}
 
-			const lastContent = text(view!.take());
+			const lastContent = text(view!.detach());
 			dispose();
 			assertItems([], -1, false);
 			strictEqual(viewText(view), lastContent);
@@ -1219,25 +1161,25 @@ await suite("view", async () => {
 		</>));
 
 		const a = render(view.move());
-		strictEqual(text(a.take()), "inner:1");
+		strictEqual(viewText(a), "inner:1");
 
 		const b = render(view.move());
-		strictEqual(text(a.take()), "");
+		strictEqual(viewText(a), "");
 		strictEqual(a.first instanceof ENV.current.Comment, true);
 		strictEqual(a.first, a.last);
-		strictEqual(text(b.take()), "inner:1");
+		strictEqual(viewText(b), "inner:1");
 		inner.value = 2;
-		strictEqual(text(b.take()), "inner:2");
+		strictEqual(viewText(b), "inner:2");
 
 		view.detach();
 		inner.value = 3;
-		strictEqual(text(b.take()), "");
+		strictEqual(text(b.detach()), "");
 		strictEqual(b.first instanceof ENV.current.Comment, true);
 		strictEqual(b.first, b.last);
 		notStrictEqual(a.first, b.first);
 
 		const c = render(view.move());
-		strictEqual(text(c.take()), "inner:3");
+		strictEqual(text(c.detach()), "inner:3");
 	});
 
 	await test("Attach", async () => {

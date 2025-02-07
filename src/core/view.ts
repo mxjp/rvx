@@ -119,21 +119,6 @@ export class View {
 	}
 
 	/**
-	 * Get all nodes of this view as a single node for moving them into a new place.
-	 *
-	 * If there are multiple nodes, a document fragment containing all nodes of this view is returned.
-	 *
-	 * @deprecated This will be removed in the next major release. Use {@link appendTo}, {@link insertBefore} or {@link detach} instead.
-	 */
-	take(): Node | DocumentFragment {
-		if (this.#first === this.#last) {
-			return this.#first;
-		} else {
-			return this.detach();
-		}
-	}
-
-	/**
 	 * Append all nodes of this view to the specified parent.
 	 *
 	 * @param parent The parent to append to.

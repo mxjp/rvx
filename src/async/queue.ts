@@ -107,8 +107,3 @@ export class Queue {
 		}) as Promise<T>;
 	}
 }
-
-/**
- * @deprecated `TaskSlot` has been renamed to `Queue`. This export will be removed in the next major version.
- */
-export const TaskSlot = Queue;

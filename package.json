@@ -42,10 +42,6 @@
 			"types": "./dist/es/async/index.d.ts",
 			"default": "./dist/es/async/index.js"
 		},
-		"./builder": {
-			"types": "./dist/es/core/element-builder.d.ts",
-			"default": "./dist/es/core/element-builder.js"
-		},
 		"./dom": {
 			"types": "./dist/es/dom/index.d.ts",
 			"default": "./dist/es/dom/index.js"

@@ -1,5 +1,12 @@
 # Changelog
 
+## 19.0
++ **Breaking:** Remove the `sig` shorthand. Use `$` instead.
++ **Breaking:** Remove `View.take`. Use `View.appendTo`, `View.insertBefore` or `View.detach` instead.
++ **Breaking:** Remove `DefaultContext`. Use `Context` instead.
++ **Breaking:** Remove `TaskSlot`. Use `Queue` instead.
++ **Breaking:** Remove `"rvx/builder"` export.
+
 ## 18.12
 + Add `$` shorthand for creating signals.
 + **Deprecated:** The `sig` shorthand will be removed in the next major version.

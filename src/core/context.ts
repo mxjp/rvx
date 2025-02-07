@@ -159,11 +159,6 @@ export class Context<T> {
 	}
 }
 
-/**
- * @deprecated Use {@link Context} instead.
- */
-export const DefaultContext = Context;
-
 interface ActiveState<T> {
 	/** The active context. */
 	c: Context<T>;

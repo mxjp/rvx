@@ -208,13 +208,6 @@ export function $(value?: unknown): Signal<unknown> {
 }
 
 /**
- * Create a new signal.
- *
- * @deprecated Use the {@link Signal} constructor or {@link $} instead.
- */
-export const sig = $;
-
-/**
  * A value, signal or function to get a value.
  *
  * @example
