@@ -1,5 +1,5 @@
 import { $, Expression, get, watch } from "../core/signals.js";
-import { Nest } from "../core/view.js";
+import { nest, View } from "../core/view.js";
 import { ChildRouter } from "./child-router.js";
 import { normalize } from "./path.js";
 import { ROUTER } from "./router.js";
@@ -157,26 +157,32 @@ export interface ComponentRoute<P = unknown> extends Route {
  *
  * A {@link ChildRouter} is injected as a replacement for the current router when rendering route content.
  */
-export function Routes(props: {
-	/**
-	 * The routes to match.
-	 */
-	routes: Expression<Iterable<ComponentRoute<unknown>>>;
-}): unknown {
+export function routes(routes: Expression<Iterable<ComponentRoute<unknown>>>): View {
 	const router = ROUTER.current;
 	if (!router) {
 		// Router is not available in the current context:
 		throw new Error("G3");
 	}
-	const watched = watchRoutes(() => router.path, props.routes);
-	return Nest({
-		watch: watched.match,
-		children: match => {
-			if (match) {
-				return ROUTER.inject(new ChildRouter(router, match.path, watched.rest), () => {
-					return match.route.content({ params: match.params });
-				});
-			}
+	const watched = watchRoutes(() => router.path, routes);
+	return nest(watched.match, match => {
+		if (match) {
+			return ROUTER.inject(new ChildRouter(router, match.path, watched.rest), () => {
+				return match.route.content({ params: match.params });
+			});
 		}
 	});
+}
+
+/**
+ * Match and render routes in the current context.
+ *
+ * A {@link ChildRouter} is injected as a replacement for the current router when rendering route content.
+ */
+export function Routes(props: {
+	/**
+	 * The routes to match.
+	 */
+	routes: Expression<Iterable<ComponentRoute<unknown>>>;
+}): View {
+	return routes(props.routes);
 }
