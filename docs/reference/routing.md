@@ -52,16 +52,14 @@ The `Routes` component can be used to render content based on the current path.
 
 === "No Build"
 	```jsx
-	import { ROUTER, HistoryRouter, Routes } from "./rvx.js";
+	import { ROUTER, HistoryRouter, routes } from "./rvx.js";
 
 	ROUTER.inject(new HistoryRouter(), () => [
-		Routes({
-			routes: [
-				{ match: "/", content: () => "Home" },
-				{ match: "/foo", content: ExamplePage },
-				{ content: () => "Not found" },
-			]
-		})
+		routes([
+			{ match: "/", content: () => "Home" },
+			{ match: "/foo", content: ExamplePage },
+			{ content: () => "Not found" },
+		]),
 	])
 
 	function ExamplePage() {
@@ -248,26 +246,22 @@ The example below renders text for the paths `/, /foo/bar, /foo/baz`:
 
 === "No Build"
 	```jsx
-	import { ROUTER, HistoryRouter, Routes } from "./rvx.js";
+	import { ROUTER, HistoryRouter, routes } from "./rvx.js";
 
 	ROUTER.inject(new HistoryRouter(), () => [
-		Routes({
-			routes: [
-				{ match: "/", content: () => "Home" },
-				{ match: "/foo/", content: () => {
+		routes([
+			{ match: "/", content: () => "Home" },
+			{ match: "/foo/", content: () => {
 
-					// This is a ChildRouter:
-					ROUTER.current;
+				// This is a ChildRouter:
+				ROUTER.current;
 
-					return Routes({
-						routes: [
-							{ match: "/bar", content: () => "Bar" },
-							{ match: "/baz", content: () => "Baz" },
-						],
-					})
-				} },
-			],
-		})
+				return routes([
+					{ match: "/bar", content: () => "Bar" },
+					{ match: "/baz", content: () => "Baz" },
+				]);
+			} },
+		]),
 	])
 	```
 
@@ -335,19 +329,17 @@ You can use the [`<Async>`](./async-utilities/async.md) component to dynamically
 	}
 
 	// main.js:
-	import { Routes, Async } from "./rvx.js";
+	import { routes, Async } from "./rvx.js";
 
-	Routes({
-		routes: [
-			{
-				match: "/",
-				content: () => Async({
-					source: () => import("./example-page"),
-					children: pageModule => pageModule.default(),
-				})
-			},
-		],
-	})
+	routes([
+		{
+			match: "/",
+			content: () => Async({
+				source: () => import("./example-page"),
+				children: pageModule => pageModule.default(),
+			})
+		},
+	])
 	```
 
 Depending on how you want to implement things like error handling and loading indicators, you can build a small function like this:
@@ -383,10 +375,8 @@ Depending on how you want to implement things like error handling and loading in
 		});
 	}
 
-	Routes({
-		routes: [
+	routes([
 		{ match: "/", content: page(() => import("./home")) },
 		{ match: "/example", content: page(() => import("./example")) },
-		],
-	})
+	])
 	```
