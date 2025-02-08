@@ -64,6 +64,8 @@ export class Context<T> {
 	/**
 	 * Run a function while injecting the specified value for this context.
 	 *
+	 * See {@link Inject `<Inject>`} when using JSX.
+	 *
 	 * @param value The value to inject.
 	 * @param fn The function to run.
 	 * @param args The function arguments.
@@ -111,6 +113,8 @@ export class Context<T> {
 
 	/**
 	 * Run a function while injecting the specified states.
+	 *
+	 * See {@link Inject `<Inject>`} when using JSX.
 	 *
 	 * @param states The states to inject. When providing multiple values for the same context, the last one is used.
 	 * @param fn The function to run.
@@ -180,6 +184,8 @@ export interface ContextState<T> {
 
 /**
  * Component for injecting context values while rendering.
+ *
+ * See {@link Context.inject} when not using JSX.
  */
 export function Inject<T>(props: {
 	/** The context to inject into. */

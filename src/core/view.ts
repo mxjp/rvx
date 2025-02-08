@@ -207,10 +207,51 @@ export function * viewNodes(view: View): IterableIterator<Node> {
 }
 
 /**
+ * Watch an expression and renders content from it's result.
+ *
+ * + If an error is thrown during initialization, the error is re-thrown.
+ * + If an error is thrown during a signal update, the previously rendered content is kept in place and the error is re-thrown.
+ *
+ * See {@link Nest `<Nest>`} when using JSX.
+ *
+ * @example
+ * ```tsx
+ * import { $, nest, e } from "rvx";
+ *
+ * const count = $(0);
+ *
+ * nest(count, count => {
+ *   switch (count) {
+ *     case 0: return e("h1").append("Hello World!");
+ *     case 1: return "Something else...";
+ *   }
+ * })
+ * ```
+ */
+export function nest<T>(expr: Expression<T>, component: Component<T>): View {
+	return new View((setBoundary, self) => {
+		watch(expr, value => {
+			const view = render(component(value));
+			const parent = self.parent;
+			if (parent !== undefined) {
+				view.insertBefore(parent, self.first);
+			}
+			if (self.first) {
+				self.detach();
+			}
+			setBoundary(view.first, view.last);
+			view.setBoundaryOwner(setBoundary);
+		});
+	});
+}
+
+/**
  * Watch an expression and render content from it's result.
  *
  * + If an error is thrown during initialization, the error is re-thrown.
  * + If an error is thrown during a signal update, the previously rendered content is kept in place and the error is re-thrown.
+ *
+ * See {@link nest} when not using JSX.
  *
  * @example
  * ```tsx
@@ -238,35 +279,49 @@ export function Nest<T>(props: {
 	 * The component to render with the expression result.
 	 */
 	children: Component<T>;
-}) {
-	return new View((setBoundary, self) => {
-		watch(props.watch, value => {
-			const view = render(props.children(value));
-			const parent = self.parent;
-			if (parent !== undefined) {
-				view.insertBefore(parent, self.first);
-			}
-			if (self.first) {
-				self.detach();
-			}
-			setBoundary(view.first, view.last);
-			view.setBoundaryOwner(setBoundary);
-		});
+}): View {
+	return nest(props.watch, props.children);
+}
+
+/**
+ * Render conditional content.
+ *
+ * + Content is only re-rendered if the expression result is not strictly equal to the previous one. If this behavior is undesired, use {@link nest} instead.
+ * + If an error is thrown by the expression or component during initialization, the error is re-thrown.
+ * + If an error is thrown by the expression or component during a signal update, the previously rendered content is kept and the error is re-thrown.
+ *
+ * See {@link Show `<Show>`} when using JSX.
+ *
+ * @example
+ * ```tsx
+ * import { $, when, e } from "rvx";
+ *
+ * const message = $<null | string>("Hello World!");
+ *
+ * when(message, value => e("h1").append(value), () => "No message...")
+ * ```
+ */
+export function when<T>(expr: Expression<T | Falsy>, truthy: Component<T>, falsy?: Component): View {
+	return Nest({
+		watch: memo<T | Falsy>(expr),
+		children: value => value ? truthy(value) : falsy?.(),
 	});
 }
 
 /**
- * A component that renders conditional content.
+ * Render conditional content.
  *
  * + Content is only re-rendered if the expression result is not strictly equal to the previous one. If this behavior is undesired, use {@link Nest} instead.
  * + If an error is thrown by the expression or component during initialization, the error is re-thrown.
  * + If an error is thrown by the expression or component during a signal update, the previously rendered content is kept and the error is re-thrown.
  *
+ * See {@link when} when not using JSX.
+ *
  * @example
  * ```tsx
- * import { sig, Show } from "rvx";
+ * import { $, Show } from "rvx";
  *
- * const message = sig<null | string>("Hello World!");
+ * const message = $<null | string>("Hello World!");
  *
  * <Show when={message} else={() => <>No message...</>}>
  *   {value => <h1>{value}</h1>}
@@ -289,10 +344,7 @@ export function Show<T>(props: {
 	 */
 	else?: Component;
 }): View {
-	return Nest({
-		watch: memo<T | Falsy>(props.when),
-		children: value => value ? props.children(value) : props.else?.(),
-	});
+	return when(props.when, props.children, props.else);
 }
 
 /**
@@ -317,32 +369,22 @@ function insertViewAfter(parent: Node, prev: Node, view: View): void {
 }
 
 /**
- * A component that renders content for each unique value in an iterable.
+ * Render content for each unique value in an iterable.
  *
- * If an error is thrown by iterating or by rendering an item, the update is stopped as if the previous item was the last one and the error is re-thrown.
+ * If an error is thrown while iterating or while rendering an item, the update is stopped as if the previous item was the last one and the error is re-thrown.
+ *
+ * See {@link For `<For>`} for use with JSX.
  *
  * @example
  * ```tsx
- * import { For, sig } from "rvx";
+ * import { $, forEach, e } from "rvx";
  *
  * const items = $([1, 2, 3]);
  *
- * <For each={items}>
- *   {value => <li>{value}</li>}
- * </For>
+ * forEach(items, value => e("li").append(value))
  * ```
  */
-export function For<T>(props: {
-	/**
-	 * The expression.
-	 */
-	each: Expression<Iterable<T>>;
-
-	/**
-	 * A function to create content for a specific value.
-	 */
-	children: ForContentFn<T>;
-}): View {
+export function forEach<T>(each: Expression<Iterable<T>>, component: ForContentFn<T>): View {
 	return new View((setBoundary, self) => {
 		interface Instance {
 			/** value */
@@ -387,7 +429,7 @@ export function For<T>(props: {
 			let index = 0;
 			let last = first;
 			try {
-				for (const value of nocapture(() => get(props.each))) {
+				for (const value of nocapture(() => get(each))) {
 					let instance: Instance | undefined = instances[index];
 					if (instance && Object.is(instance.u, value)) {
 						instance.c = cycle;
@@ -406,7 +448,7 @@ export function For<T>(props: {
 							};
 
 							instance.d = capture(() => {
-								instance.v = render(props.children(value, () => instance.i.value));
+								instance.v = render(component(value, () => instance.i.value));
 								instance.v.setBoundaryOwner((_, last) => {
 									if (instances[instances.length - 1] === instance && instance.c === cycle) {
 										setBoundary(undefined, last);
@@ -455,6 +497,38 @@ export function For<T>(props: {
 }
 
 /**
+ * Render content for each unique value in an iterable.
+ *
+ * If an error is thrown while iterating or while rendering an item, the update is stopped as if the previous item was the last one and the error is re-thrown.
+ *
+ * See {@link forEach} when not using JSX.
+ *
+ * @example
+ * ```tsx
+ * import { $, For } from "rvx";
+ *
+ * const items = $([1, 2, 3]);
+ *
+ * <For each={items}>
+ *   {value => <li>{value}</li>}
+ * </For>
+ * ```
+ */
+export function For<T>(props: {
+	/**
+	 * The expression.
+	 */
+	each: Expression<Iterable<T>>;
+
+	/**
+	 * A function to create content for a specific value.
+	 */
+	children: ForContentFn<T>;
+}): View {
+	return forEach(props.each, props.children);
+}
+
+/**
  * A function to create content for a specific index and value.
  */
 export interface IndexContentFn<T> {
@@ -472,32 +546,22 @@ export interface IndexContentFn<T> {
 export type IndexForContentFn<T> = IndexContentFn<T>;
 
 /**
- * A component that renders content for each value in an iterable, keyed by index and value.
+ * Render content for each value in an iterable, keyed by index and value.
  *
  * If an error is thrown by iterating or by rendering an item, the update is stopped as if the previous item was the last one and the error is re-thrown.
  *
+ * See {@link Index `<Index>`} when using JSX.
+ *
  * @example
  * ```tsx
- * import { Index, sig } from "rvx";
+ * import { $, indexEach, e } from "rvx";
  *
  * const items = $([1, 2, 3]);
  *
- * <Index each={items}>
- *   {value => <li>{value}</li>}
- * </Index>
+ * indexEach(items, value => e("li").append(value))
  * ```
  */
-export function Index<T>(props: {
-	/**
-	 * The expression.
-	 */
-	each: Expression<Iterable<T>>;
-
-	/**
-	 * A function to create content for a specific index and value.
-	 */
-	children: IndexContentFn<T>;
-}): View {
+export function indexEach<T>(each: Expression<Iterable<T>>, component: IndexContentFn<T>): View {
 	return new View((setBoundary, self) => {
 		interface Instance {
 			/** value */
@@ -528,7 +592,7 @@ export function Index<T>(props: {
 			let index = 0;
 			let last = first;
 			try {
-				for (const value of nocapture(() => get(props.each))) {
+				for (const value of nocapture(() => get(each))) {
 					if (index < instances.length) {
 						const current = instances[index];
 						if (Object.is(current.u, value)) {
@@ -548,7 +612,7 @@ export function Index<T>(props: {
 					};
 
 					instance.d = capture(() => {
-						instance.v = render(props.children(value, index));
+						instance.v = render(component(value, index));
 						instance.v.setBoundaryOwner((_, last) => {
 							if (instances[instances.length - 1] === instance) {
 								setBoundary(undefined, last);
@@ -574,6 +638,38 @@ export function Index<T>(props: {
 			}
 		});
 	});
+}
+
+/**
+ * Render content for each value in an iterable, keyed by index and value.
+ *
+ * If an error is thrown by iterating or by rendering an item, the update is stopped as if the previous item was the last one and the error is re-thrown.
+ *
+ * See {@link indexEach} when not using JSX.
+ *
+ * @example
+ * ```tsx
+ * import { $, Index } from "rvx";
+ *
+ * const items = $([1, 2, 3]);
+ *
+ * <Index each={items}>
+ *   {value => <li>{value}</li>}
+ * </Index>
+ * ```
+ */
+export function Index<T>(props: {
+	/**
+	 * The expression.
+	 */
+	each: Expression<Iterable<T>>;
+
+	/**
+	 * A function to create content for a specific index and value.
+	 */
+	children: IndexContentFn<T>;
+}): View {
+	return indexEach(props.each, props.children);
 }
 
 /**
@@ -629,9 +725,31 @@ export function movable(content: unknown): MovableView {
 }
 
 /**
- * A component that attaches or detaches content depending on an expression.
+ * Attach or detach content depending on an expression.
  *
  * Content is kept alive when detached.
+ *
+ * See {@link Attach `<Attach>`} when using JSX.
+ *
+ * @example
+ * ```tsx
+ * import { $, attach } from "rvx";
+ *
+ * const showMessage = $(true);
+ *
+ * attachWhen(showMessage, e("h1").append("Hello World!"))
+ * ```
+ */
+export function attachWhen(expr: Expression<boolean>, content: unknown): View {
+	return nest(expr, value => value ? content : undefined);
+}
+
+/**
+ * Attach or detach content depending on an expression.
+ *
+ * Content is kept alive when detached.
+ *
+ * See {@link attachWhen} when not using JSX.
  *
  * @example
  * ```tsx
@@ -653,10 +771,7 @@ export function Attach(props: {
 	/**
 	 * The content to attach when the expression is truthy.
 	 */
-	children?: unknown;
+	children: unknown;
 }): View {
-	return Nest({
-		watch: props.when,
-		children: value => value ? props.children : undefined,
-	});
+	return attachWhen(props.when, props.children);
 }

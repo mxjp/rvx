@@ -1,9 +1,49 @@
+import { Component } from "../core/component.js";
 import { $ } from "../core/signals.js";
-import { Nest, View } from "../core/view.js";
+import { nest, View } from "../core/view.js";
 import { ASYNC } from "./async-context.js";
 
 /**
- * Renders content depending on the state of an async function or promise.
+ * Render content depending on the state of an async function or promise.
+ *
+ * See {@link Async `<Async>`} when using JSX or when named properties are preferred.
+ *
+ * This task is tracked using the current {@link ASYNC async context} if any. It is guaranteed, that the view is updated before the tracked task completes.
+ */
+export function nestAsync<T>(source: (() => Promise<T>) | Promise<T>, component?: Component<T>, pending?: Component, rejected?: Component<unknown>): View {
+	const state = $({ type: 0, value: undefined as unknown });
+
+	let promise: Promise<T>;
+	if (typeof source === "function") {
+		promise = (async () => source())();
+	} else {
+		promise = source;
+	}
+
+	const ac = ASYNC.current;
+	promise.then(value => {
+		state.value = { type: 1, value };
+	}, (value: unknown) => {
+		state.value = { type: 2, value };
+		if (ac === undefined && rejected === undefined) {
+			void Promise.reject(value);
+		}
+	});
+	ac?.track(promise);
+
+	return nest(state, state => {
+		switch (state.type) {
+			case 0: return pending?.();
+			case 1: return component?.(state.value as T);
+			case 2: return rejected?.(state.value);
+		}
+	});
+}
+
+/**
+ * Render content depending on the state of an async function or promise.
+ *
+ * See {@link nestAsync} when not using JSX or when positional arguments are preferred.
  *
  * This task is tracked using the current {@link ASYNC async context} if any. It is guaranteed, that the view is updated before the tracked task completes.
  */
@@ -34,35 +74,5 @@ export function Async<T>(props: {
 	 */
 	rejected?: (value: unknown) => unknown;
 }): View {
-	const { source, pending, children, rejected } = props;
-	const state = $({ type: 0, value: undefined as unknown });
-
-	let promise: Promise<T>;
-	if (typeof source === "function") {
-		promise = (async () => source())();
-	} else {
-		promise = source;
-	}
-
-	const ac = ASYNC.current;
-	promise.then(value => {
-		state.value = { type: 1, value };
-	}, (value: unknown) => {
-		state.value = { type: 2, value };
-		if (ac === undefined && rejected === undefined) {
-			void Promise.reject(value);
-		}
-	});
-	ac?.track(promise);
-
-	return Nest({
-		watch: state,
-		children: state => {
-			switch (state.type) {
-				case 0: return pending?.();
-				case 1: return children?.(state.value as T);
-				case 2: return rejected?.(state.value);
-			}
-		}
-	});
+	return nestAsync(props.source, props.children, props.pending, props.rejected);
 }

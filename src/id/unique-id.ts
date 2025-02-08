@@ -19,6 +19,27 @@ export function uniqueId(): string {
 /**
  * A component that provides a unique id in the form `rvx_123` to it's children.
  *
+ * See {@link UseUniqueId `<UseUniqueId>`} when using JSX.
+ *
+ * @example
+ * ```tsx
+ * import { useUniqueId, e } from "rvx";
+ *
+ * useUniqueId(id => [
+ *   e("label").set("for", id).append("Text"),
+ *   e("input").set("type", "text").set("id", id),
+ * ])
+ * ```
+ */
+export function useUniqueId<T = unknown>(component: Component<string, T>): T {
+	return component(uniqueId());
+}
+
+/**
+ * A component that provides a unique id in the form `rvx_123` to it's children.
+ *
+ * See {@link useUniqueId} when not using JSX.
+ *
  * @example
  * ```tsx
  * import { UseUniqueId } from "rvx";
