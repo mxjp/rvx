@@ -1,5 +1,8 @@
 # Changelog
 
+## 19.1
++ Add non JSX component variants: `nest`, `when`, `attachWhen`, `forEach`, `indexEach`, `nestAsync`, `routes`.
+
 ## 19.0
 + **Breaking:** `<Nest>` now has a `watch` property and uses the `children` property as component directly.
 + **Breaking:** Remove the `sig` shorthand. Use `$` instead.
