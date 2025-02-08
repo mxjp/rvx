@@ -753,7 +753,7 @@ export function attachWhen(expr: Expression<boolean>, content: unknown): View {
  *
  * @example
  * ```tsx
- * import { sig, Attach } from "rvx";
+ * import { $, Attach } from "rvx";
  *
  * const showMessage = $(true);
  *

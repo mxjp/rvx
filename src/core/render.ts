@@ -39,7 +39,7 @@ function use(setBoundary: ViewSetBoundaryFn, node: Node, env: typeof globalThis)
  *
  * @example
  * ```tsx
- * import { render, sig } from "rvx";
+ * import { $, render } from "rvx";
  *
  * // Not displayed:
  * render(null);

@@ -87,7 +87,7 @@ export class Signal<T> {
 	 *
 	 * @example
 	 * ```tsx
-	 * import { sig, watch } from "rvx";
+	 * import { $, watch } from "rvx";
 	 *
 	 * const count = $(0);
 	 *
@@ -112,7 +112,7 @@ export class Signal<T> {
 	 *
 	 * @example
 	 * ```tsx
-	 * import { sig, watch } from "rvx";
+	 * import { $, watch } from "rvx";
 	 *
 	 * const items = $([]);
 	 *
@@ -212,7 +212,7 @@ export function $(value?: unknown): Signal<unknown> {
  *
  * @example
  * ```tsx
- * import { sig, watch } from "rvx";
+ * import { $, watch } from "rvx";
  *
  * const message = $("Example");
  *
@@ -312,7 +312,7 @@ const _observer = (hook: NotifyHook): Observer => {
  *
  * @example
  * ```tsx
- * import { sig, watch } from "rvx";
+ * import { $, watch } from "rvx";
  *
  * const count = $(0);
  *
@@ -440,7 +440,7 @@ export function effect(fn: () => void): void {
  * @example
  * The example below outputs `5` and `9` once. Without batching the output would be `5, 7, 9`.
  * ```tsx
- * import { batch, sig, watch } from "rvx";
+ * import { batch, $, watch } from "rvx";
  *
  * const a = $(2);
  * const b = $(3);
@@ -490,7 +490,7 @@ export function batch<T>(fn: () => T): T {
  *
  * @example
  * ```tsx
- * import { sig, memo, watch } from "rvx";
+ * import { $, memo, watch } from "rvx";
  *
  * const count = $(42);
  *
@@ -517,7 +517,7 @@ export function memo<T>(expr: Expression<T>): () => T {
  *
  * @example
  * ```tsx
- * import { sig, untrack, watch } from "rvx";
+ * import { $, untrack, watch } from "rvx";
  *
  * const a = $(2);
  * const b = $(3);
@@ -615,7 +615,7 @@ export function trigger(fn: () => void): TriggerPipe {
  *
  * @example
  * ```tsx
- * import { sig, get } from "rvx";
+ * import { $, get } from "rvx";
  *
  * const count = $(42);
  *
@@ -641,7 +641,7 @@ export type MapFn<I, O> = (input: I) => O;
  *
  * @example
  * ```tsx
- * import { sig, map, get } from "rvx";
+ * import { $, map, get } from "rvx";
  *
  * const count = $(42);
  * const doubleCount = map(count, value => value * 2);
