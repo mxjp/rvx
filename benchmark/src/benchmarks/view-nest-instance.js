@@ -1,9 +1,7 @@
 
 /** @param {import("rvx")} */
-export function create({ Nest }) {
+export function create({ nest }) {
 	return () => {
-		return Nest({
-			children: () => "test",
-		});
+		return nest(() => "test");
 	};
 }

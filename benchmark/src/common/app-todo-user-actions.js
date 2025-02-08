@@ -9,7 +9,7 @@ export const multiplier = addCount + (setDoneAndRemoveCount * 2);
  * @param {import("rvx")}
  * @param {boolean} onscreen
  */
-export function createBenchmark({ $, capture, render, e, teardown, For, Show }, onscreen) {
+export function createBenchmark({ $, capture, render, e, teardown, forEach, when }, onscreen) {
 	const random = mulberry32();
 
 	/**
@@ -84,42 +84,35 @@ export function createBenchmark({ $, capture, render, e, teardown, For, Show }, 
 					} }),
 				),
 				e("ul").append(
-					For({
-						each: todos,
-						children: item => {
-							return e("li")
-								.class({
-									"item": true,
-									"done": item.done,
-								})
-								.append(
-									TextInput({ value: item.name }),
-									Show({
-										when: item.done,
-										children: () => [
-											Button({
-												children: "Undone",
-												action: () => item.done.value = false,
-											}),
-											Button({
-												children: "Remove",
-												action: () => {
-													todos.update(todos => {
-														todos.splice(todos.indexOf(item), 1);
-													});
-												},
-											}),
-										],
-										else: () => [
-											Button({
-												children: "Done",
-												action: () => item.done.value = true,
-											}),
-										],
+					forEach(todos, item => {
+						return e("li")
+							.class({
+								"item": true,
+								"done": item.done,
+							})
+							.append(
+								TextInput({ value: item.name }),
+								when(item.done, () => [
+									Button({
+										children: "Undone",
+										action: () => item.done.value = false,
 									}),
-								);
-						},
-					})
+									Button({
+										children: "Remove",
+										action: () => {
+											todos.update(todos => {
+												todos.splice(todos.indexOf(item), 1);
+											});
+										},
+									}),
+								], () => [
+									Button({
+										children: "Done",
+										action: () => item.done.value = true,
+									}),
+								]),
+							);
+					}),
 				),
 			]);
 			if (onscreen) {
