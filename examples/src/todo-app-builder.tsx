@@ -7,7 +7,7 @@ Note, that this example doesn't include any storage error handling or validation
 
 */
 
-import { $, For, Show, Signal, e, watch } from "rvx";
+import { $, Signal, e, forEach, watch, when } from "rvx";
 
 const STORAGE_KEY = "rvx-examples:todo-app";
 
@@ -53,26 +53,19 @@ export function Example() {
 			e("button").on("click", add).append("Add"),
 		),
 		e("ul").append(
-			For({
-				each: items,
-				children: item => e("li").class("row").append(
-					TextInput({ value: item.name }),
-					Show({
-						when: item.done,
-						children: () => [
-							e("button").on("click", () => { item.done.value = false }).append("Undone"),
-							e("button").on("click", () => {
-								items.update(items => {
-									items.splice(items.indexOf(item), 1);
-								});
-							}).append("Remove"),
-						],
-						else: () => [
-							e("button").on("click", () => { item.done.value = true }).append("Done"),
-						],
-					})
-				),
-			})
+			forEach(items, item => e("li").class("row").append(
+				TextInput({ value: item.name }),
+				when(item.done, () => [
+					e("button").on("click", () => { item.done.value = false }).append("Undone"),
+					e("button").on("click", () => {
+						items.update(items => {
+							items.splice(items.indexOf(item), 1);
+						});
+					}).append("Remove"),
+				], () => [
+					e("button").on("click", () => { item.done.value = true }).append("Done"),
+				]),
+			)),
 		),
 	);
 }
