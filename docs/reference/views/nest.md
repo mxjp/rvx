@@ -19,18 +19,15 @@ Watch an [expression](../signals.md#expressions) and render dynamic content from
 
 === "No Build"
 	```jsx
-	import { $, Nest, e } from "./rvx.js";
+	import { $, nest, e } from "./rvx.js";
 
 	const message = $({ type: "heading", value: "Hello World!" });
 
-	Nest({
-		watch: message
-		children: message => {
-			switch (message.type) {
-				case "heading": return () => e("h1").append(message.value);
-				default: return () => "Unknown message type.";
-			}
-		},
+	nest(message, message => {
+		switch (message.type) {
+			case "heading": return () => e("h1").append(message.value);
+			default: return () => "Unknown message type.";
+		}
 	})
 	```
 
@@ -46,10 +43,7 @@ All signals accessed from the `watch` expression will trigger a full re-render w
 
 === "No Build"
 	```jsx
-	Nest({
-		watch: signalA,
-		children: () => signalB,
-	})
+	nest(signalA, () => signalB)
 	```
 
 + When **signalA** is updated, the expression re-runs, the previous component is disposed and the new component is rendered.

@@ -1,4 +1,4 @@
-# `<Show>`
+# `<Show> / when`
 Render [content](../elements.md#content) when an [expression](../signals.md#expressions) is truthy.
 
 === "JSX"
@@ -12,12 +12,9 @@ Render [content](../elements.md#content) when an [expression](../signals.md#expr
 
 === "No Build"
 	```jsx
-	import { Show } from "./rvx.js";
+	import { when } from "./rvx.js";
 
-	Show({
-		when: someCondition,
-		children: () => "Hello World!",
-	})
+	when(someCondition, () => "Hello World!")
 	```
 
 ## Truthy Results
@@ -36,10 +33,7 @@ Truthy condition results are passed to the child callback as the first argument.
 	```jsx
 	const message = $("Hello World!");
 
-	Show({
-		when: message,
-		children: value => e("h1").append(value),
-	})
+	when(message, value => e("h1").append(value))
 	```
 
 ## Fallback
@@ -54,9 +48,5 @@ A function to render fallback content can be specified as the `else` property.
 
 === "No Build"
 	```jsx
-	Show({
-		when: message,
-		else: () => "No message.",
-		children: value => e("h1").append(value),
-	})
+	when(message, value => e("h1").append(value), () => "No message.")
 	```

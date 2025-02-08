@@ -1,4 +1,4 @@
-# `<Index>`
+# `<Index> / indexEach`
 Render [content](../elements.md#content) for each index in an iterable [expression](../signals.md#expressions).
 
 === "JSX"
@@ -12,12 +12,9 @@ Render [content](../elements.md#content) for each index in an iterable [expressi
 
 === "No Build"
 	```jsx
-	import { Index, e } from "./rvx.js";
+	import { indexEach, e } from "./rvx.js";
 
-	Index({
-		each: someIterable,
-		children: value => e("li").append(value),
-	})
+	indexEach(someIterable, value => e("li").append(value))
 	```
 
 ## Index
@@ -32,10 +29,7 @@ The index is passed as the second argument:
 
 === "No Build"
 	```jsx
-	Index({
-		each: someIterable,
-		children: (value, index) => e("li").append(index + 1, ": ", value),
-	})
+	indexEach(someIterable, (value, index) => e("li").append(index + 1, ": ", value))
 	```
 
 ## Update Order
@@ -53,4 +47,4 @@ When the view itself is disposed, instances are disposed in the latest iteration
 If an error is thrown by iterating or by rendering an item, the update is stopped as if the previous item was the last one and the error is re-thrown.
 
 ### Performance
-The current implementation has a performance of `O(n)` with `n` being the new number of items. When items are frequently moved, consider using [`<For>`](./for.md) instead.
+The current implementation has a performance of `O(n)` with `n` being the new number of items. When items are frequently moved, consider using [`<For> / forEach`](./for-each.md) instead.

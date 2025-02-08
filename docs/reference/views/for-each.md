@@ -1,4 +1,4 @@
-# `<For>`
+# `<For> / forEach`
 Render [content](../elements.md#content) for each unique value in an iterable [expression](../signals.md#expressions).
 
 === "JSX"
@@ -12,12 +12,9 @@ Render [content](../elements.md#content) for each unique value in an iterable [e
 
 === "No Build"
 	```jsx
-	import { For, e } from "./rvx.js";
+	import { forEach, e } from "./rvx.js";
 
-	For({
-		each: someIterable,
-		children: value => e("li").append(value),
-	})
+	forEach(someIterable, value => e("li").append(value))
 	```
 
 ## Index
@@ -32,10 +29,7 @@ A function to reactively access the current index is passed as the second argume
 
 === "No Build"
 	```jsx
-	For({
-		each: someIterable,
-		children: (value, index) => e("li").append(() => index() + 1, ": ", value),
-	})
+	forEach(someIterable, (value, index) => e("li").append(() => index() + 1, ": ", value))
 	```
 
 ## Update Order
@@ -56,7 +50,7 @@ If an error is thrown by iterating or by rendering an item, the update is stoppe
 ### Performance
 The current implementation has a best case performance of `O(n)` and a practical worst case performance of `O(n * log(n))` with `n` being the new number of items. In practice, this is mostly irrelevant because the majority of time is spent updating the DOM.
 
-When granular updates are not important or when you only ever update the expression at most once, you can consider using [`<Nest>`](./nest.md) instead. This will just re-render everything without a diffing algorithm:
+When granular updates are not important or when you only ever update the expression at most once, you can consider using [`<Nest> / nest`](./nest.md) instead. This will just re-render everything without a diffing algorithm:
 
 === "JSX"
 	```jsx
@@ -67,8 +61,5 @@ When granular updates are not important or when you only ever update the express
 
 === "No Build"
 	```jsx
-	Nest({
-		watch: items,
-		children: items => items.map(item => e("li").append("...")),
-	})
+	nest(items, items => items.map(item => e("li").append("...")))
 	```

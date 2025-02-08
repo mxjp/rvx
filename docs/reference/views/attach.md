@@ -1,4 +1,4 @@
-# `<Attach>`
+# `<Attach> / attachWhen`
 Attach [content](../elements.md#content) when an [expression](../signals.md#expressions) is truthy.
 
 === "JSX"
@@ -12,12 +12,9 @@ Attach [content](../elements.md#content) when an [expression](../signals.md#expr
 
 === "No Build"
 	```jsx
-	import { Attach } from "./rvx.js";
+	import { attachWhen } from "./rvx.js";
 
-	Attach({
-		when: someCondition,
-		children: "Hello World!",
-	});
+	attachWhen(someCondition, "Hello World!")
 	```
 
 !!! note

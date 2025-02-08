@@ -7,11 +7,11 @@ Views can be used as [element content](../elements.md#content) or can be returne
 Rvx provides the following views for common use cases:
 
 + [`render` & `mount`](./render.md) - Wrap content in a view.
-+ [`<Show>`](show.md) - Render content if a condition is met.
-+ [`<Attach>`](attach.md) -  Attach already rendered content if a condition is met.
-+ [`<Nest>`](nest.md) - Render a component returned from an expression.
-+ [`<For>`](for.md) - Render content for each unique value in an iterable.
-+ [`<Index>`](index-for.md) - Render content for each index/value pair in an iterable.
++ [`<Show> / when`](show.md) - Render content if a condition is met.
++ [`<Attach> / attachWhen`](attach.md) -  Attach already rendered content if a condition is met.
++ [`<Nest> / nest`](nest.md) - Render a component returned from an expression.
++ [`<For> / forEach`](for-each.md) - Render content for each unique value in an iterable.
++ [`<Index> / indexEach`](index-each.md) - Render content for each index/value pair in an iterable.
 + [`movable`](movable.md) - Wrap content for safely moving it somewhere else.
 
 ## View API
