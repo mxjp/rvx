@@ -1,4 +1,4 @@
-# `<Nest>`
+# `<Nest> / nest`
 Watch an [expression](../signals.md#expressions) and render dynamic content from it's result.
 
 === "JSX"
@@ -50,3 +50,24 @@ All signals accessed from the `watch` expression will trigger a full re-render w
 + Updating **signalB** has no effect on the component lifecycle.
 
 To avoid re-rendering the component when the same values are returned, you can wrap the expression using [`memo`](../signals.md#memo) or use [`<Show>`](./show.md) instead.
+
+## Component expresions
+The component can be omitted if the expression itself returns a component, null or undefined.
+
+=== "JSX"
+	```jsx
+	const component = $(() => <h1>Hello World!</h1>);
+
+	<Nest watch={component} />
+
+	component.value = () => <>Something else...</>;
+	```
+
+=== "No Build"
+	```jsx
+	const component = $(() => e("h1").append("Hello World!"));
+
+	nest(component)
+
+	component.value = () => "Something else...";
+	```

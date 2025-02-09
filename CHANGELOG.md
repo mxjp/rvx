@@ -2,6 +2,7 @@
 
 ## 19.2
 + Support direct content reuse in `<Nest> / nest` and `<Show> / when`.
++ `<Nest> / nest` component is now optional if the expression returns a component, null or undefined.
 
 ## 19.1
 + Add non JSX component variants: `nest`, `when`, `attachWhen`, `forEach`, `indexEach`, `nestAsync`, `routes`.
