@@ -3,7 +3,7 @@ import { ENV } from "./env.js";
 import { createParent, createPlaceholder, Falsy, NOOP } from "./internals.js";
 import { capture, nocapture, teardown, TeardownHook } from "./lifecycle.js";
 import { render } from "./render.js";
-import { $, effect, Expression, get, memo, Signal, watch } from "./signals.js";
+import { $, effect, Expression, ExpressionResult, get, memo, Signal, watch } from "./signals.js";
 
 /**
  * A function that is called when the view boundary may have been changed.
@@ -332,6 +332,10 @@ export function Nest<T>(props: {
  *
  * See {@link Show `<Show>`} when using JSX.
  *
+ * @param condition The condition to watch.
+ * @param truthy The component to render when the condition result is truthy.
+ * @param falsy An optional component to render when the condition is falsy.
+ *
  * @example
  * ```tsx
  * import { $, when, e } from "rvx";
@@ -341,11 +345,8 @@ export function Nest<T>(props: {
  * when(message, value => e("h1").append(value), () => "No message...")
  * ```
  */
-export function when<T>(expr: Expression<T | Falsy>, truthy: Component<T>, falsy?: Component): View {
-	return Nest({
-		watch: memo<T | Falsy>(expr),
-		children: value => value ? truthy(value) : falsy?.(),
-	});
+export function when<T>(condition: Expression<T | Falsy>, truthy: Component<T>, falsy?: Component): View {
+	return nest(memo(condition), value => value ? truthy(value) : falsy?.());
 }
 
 /**
@@ -370,26 +371,23 @@ export function when<T>(expr: Expression<T | Falsy>, truthy: Component<T>, falsy
  */
 export function Show<T>(props: {
 	/**
-	 * The expression to evaluate.
+	 * The condition to watch.
 	 */
 	when: Expression<T | Falsy>;
 
 	/**
-	 * A function to create content if the value is truthy.
+	 * The component to render when the condition result is truthy.
 	 */
 	children: Component<T>;
 
 	/**
-	 * An optional function to create content if the value is falsy.
+	 * An optional component to render when the condition result is falsy.
 	 */
 	else?: Component;
 }): View {
 	return when(props.when, props.children, props.else);
 }
 
-/**
- * A function to create content for a specific value.
- */
 export interface ForContentFn<T> {
 	/**
 	 * @param value The value.
@@ -417,6 +415,9 @@ function insertViewAfter(parent: Node, prev: Node, view: View): void {
  * If an error is thrown while iterating or while rendering an item, the update is stopped as if the previous item was the last one and the error is re-thrown.
  *
  * See {@link For `<For>`} for use with JSX.
+ *
+ * @param each The expression to watch. Note, that signals accessed during iteration will also trigger updates.
+ * @param component The component to render for each unique value.
  *
  * @example
  * ```tsx
@@ -559,21 +560,18 @@ export function forEach<T>(each: Expression<Iterable<T>>, component: ForContentF
  */
 export function For<T>(props: {
 	/**
-	 * The expression.
+	 * The expression to watch. Note, that signals accessed during iteration will also trigger updates.
 	 */
 	each: Expression<Iterable<T>>;
 
 	/**
-	 * A function to create content for a specific value.
+	 * The component to render for each unique value.
 	 */
 	children: ForContentFn<T>;
 }): View {
 	return forEach(props.each, props.children);
 }
 
-/**
- * A function to create content for a specific index and value.
- */
 export interface IndexContentFn<T> {
 	/**
 	 * @param value The value.
@@ -594,6 +592,9 @@ export type IndexForContentFn<T> = IndexContentFn<T>;
  * If an error is thrown by iterating or by rendering an item, the update is stopped as if the previous item was the last one and the error is re-thrown.
  *
  * See {@link Index `<Index>`} when using JSX.
+ *
+ * @param each The expression to watch. Note, that signals accessed during iteration will also trigger updates.
+ * @param component The component to render for each value/index pair.
  *
  * @example
  * ```tsx
@@ -703,12 +704,14 @@ export function indexEach<T>(each: Expression<Iterable<T>>, component: IndexCont
  */
 export function Index<T>(props: {
 	/**
-	 * The expression.
+	 * The expression to watch..
+	 *
+	 * Note, that signals accessed during iteration will also trigger updates.
 	 */
 	each: Expression<Iterable<T>>;
 
 	/**
-	 * A function to create content for a specific index and value.
+	 * The component to render for each value/index pair.
 	 */
 	children: IndexContentFn<T>;
 }): View {
@@ -774,6 +777,9 @@ export function movable(content: unknown): MovableView {
  *
  * See {@link Attach `<Attach>`} when using JSX.
  *
+ * @param condition The condition to watch.
+ * @param content The content to attach when the condition result is truthy.
+ *
  * @example
  * ```tsx
  * import { $, attach } from "rvx";
@@ -783,8 +789,8 @@ export function movable(content: unknown): MovableView {
  * attachWhen(showMessage, e("h1").append("Hello World!"))
  * ```
  */
-export function attachWhen(expr: Expression<boolean>, content: unknown): View {
-	return nest(expr, value => value ? content : undefined);
+export function attachWhen(condition: Expression<boolean>, content: unknown): View {
+	return nest(condition, value => value ? content : undefined);
 }
 
 /**
@@ -807,14 +813,14 @@ export function attachWhen(expr: Expression<boolean>, content: unknown): View {
  */
 export function Attach(props: {
 	/**
-	 * The expression to evaluate.
+	 * The condition to watch.
 	 */
 	when: Expression<boolean>;
 
 	/**
-	 * The content to attach when the expression is truthy.
+	 * The content to attach when the condition result is truthy.
 	 */
-	children: unknown;
+	children?: unknown;
 }): View {
 	return attachWhen(props.when, props.children);
 }
