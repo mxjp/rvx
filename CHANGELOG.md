@@ -1,5 +1,8 @@
 # Changelog
 
+## 19.2
++ Support direct content reuse in `<Nest> / nest` and `<Show> / when`.
+
 ## 19.1
 + Add non JSX component variants: `nest`, `when`, `attachWhen`, `forEach`, `indexEach`, `nestAsync`, `routes`.
 
