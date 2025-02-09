@@ -397,7 +397,7 @@ await suite("view", async () => {
 			strictEqual(viewText(view), "v1:2");
 		});
 
-		await test("component from signal", () => {
+		await test("explicit component from signal", () => {
 			const events: unknown[] = [];
 			const comp = $<Component | undefined>(undefined);
 			const view = uncapture(() => <Nest watch={comp}>{c => c?.()}</Nest> as View);
@@ -422,6 +422,93 @@ await suite("view", async () => {
 			comp.notify();
 			assertEvents(events, ["e:b", "s:b"]);
 			strictEqual(viewText(view), "b");
+		});
+
+		await test("implicit component from signal", () => {
+			const events: unknown[] = [];
+			const comp = $<Component | undefined | null>(undefined);
+			const view = uncapture(() => <Nest watch={comp} /> as View);
+
+			assertEvents(events, []);
+			strictEqual(viewText(view), "");
+
+			comp.value = () => {
+				lifecycleEvent(events, "a");
+				return "a";
+			};
+			assertEvents(events, ["s:a"]);
+			strictEqual(viewText(view), "a");
+
+			comp.value = () => {
+				lifecycleEvent(events, "b");
+				return "b";
+			};
+			assertEvents(events, ["e:a", "s:b"]);
+			strictEqual(viewText(view), "b");
+
+			comp.notify();
+			assertEvents(events, ["e:b", "s:b"]);
+			strictEqual(viewText(view), "b");
+
+			comp.value = null;
+			assertEvents(events, ["e:b"]);
+			strictEqual(viewText(view), "");
+		});
+
+		await suite("direct content reuse", async () => {
+			await test("leading view, detached", () => {
+				const signal = $();
+				const inner = render(<>{0}{1}</>);
+				const outer = uncapture(() => {
+					return <Nest watch={signal}>
+						{() => <>{inner}x</>}
+					</Nest> as View;
+				});
+				strictEqual(viewText(outer), "01x");
+				signal.notify();
+				strictEqual(viewText(outer), "01x");
+			});
+
+			await test("trailing view, detached", () => {
+				const signal = $();
+				const inner = render(<>{0}{1}</>);
+				const outer = uncapture(() => {
+					return <Nest watch={signal}>
+						{() => <>x{inner}</>}
+					</Nest> as View;
+				});
+				strictEqual(viewText(outer), "x01");
+				signal.notify();
+				strictEqual(viewText(outer), "x01");
+			});
+
+			await test("leading view, attached", () => {
+				const signal = $();
+				const inner = render(<>{0}{1}</>);
+				const outer = uncapture(() => {
+					return <Nest watch={signal}>
+						{() => <>{inner}x</>}
+					</Nest> as View;
+				});
+				const parent = render(<>a{outer}b</>);
+				strictEqual(viewText(parent), "a01xb");
+				signal.notify();
+				strictEqual(viewText(parent), "a01xb");
+			});
+
+			await test("trailing view, attached", () => {
+				const signal = $();
+				const inner = render(<>{0}{1}</>);
+				const outer = uncapture(() => {
+					return <Nest watch={signal}>
+						{() => <>x{inner}</>}
+					</Nest> as View;
+				});
+				const parent = render(<>a{outer}b</>);
+				strictEqual(viewText(parent), "ax01b");
+				signal.notify();
+				strictEqual(viewText(parent), "ax01b");
+			});
 		});
 	});
 
@@ -1149,6 +1236,8 @@ await suite("view", async () => {
 		inner.value = 4;
 		strictEqual(viewText(view), "");
 		signal.value = true;
+		strictEqual(viewText(view), "inner:4");
+		signal.notify();
 		strictEqual(viewText(view), "inner:4");
 	});
 });

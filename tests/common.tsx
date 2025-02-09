@@ -37,16 +37,16 @@ export function testView(prefix = "") {
 
 		nextFirst = () => {
 			const next = <div>{prefix}f{i++}</div> as HTMLElement;
-			self.parent!.insertBefore(next, self.last);
-			self.parent!.removeChild(self.first);
+			self.parent!.insertBefore(next, self.last!);
+			self.parent!.removeChild(self.first!);
 			setBoundary(next, undefined);
 			return next;
 		};
 
 		nextLast = () => {
 			const next = <div>l{i++}</div> as HTMLElement;
-			self.parent!.insertBefore(next, self.last);
-			self.parent!.removeChild(self.last);
+			self.parent!.insertBefore(next, self.last!);
+			self.parent!.removeChild(self.last!);
 			setBoundary(undefined, next);
 			return next;
 		};

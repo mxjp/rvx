@@ -27,6 +27,26 @@ export interface ViewSetBoundaryFn {
 	(first: Node | undefined, last: Node | undefined): void;
 }
 
+interface UninitViewProps {
+	/**
+	 * The current first node of this view.
+	 *
+	 * + This may be undefined while the view is not fully initialized.
+	 * + This property is not reactive.
+	 */
+	get first(): Node | undefined;
+
+	/**
+	 * The current last node of this view.
+	 *
+	 * + This may be undefined while the view is not fully initialized.
+	 * + This property is not reactive.
+	 */
+	get last(): Node | undefined;
+}
+
+export type UninitView = UninitViewProps & Omit<View, keyof UninitViewProps>;
+
 /**
  * A function that is called once to initialize a view instance.
  *
@@ -37,7 +57,7 @@ export interface ViewInitFn {
 	 * @param setBoundary A function that must be called after the view boundary has been changed.
 	 * @param self The current view itself. This can be used to keep track of the current boundary and parent nodes.
 	 */
-	(setBoundary: ViewSetBoundaryFn, self: View): void;
+	(setBoundary: ViewSetBoundaryFn, self: UninitView): void;
 }
 
 /**
@@ -206,13 +226,19 @@ export function * viewNodes(view: View): IterableIterator<Node> {
 	}
 }
 
+const _nestDefault = ((component: Component | null | undefined) => component?.()) as Component<unknown>;
+
 /**
  * Watch an expression and renders content from it's result.
  *
  * + If an error is thrown during initialization, the error is re-thrown.
  * + If an error is thrown during a signal update, the previously rendered content is kept in place and the error is re-thrown.
+ * + Content returned from the component can be directly reused within the same `nest` instance.
  *
  * See {@link Nest `<Nest>`} when using JSX.
+ *
+ * @param expr The expression to watch.
+ * @param component The component to render with the expression result. If the expression returns a component, null or undefined, this can be omitted.
  *
  * @example
  * ```tsx
@@ -228,16 +254,22 @@ export function * viewNodes(view: View): IterableIterator<Node> {
  * })
  * ```
  */
-export function nest<T>(expr: Expression<T>, component: Component<T>): View {
+export function nest(expr: Expression<Component | null | undefined>): View;
+export function nest<T>(expr: Expression<T>, component: Component<T>): View;
+export function nest(expr: Expression<unknown>, component?: Component<unknown>): View {
+	component ??= _nestDefault;
 	return new View((setBoundary, self) => {
 		watch(expr, value => {
-			const view = render(component(value));
-			const parent = self.parent;
-			if (parent !== undefined) {
-				view.insertBefore(parent, self.first);
-			}
-			if (self.first) {
+			const last: Node | undefined = self.last;
+			const parent = last?.parentNode;
+			let view: View;
+			if (parent) {
+				const anchor = last.nextSibling;
 				self.detach();
+				view = render(component(value));
+				insertViewBefore(parent, anchor, view);
+			} else {
+				view = render(component(value));
 			}
 			setBoundary(view.first, view.last);
 			view.setBoundaryOwner(setBoundary);
@@ -250,6 +282,7 @@ export function nest<T>(expr: Expression<T>, component: Component<T>): View {
  *
  * + If an error is thrown during initialization, the error is re-thrown.
  * + If an error is thrown during a signal update, the previously rendered content is kept in place and the error is re-thrown.
+ * + Content returned from the component can be directly reused within the same `<Nest>` instance.
  *
  * See {@link nest} when not using JSX.
  *
@@ -273,14 +306,21 @@ export function Nest<T>(props: {
 	/**
 	 * The expression to watch.
 	 */
-	watch: Expression<T>;
+	watch: T;
 
 	/**
 	 * The component to render with the expression result.
+	 *
+	 * If the expression returns a component, null or undefined, this can be omitted.
 	 */
-	children: Component<T>;
+	children: Component<ExpressionResult<T>>;
+} | {
+	/**
+	 * The expression to watch.
+	 */
+	watch: Expression<Component | null | undefined>;
 }): View {
-	return nest(props.watch, props.children);
+	return nest(props.watch, (props as any).children);
 }
 
 /**
@@ -359,13 +399,16 @@ export interface ForContentFn<T> {
 	(value: T, index: () => number): unknown;
 }
 
-function insertViewAfter(parent: Node, prev: Node, view: View): void {
-	const next = prev.nextSibling;
-	if (next) {
-		view.insertBefore(parent, next);
-	} else {
+function insertViewBefore(parent: Node, next: Node | null, view: View): void {
+	if (next === null) {
 		view.appendTo(parent);
+	} else {
+		view.insertBefore(parent, next);
 	}
+}
+
+function insertViewAfter(parent: Node, prev: Node, view: View): void {
+	insertViewBefore(parent, prev.nextSibling, view);
 }
 
 /**
@@ -700,7 +743,7 @@ export class MovableView {
 				this.#view.setBoundaryOwner(setBoundary);
 				teardown(() => {
 					const anchor = createPlaceholder(this.#env);
-					self.parent?.insertBefore(anchor, self.first);
+					self.parent?.insertBefore(anchor, self.first!);
 					self.detach();
 					setBoundary(anchor, anchor);
 				});
