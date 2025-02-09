@@ -256,8 +256,7 @@ const _nestDefault = ((component: Component | null | undefined) => component?.()
  */
 export function nest(expr: Expression<Component | null | undefined>): View;
 export function nest<T>(expr: Expression<T>, component: Component<T>): View;
-export function nest(expr: Expression<unknown>, component?: Component<unknown>): View {
-	component ??= _nestDefault;
+export function nest(expr: Expression<unknown>, component: Component<unknown> = _nestDefault): View {
 	return new View((setBoundary, self) => {
 		watch(expr, value => {
 			const last: Node | undefined = self.last;
