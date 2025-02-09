@@ -1189,7 +1189,11 @@ await suite("dom/model", async () => {
 			await test("non string values", () => {
 				const elem = new Element(HTML, "div");
 				elem.style.setProperty("foo", 42 as any);
+				strictEqual(elem.style.getPropertyValue("foo"), "42");
 				strictEqual(elem.getAttribute("style"), "foo: 42");
+				elem.style.setProperty("foo", 77 as any);
+				strictEqual(elem.style.getPropertyValue("foo"), "77");
+				strictEqual(elem.getAttribute("style"), "foo: 77");
 			});
 
 			await test("invalidate by removeProperty", () => {
@@ -1309,6 +1313,8 @@ await suite("dom/model", async () => {
 				const elem = new Element(SVG, "path");
 				elem.setAttribute("foo", 42 as any);
 				strictEqual(elem.getAttribute("foo"), "42");
+				elem.setAttribute("foo", 77 as any);
+				strictEqual(elem.getAttribute("foo"), "77");
 			});
 		});
 	});

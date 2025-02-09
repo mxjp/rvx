@@ -834,7 +834,7 @@ export class ElementStyles {
 		}
 		props.push({
 			name,
-			value,
+			value: String(value),
 			important: priority === "important",
 		});
 		this.#setAttrStale();
