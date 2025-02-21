@@ -229,7 +229,7 @@ export function * viewNodes(view: View): IterableIterator<Node> {
 const _nestDefault = ((component: Component | null | undefined) => component?.()) as Component<unknown>;
 
 /**
- * Watch an expression and renders content from it's result.
+ * Watch an expression and render content from it's result.
  *
  * + If an error is thrown during initialization, the error is re-thrown.
  * + If an error is thrown during a signal update, the previously rendered content is kept in place and the error is re-thrown.
