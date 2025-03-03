@@ -1,6 +1,6 @@
 /*
 
-# Custom View
+# Custom View / Rotate
 This example shows a custom view that rotates the order of it's logical children when a signal is updated.
 
 You can toggle the visibility of the entire view or one of it's children to demonstrate boundary tracking.
