@@ -26,6 +26,7 @@ scripts/
 src/
 	async/   # Async utilities
 	core/    # The core module
+	dom/     # rvx dom
 	element/ # Web Component API (RvxElement)
 	event/   # Event System
 	id/      # Unique ID utilities
