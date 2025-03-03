@@ -31,13 +31,13 @@ async function main() {
 
 		if (start && end) {
 			await asyncCtx.complete();
-			document.body.insertBefore(app.take(), start);
+			app.insertBefore(document.body, start);
 			const range = new Range();
 			range.setStartBefore(start);
 			range.setEndAfter(end);
 			range.deleteContents();
 		} else {
-			document.body.appendChild(app.take());
+			app.appendTo(document.body);
 		}
 	} finally {
 		document.body.inert = false;
