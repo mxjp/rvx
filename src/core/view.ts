@@ -160,9 +160,12 @@ export class View {
 	 * Insert all nodes of this view before a reference child of the specified parent.
 	 *
 	 * @param parent The parent to insert into.
-	 * @param ref The reference child to insert before.
+	 * @param ref The reference child to insert before. If this is null, the nodes are appended to the parent.
 	 */
-	insertBefore(parent: Node, ref: Node): void {
+	insertBefore(parent: Node, ref: Node | null): void {
+		if (ref === null) {
+			return this.appendTo(parent);
+		}
 		let node = this.#first;
 		const last = this.#last;
 		for (;;) {
@@ -266,7 +269,7 @@ export function nest(expr: Expression<unknown>, component: Component<unknown> = 
 				const anchor = last.nextSibling;
 				self.detach();
 				view = render(component(value));
-				insertViewBefore(parent, anchor, view);
+				view.insertBefore(parent, anchor);
 			} else {
 				view = render(component(value));
 			}
@@ -396,18 +399,6 @@ export interface ForContentFn<T> {
 	(value: T, index: () => number): unknown;
 }
 
-function insertViewBefore(parent: Node, next: Node | null, view: View): void {
-	if (next === null) {
-		view.appendTo(parent);
-	} else {
-		view.insertBefore(parent, next);
-	}
-}
-
-function insertViewAfter(parent: Node, prev: Node, view: View): void {
-	insertViewBefore(parent, prev.nextSibling, view);
-}
-
 /**
  * Render content for each unique value in an iterable.
  *
@@ -499,7 +490,7 @@ export function forEach<T>(each: Expression<Iterable<T>>, component: ForContentF
 								});
 							});
 
-							insertViewAfter(parent, last, instance.v);
+							instance.v.insertBefore(parent, last.nextSibling);
 							instances.splice(index, 0, instance);
 							instanceMap.set(value, instance);
 							last = instance.v.last;
@@ -511,7 +502,7 @@ export function forEach<T>(each: Expression<Iterable<T>>, component: ForContentF
 							const currentIndex = instances.indexOf(instance, index);
 							if (currentIndex < 0) {
 								detach(instances.splice(index, instances.length - index, instance));
-								insertViewAfter(parent, last, instance.v);
+								instance.v.insertBefore(parent, last.nextSibling);
 							} else {
 								detach(instances.splice(index, currentIndex - index));
 							}
@@ -663,7 +654,7 @@ export function indexEach<T>(each: Expression<Iterable<T>>, component: IndexCont
 						});
 					});
 
-					insertViewAfter(parent, last, instance.v);
+					instance.v.insertBefore(parent, last.nextSibling);
 					instances[index] = instance;
 					last = instance.v.last;
 					index++;

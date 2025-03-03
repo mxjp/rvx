@@ -1,5 +1,8 @@
 # Changelog
 
+## 19.3
++ Add append fallback to `View.insertBefore`.
+
 ## 19.2
 + Support direct content reuse in `<Nest> / nest` and `<Show> / when`.
 + `<Nest> / nest` component is now optional if the expression returns a component, null or undefined.
