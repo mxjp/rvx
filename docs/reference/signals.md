@@ -178,7 +178,9 @@ Signal updates are always processed immediately. The `batch` function can be use
 If updates from a batch cause immediate recursive side effects, these are also processed as part of the batch.
 
 ## `memo`
-Watch an expression and get a function to reactively access it's latest result with the same [equality check](#equality) that is also used for signals.
+Run a function and re-run when any accessed signals are updated.
+
+This is the same as [`effect`](#effect) except that it returns a function to reactively access the latest return value.
 
 === "JSX"
 	```jsx
@@ -195,9 +197,8 @@ Watch an expression and get a function to reactively access it's latest result w
 	```
 
 + The current [context](context.md) is available in the expression.
-+ Evaluation is stopped when the current [lifecycle](lifecycle.md) is disposed.
-+ Teardown hooks are not supported in the expression.
-+ The default equality check can be disabled or customized in the same way as in signals by setting the second parameter.
++ Execution is stopped when the current [lifecycle](lifecycle.md) is disposed.
++ Teardown hooks from the callback are called when the current [lifecycle](lifecycle.md) is disposed or before the next call.
 
 ## `track` & `untrack`
 Signal accesses are tracked in expressions by default. You can use `untrack` to disable tracking during a function call or `track` to restore the default.

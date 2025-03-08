@@ -1,5 +1,8 @@
 # Changelog
 
+## 19.4
++ Add support teardown hooks in `memo`.
+
 ## 19.3
 + Add append fallback to `View.insertBefore`.
 

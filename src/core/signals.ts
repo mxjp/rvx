@@ -486,11 +486,11 @@ export function batch<T>(fn: () => T): T {
 }
 
 /**
- * Watch an expression and create a function to reactively access it's latest result.
+ * Run and watch a function until the current lifecycle is disposed.
  *
- * This is similar to {@link lazy}, but the expression is always evaluated and then updates it's observers.
+ * This is similar to {@link effect}, but returns a function to reactively access the latest return value.
  *
- * @param expr The expression to watch.
+ * @param fn The function to run.
  * @returns A function to access the latest result.
  *
  * @example
@@ -506,9 +506,9 @@ export function batch<T>(fn: () => T): T {
  * });
  * ```
  */
-export function memo<T>(expr: Expression<T>): () => T {
+export function memo<T>(fn: Expression<T>): () => T {
 	const signal = $<T>(undefined!);
-	effect(() => signal.value = get(expr));
+	effect(() => signal.value = get(fn));
 	return () => signal.value;
 }
 
