@@ -17,7 +17,7 @@ const TRACKING_STACK: boolean[] = [true];
 /**
  * A stack where the top value is called for each tracked signal access.
  */
-const ACCESS_STACK: (AccessHook | null)[] = [];
+const ACCESS_STACK: (AccessHook | undefined)[] = [];
 
 /**
  * A function that is called by a signal or batch when updated.
@@ -356,7 +356,7 @@ export function watch<T>(expr: Expression<T>, fn: (value: T) => void): void {
 				TRACKING_STACK.pop();
 			}
 			try {
-				ACCESS_STACK.push(null);
+				ACCESS_STACK.push(undefined);
 				dispose?.();
 				dispose = capture(runFn);
 			} finally {
@@ -555,7 +555,7 @@ export function track<T>(fn: () => T): T {
  * Check if a currently evaluating expression is tracking signal accesses.
  */
 export function isTracking(): boolean {
-	return TRACKING_STACK[TRACKING_STACK.length - 1] && ACCESS_STACK.length > 0 && ACCESS_STACK[ACCESS_STACK.length - 1] !== null;
+	return TRACKING_STACK[TRACKING_STACK.length - 1] && ACCESS_STACK[ACCESS_STACK.length - 1] !== undefined;
 }
 
 /**
