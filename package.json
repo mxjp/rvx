@@ -77,7 +77,7 @@
 		"build:types": "tsc -p tsconfig-types.json",
 		"build:tests": "tsc -p tests/tsconfig.json",
 		"build:jsx-legacy-runtime-tests": "tsc -p tests/jsx-legacy-runtime/tsconfig.json",
-		"build:bundle:core": "node scripts/bundle.js -m core/index -o dist/rvx",
+		"build:bundle:core": "node scripts/bundle.js -m core/index -o dist/rvx --gzip --brotli",
 		"build:bundle:all": "node scripts/bundle.js -m async core/index element event id router store test -o dist/rvx.all",
 		"start": "mx-parallel npm:start:*",
 		"start:es": "tsc -p tsconfig-es.json -w --preserveWatchOutput",

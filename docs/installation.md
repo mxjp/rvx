@@ -117,3 +117,5 @@ node scripts/bundle.js -m core async -o ./custom
 + `--no-minified` - Skip generating the minified bundle.
 + `--no-types` - Skip generating the type definition bundle.
 + `--no-license` - Omit the license banner. The license banner is always omitted from minified bundles.
++ `--gzip` - Emit a gzip compressed bundle with additional `.gz` extension.
++ `--brotli` - Emit a brotli compressed bundle with additional `.br` extension.

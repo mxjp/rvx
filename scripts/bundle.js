@@ -6,12 +6,13 @@ import { fileURLToPath } from "node:url";
 import { rollup } from "rollup";
 import { dts } from "rollup-plugin-dts";
 import parseArgs from "yargs-parser";
+import { gzipSync, brotliCompressSync } from "node:zlib";
 
 const root = join(fileURLToPath(import.meta.url), "../..");
 const args = parseArgs(process.argv.slice(2), {
 	array: ["modules"],
 	string: ["modules", "output"],
-	boolean: ["readable", "minified", "types", "license"],
+	boolean: ["readable", "minified", "gzip", "brotli", "types", "license"],
 	alias: {
 		modules: "m",
 		output: "o",
@@ -90,6 +91,33 @@ const format = {
 			file: join(root, output + ".min.js"),
 			plugins: [
 				terser(),
+				{
+					name: "rvx-compress-bundles",
+					generateBundle(_options, bundles) {
+						for (const name in bundles) {
+							if (bundles[name].type !== "chunk") {
+								continue;
+							}
+							const raw = Buffer.from(bundles[name].code, "utf-8");
+							if (args.gzip) {
+								const source = gzipSync(raw);
+								this.emitFile({
+									type: "asset",
+									fileName: name + ".gz",
+									source,
+								});
+							}
+							if (args.brotli) {
+								const source = brotliCompressSync(raw);
+								this.emitFile({
+									type: "asset",
+									fileName: name + ".br",
+									source,
+								})
+							}
+						}
+					},
+				},
 			],
 		});
 	}
