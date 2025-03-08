@@ -527,7 +527,7 @@ await suite("signals", async () => {
 			assertEvents(events, [2]);
 		});
 
-		await test("access isolation", () => {
+		await test("access isolation (expr)", () => {
 			const events: unknown[] = [];
 			const outer = $(1);
 			const inner = $(1);
@@ -537,10 +537,13 @@ await suite("signals", async () => {
 					events.push("o");
 					innerHook?.();
 					innerHook = capture(() => {
+						strictEqual(isTracking(), true);
 						watch(() => {
+							strictEqual(isTracking(), true);
 							events.push("i");
 							return inner.value;
 						}, value => {
+							strictEqual(isTracking(), false);
 							events.push(`i${value}`);
 						});
 					});
@@ -554,6 +557,65 @@ await suite("signals", async () => {
 			assertEvents(events, ["i", "i2"]);
 			outer.value++;
 			assertEvents(events, ["o", "i", "i2", "o2"]);
+		});
+
+		await test("access isolation (callback)", () => {
+			const events: unknown[] = [];
+			const outer = $(1);
+			const inner = $(1);
+			let innerHook: TeardownHook | undefined;
+			uncapture(() => {
+				watch(() => {
+					events.push("o");
+					innerHook?.();
+					innerHook = capture(() => {
+						strictEqual(isTracking(), true);
+						watch(() => {
+							strictEqual(isTracking(), true);
+							events.push("i");
+						}, () => {
+							strictEqual(isTracking(), false);
+							events.push(`i${inner.value}`);
+						});
+					});
+					return outer.value;
+				}, value => {
+					events.push(`o${value}`);
+				});
+			});
+			assertEvents(events, ["o", "i", "i1", "o1"]);
+			inner.value++;
+			assertEvents(events, []);
+			outer.value++;
+			assertEvents(events, ["o", "i", "i2", "o2"]);
+		});
+
+		await test("access isolation (teardown)", () => {
+			const events: unknown[] = [];
+			const outer = $(1);
+			const inner = $(1);
+			uncapture(() => {
+				watch(inner, value => {
+					strictEqual(isTracking(), false);
+					events.push(`s${value}`);
+					teardown(() => {
+						strictEqual(isTracking(), false);
+						events.push(`e${value}`);
+					});
+				}),
+				watch(() => {
+					strictEqual(isTracking(), true);
+					events.push("o");
+					inner.value = untrack(() => inner.value) + 1;
+					return outer.value;
+				}, value => {
+					strictEqual(isTracking(), false);
+					events.push(`o${value}`);
+				});
+			});
+			assertEvents(events, ["s1", "o", "e1", "s2", "o1"]);
+			outer.value++;
+			assertEvents(events, ["o", "e2", "s3", "o2"]);
 		});
 
 		await test("re-entry tracking isolation", () => {
