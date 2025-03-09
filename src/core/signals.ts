@@ -412,7 +412,9 @@ export function effect(fn: () => void): void {
 			// This covers an edge case where this observer is notified during a batch and then disposed immediately.
 			return;
 		}
-		dispose?.();
+		if (dispose) {
+			useStack(ACCESS_STACK, undefined, dispose);
+		}
 		try {
 			clear();
 			ACCESS_STACK.push(access);

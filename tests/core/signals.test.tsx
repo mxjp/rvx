@@ -807,7 +807,7 @@ await suite("signals", async () => {
 			assertEvents(events, ["b2"]);
 		});
 
-		await test("access isolation", () => {
+		await test("access isolation (callback)", () => {
 			const events: unknown[] = [];
 			const outer = $(1);
 			const inner = $(1);
@@ -828,6 +828,31 @@ await suite("signals", async () => {
 			assertEvents(events, ["o3", "i2"]);
 			inner.value++;
 			assertEvents(events, ["i3"]);
+		});
+
+		await test("access isolation (teardown)", () => {
+			const events: unknown[] = [];
+			const outer = $(1);
+			const inner = $(1);
+			uncapture(() => {
+				effect(() => {
+					const value = inner.value;
+					strictEqual(isTracking(), true);
+					events.push(`s${value}`);
+					teardown(() => {
+						strictEqual(isTracking(), false);
+						events.push(`e${value}`);
+					});
+				});
+				effect(() => {
+					strictEqual(isTracking(), true);
+					events.push(`o${outer.value}`);
+					inner.value = untrack(() => inner.value) + 1;
+				});
+			});
+			assertEvents(events, ["s1", "o1", "e1", "s2"]);
+			outer.value++;
+			assertEvents(events, ["o2", "e2", "s3"]);
 		});
 
 		await test("re-entry tracking isolation", () => {
