@@ -1,7 +1,7 @@
 import { deepStrictEqual, notStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
 
-import { $, Attach, capture, Component, ENV, For, Index, memo, mount, movable, Nest, render, Show, teardown, uncapture, View, watch, watchUpdates } from "rvx";
+import { $, Attach, capture, Component, ENV, For, Index, memo, mount, movable, Nest, render, Show, teardown, TeardownHook, uncapture, View, watch, watchUpdates } from "rvx";
 import { wrap } from "rvx/store";
 
 import { assertEvents, boundaryEvents, lifecycleEvent, TestView, testView, text, viewText, withMsg } from "../common.js";
@@ -1187,32 +1187,49 @@ await suite("view", async () => {
 		});
 	});
 
-	await test("movable", async () => {
-		const inner = $(1);
-		const view = uncapture(() => movable(<>
-			inner:{inner}
-		</>));
+	await suite("movable", async () => {
+		await test("basic usage", () => {
+			const inner = $(1);
+			const view = uncapture(() => movable(<>
+				inner:{inner}
+			</>));
 
-		const a = render(view.move());
-		strictEqual(viewText(a), "inner:1");
+			const a = uncapture(view.move);
+			strictEqual(viewText(a), "inner:1");
 
-		const b = render(view.move());
-		strictEqual(viewText(a), "");
-		strictEqual(a.first instanceof ENV.current.Comment, true);
-		strictEqual(a.first, a.last);
-		strictEqual(viewText(b), "inner:1");
-		inner.value = 2;
-		strictEqual(viewText(b), "inner:2");
+			const b = uncapture(view.move);
+			strictEqual(viewText(a), "");
+			strictEqual(a.first instanceof ENV.current.Comment, true);
+			strictEqual(a.first, a.last);
+			strictEqual(viewText(b), "inner:1");
+			inner.value = 2;
+			strictEqual(viewText(b), "inner:2");
 
-		view.detach();
-		inner.value = 3;
-		strictEqual(text(b.detach()), "");
-		strictEqual(b.first instanceof ENV.current.Comment, true);
-		strictEqual(b.first, b.last);
-		notStrictEqual(a.first, b.first);
+			view.detach();
+			inner.value = 3;
+			strictEqual(text(b.detach()), "");
+			strictEqual(b.first instanceof ENV.current.Comment, true);
+			strictEqual(b.first, b.last);
+			notStrictEqual(a.first, b.first);
 
-		const c = render(view.move());
-		strictEqual(text(c.detach()), "inner:3");
+			const c = uncapture(view.move);
+			strictEqual(text(c.detach()), "inner:3");
+		});
+
+		await test("lifecycle", () => {
+			const view = uncapture(() => movable(<>test</>));
+			let a!: View;
+			const disposeA = capture(() => {
+				a = render(<>0{view.move()}1</>);
+			});
+			strictEqual(viewText(a), "0test1");
+			disposeA();
+			view.detach();
+			strictEqual(viewText(a), "0test1");
+			const b = uncapture(() => render(<>2{view.move()}3</>));
+			strictEqual(viewText(a), "01");
+			strictEqual(viewText(b), "2test3");
+		});
 	});
 
 	await test("Attach", async () => {

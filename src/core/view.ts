@@ -717,9 +717,8 @@ export const IndexFor = Index;
  * A wrapper that can be used for moving and reusing views.
  */
 export class MovableView {
-	#env = ENV.current;
 	#view: View;
-	#dispose?: TeardownHook = undefined;
+	#target: Signal<View | void> = $();
 
 	constructor(view: View) {
 		this.#view = view;
@@ -727,29 +726,20 @@ export class MovableView {
 
 	/**
 	 * Create a new view that contains the wrapped view until it is moved again or detached.
+	 *
+	 * If the lifecycle in which `move` is called is disposed, the created view no longer updates it's boundary and nodes may be silently removed.
 	 */
 	move: Component<void, View> = () => {
-		return new View((setBoundary, self) => {
-			this.#dispose?.();
-			this.#dispose = capture(() => {
-				setBoundary(this.#view.first, this.#view.last);
-				this.#view.setBoundaryOwner(setBoundary);
-				teardown(() => {
-					const anchor = createPlaceholder(this.#env);
-					self.parent?.insertBefore(anchor, self.first!);
-					self.detach();
-					setBoundary(anchor, anchor);
-				});
-			});
-		});
+		this.#target.value = undefined;
+		const target = this.#target = $(this.#view);
+		return nest(target, v => v);
 	};
 
 	/**
-	 * Detach the wrapped view if attached.
+	 * Detach content from the currently active view.
 	 */
 	detach(): void {
-		this.#dispose?.();
-		this.#dispose = undefined;
+		this.#target.value = undefined;
 	}
 }
 
