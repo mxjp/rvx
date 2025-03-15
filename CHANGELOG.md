@@ -3,6 +3,7 @@
 ## 19.5
 + Export `Falsy` utility type.
 + Export default barrier from `rvx/store`.
++ Remove all internal circular module dependencies.
 
 ## 19.4
 + Support teardown hooks in `memo`.
