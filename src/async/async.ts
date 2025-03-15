@@ -1,5 +1,5 @@
-import { Component } from "../core/component.js";
 import { $ } from "../core/signals.js";
+import type { Component } from "../core/types.js";
 import { nest, View } from "../core/view.js";
 import { ASYNC } from "./async-context.js";
 

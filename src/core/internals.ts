@@ -5,8 +5,6 @@ import { type TeardownHook } from "./lifecycle.js";
  */
 export const TEARDOWN_STACK: (TeardownFrame | undefined)[] = [];
 
-export type Falsy = null | undefined | false | 0 | 0n | "";
-
 /**
  * Represents a stack frame that teardown hooks can be pushed into.
  *

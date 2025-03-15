@@ -1,5 +1,8 @@
 # Changelog
 
+## 19.5
++ Export `Falsy` utility type.
+
 ## 19.4
 + Support teardown hooks in `memo`.
 + **Deprecated:** `Range` will be removed from `rvx/dom` in the next major version.
