@@ -1,5 +1,6 @@
 import { Context } from "./context.js";
 import { useStack } from "./internals.js";
+import { NOOP } from "./internals/noop.js";
 import { capture, nocapture, teardown, TeardownHook } from "./lifecycle.js";
 
 /**
@@ -337,7 +338,7 @@ export function watch<T>(expr: Expression<T>, fn: (value: T) => void): void {
 	if (isSignal || typeof expr === "function") {
 		let value: T;
 		let disposed = false;
-		let dispose: TeardownHook | undefined;
+		let dispose: TeardownHook = NOOP;
 		const runExpr = isSignal ? () => (expr as Signal<T>).value : (expr as () => T);
 		const runFn = () => fn(value);
 		const entry = _unfold(Context.wrap(() => {
@@ -357,7 +358,7 @@ export function watch<T>(expr: Expression<T>, fn: (value: T) => void): void {
 			}
 			try {
 				ACCESS_STACK.push(undefined);
-				dispose?.();
+				dispose();
 				dispose = capture(runFn);
 			} finally {
 				ACCESS_STACK.pop();
@@ -367,7 +368,7 @@ export function watch<T>(expr: Expression<T>, fn: (value: T) => void): void {
 		teardown(() => {
 			disposed = true;
 			clear();
-			dispose?.();
+			dispose();
 		});
 		entry();
 	} else {
@@ -405,7 +406,7 @@ export function watchUpdates<T>(expr: Expression<T>, fn: (value: T) => void): T 
  */
 export function effect(fn: () => void): void {
 	let disposed = false;
-	let dispose: TeardownHook | undefined;
+	let dispose: TeardownHook = NOOP;
 	const runFn = Context.wrap(fn);
 	const entry = _unfold(() => {
 		if (disposed) {
@@ -430,7 +431,7 @@ export function effect(fn: () => void): void {
 	teardown(() => {
 		disposed = true;
 		clear();
-		dispose?.();
+		dispose();
 	});
 	entry();
 }

@@ -1,6 +1,5 @@
 import { TEARDOWN_STACK, TeardownFrame, useStack } from "./internals.js";
-
-const NOOP = (): void => {};
+import { NOOP } from "./internals/noop.js";
 
 /**
  * A function that is called to dispose something.
@@ -56,12 +55,12 @@ export function capture(fn: () => void): TeardownHook {
  */
 export function captureSelf<T>(fn: (dispose: TeardownHook) => T): T {
 	let disposed = false;
-	let dispose: TeardownHook | undefined = undefined;
+	let dispose: TeardownHook = NOOP;
 	let value: T;
 	dispose = capture(() => {
 		value = fn(() => {
 			disposed = true;
-			dispose?.();
+			dispose();
 		});
 	});
 	if (disposed) {

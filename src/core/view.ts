@@ -3,10 +3,9 @@ import { NODE, NodeTarget } from "./element-common.js";
 import { ENV } from "./env.js";
 import { Falsy } from "./internals.js";
 import { createText } from "./internals/create-text.js";
+import { NOOP } from "./internals/noop.js";
 import { capture, nocapture, teardown, TeardownHook } from "./lifecycle.js";
 import { $, effect, Expression, ExpressionResult, get, memo, Signal, watch } from "./signals.js";
-
-const NOOP = (): void => {};
 
 /**
  * Internal utility to create placeholder comments.
