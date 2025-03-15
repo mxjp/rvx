@@ -47,7 +47,10 @@ export interface WrapInstanceFn<T> {
 	(instance: T): T;
 }
 
-const STORE: Barrier = { wrap, unwrap };
+/**
+ * The default barrier using {@link wrap} and {@link unwrap}.
+ */
+export const BARRIER: Barrier = { wrap, unwrap };
 
 /**
  * Get a deep reactive wrapper for the specified value.
@@ -77,19 +80,19 @@ export function wrap<T>(value: T): T {
 				case null:
 				case undefined:
 				case Object:
-					wrapper = createReactiveProxy(value, STORE);
+					wrapper = createReactiveProxy(value, BARRIER);
 					break;
 
 				case Array:
-					wrapper = createReactiveArrayProxy(value as unknown[], STORE) as T;
+					wrapper = createReactiveArrayProxy(value as unknown[], BARRIER) as T;
 					break;
 
 				case Map:
-					wrapper = new ReactiveMap(value as unknown as Map<unknown, unknown>, STORE) as T;
+					wrapper = new ReactiveMap(value as unknown as Map<unknown, unknown>, BARRIER) as T;
 					break;
 
 				case Set:
-					wrapper = new ReactiveSet(value as unknown as Set<unknown>, STORE) as T;
+					wrapper = new ReactiveSet(value as unknown as Set<unknown>, BARRIER) as T;
 					break;
 
 				default: return value;
@@ -122,7 +125,7 @@ export function unwrap<T>(value: T): T {
 }
 
 function defaultWrapInstance<T extends object>(value: T): T {
-	return createReactiveProxy(value, STORE);
+	return createReactiveProxy(value, BARRIER);
 }
 
 /**
