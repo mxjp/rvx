@@ -30,25 +30,17 @@ function trim(source: Signal<string>) {
 function debounce<T>(source: Signal<T>, delay: number) {
 	const input = $<T>(source.value);
 
-	let timer: number | undefined;
-
 	// Schedule writing into the source signal:
 	watchUpdates(input, value => {
-		clearTimeout(timer);
 		if (source.value !== value) {
-			timer = setTimeout(() => {
-				source.value = value;
-			}, delay);
+			const timer = setTimeout(() => { source.value = value; }, delay);
+			teardown(() => clearTimeout(timer));
 		}
 	});
 
 	// Always write into the input signal:
 	watchUpdates(source, value => {
 		input.value = value;
-	});
-
-	teardown(() => {
-		clearTimeout(timer);
 	});
 
 	return input;
