@@ -70,10 +70,21 @@ const format = {
 	},
 };
 
+/**
+ * @param {import("rollup").RollupLog} warn
+ * @param {(log: import("rollup").RollupLog) => void} fallback
+ */
+function onwarn(warn, fallback) {
+	if (warn.code === "CIRCULAR_DEPENDENCY") {
+		process.exitCode = 1;
+	}
+	fallback(warn);
+}
+
 {
 	const bundle = await rollup({
-		logLevel: "silent",
 		input: join(build, `${entryBase}.js`),
+		onwarn,
 	});
 	if (args.readable ?? true) {
 		await bundle.write({
@@ -134,6 +145,7 @@ if (args.types ?? true) {
 			banner,
 			format,
 		],
+		onwarn,
 	});
 	await bundle.write({
 		file: join(root, output + ".d.ts"),

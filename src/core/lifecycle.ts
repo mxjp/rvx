@@ -1,4 +1,6 @@
-import { NOOP, TEARDOWN_STACK, TeardownFrame, useStack } from "./internals.js";
+import { TEARDOWN_STACK, TeardownFrame, useStack } from "./internals.js";
+
+const NOOP = (): void => {};
 
 /**
  * A function that is called to dispose something.

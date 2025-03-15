@@ -1,7 +1,7 @@
 import { deepStrictEqual, notStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 import { $, ENV, NODE, render, uncapture, View, viewNodes } from "rvx";
-import { createText } from "../../dist/es/core/internals.js";
+import { createText } from "../../dist/es/core/render-text-internals.js";
 import { assertEvents, boundaryEvents, testView, text, viewText } from "../common.js";
 
 await suite("render", async () => {

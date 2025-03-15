@@ -4,6 +4,5 @@ export * from "./element-builder.js";
 export * from "./element-common.js";
 export * from "./env.js";
 export * from "./lifecycle.js";
-export * from "./render.js";
 export * from "./signals.js";
 export * from "./view.js";

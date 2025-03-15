@@ -3,8 +3,7 @@ import { Component } from "../core/component.js";
 import { Context } from "../core/context.js";
 import { ENV } from "../core/env.js";
 import { capture } from "../core/lifecycle.js";
-import { render } from "../core/render.js";
-import { View } from "../core/view.js";
+import { render, View } from "../core/view.js";
 import { Node, WINDOW } from "./model.js";
 
 function renderDetachedView(view: View) {

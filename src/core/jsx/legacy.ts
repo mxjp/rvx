@@ -1,7 +1,7 @@
 import type { Attributes, TagNameMap } from "../element-common.js";
-import { createElement } from "./internals.js";
+import { createElement } from "../internals/create-element.js";
 
-export { Fragment } from "./internals.js";
+export { Fragment } from "./fragment.js";
 
 type NativeElement = Element;
 

@@ -1,15 +1,11 @@
 import { Context } from "../context.js";
 import { Attributes, ClassValue, EventArgs, EventListener, RefFn, StyleValue, TagNameMap, XMLNS } from "../element-common.js";
 import { ENV } from "../env.js";
-import { appendContent, setAttr, setClass, setStyle } from "../internals.js";
 import { watch } from "../signals.js";
-
-/**
- * The jsx fragment component that returns it's children as is.
- */
-export function Fragment(props: { children?: unknown }) {
-	return props.children;
-}
+import { appendContent } from "./append-content.js";
+import { setAttr } from "./set-attr.js";
+import { setClass } from "./set-class.js";
+import { setStyle } from "./set-style.js";
 
 /**
  * Internal function to create a jsx element.

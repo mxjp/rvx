@@ -1,7 +1,7 @@
 import { ENV } from "../core/env.js";
 import { capture, TeardownHook, uncapture } from "../core/lifecycle.js";
-import { render } from "../core/render.js";
 import { $, Signal, watchUpdates } from "../core/signals.js";
+import { render } from "../core/view.js";
 
 export type StartTrigger = "on-connect" | "manual";
 export type DisposeTrigger = "on-disconnect" | "manual";
