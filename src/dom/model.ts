@@ -496,6 +496,9 @@ export interface Node {
 	nodeName: string;
 }
 
+/**
+ * @deprecated This will be removed in the next major version without replacement.
+ */
 export class Range {
 	#start: Node | null = null;
 	#end: Node | null = null;

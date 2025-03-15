@@ -2,6 +2,7 @@
 
 ## 19.4
 + Support teardown hooks in `memo`.
++ **Deprecated:** `Range` will be removed from `rvx/dom` in the next major version.
 
 ## 19.3
 + Add append fallback to `View.insertBefore`.
