@@ -8,10 +8,10 @@
 	<body>
 		<script type="module">
 			globalThis[Symbol.for("rvx:benchmark")] = async args => {
-				const TARGET_DURATION_MS = 250;
-				const MIN_DURATION_MS = 200;
+				const TARGET_DURATION_MS = 150;
+				const MIN_DURATION_MS = 100;
 				const MIN_SIZE = 10;
-				const SAMPLES = args.extended ? 20 : 5;
+				const SAMPLES = 4;
 
 				const benchmark = await import(`./benchmarks/${args.benchmark}`);
 				const snapshot = await import(`./snapshots/${args.snapshot}`);

@@ -9,13 +9,12 @@ import yargsParser from "yargs-parser";
 
 const ctx = dirname(fileURLToPath(import.meta.url));
 const args = yargsParser(process.argv.slice(2), {
-	boolean: ["headless", "extended", "trace", "trace-all"],
+	boolean: ["headless", "trace", "trace-all"],
 	default: {
 		headless: true,
 	},
 	string: ["only", "snapshot"],
 });
-const extended = args.extended ?? false;
 const headless = args.headless ?? false;
 const traceAll = args["trace-all"] ?? false;
 const trace = traceAll ? false : (args.trace ?? false);
@@ -82,21 +81,29 @@ for (const browserDef of browsers) {
 		for (const benchmark of benchmarks) {
 			const benchmarkName = benchmark.replace(/\.js$/, "");
 			console.group(benchmarkName);
-			for (const snapshot of snapshots) {
-				await page.goto(`http://127.0.0.1:${server.address().port}/`);
-				if (trace) {
+			if (trace) {
+				for (const snapshot of snapshots) {
+					await page.goto(`http://127.0.0.1:${server.address().port}/`);
 					const path = join(traces, `${runId}-${benchmarkName}.json`);
 					console.log(`Recording trace: ${path}`);
 					await browser.startTracing(page, {
 						screenshots: false,
 						path,
 					});
-				}
-				const result = await page.evaluate(args => globalThis[Symbol.for("rvx:benchmark")](args), { benchmark, snapshot, extended });
-				if (trace) {
+					const result = await page.evaluate(args => globalThis[Symbol.for("rvx:benchmark")](args), { benchmark, snapshot });
 					await browser.stopTracing();
+					console.log(`${snapshot.padStart(snapshotNameLength, " ")}: ${formatSamples(result.samples)}`);
 				}
-				console.log(`${snapshot.padStart(snapshotNameLength, " ")}: ${formatSamples(result.samples)}`);
+			} else {
+				const results = new Map(snapshots.map(s => [s, []]));
+				for (const snapshot of [...snapshots, ...snapshots.toReversed(), ...snapshots, ...snapshots.toReversed()]) {
+					await page.goto(`http://127.0.0.1:${server.address().port}/`);
+					const result = await page.evaluate(args => globalThis[Symbol.for("rvx:benchmark")](args), { benchmark, snapshot });
+					results.get(snapshot).push(...result.samples);
+				}
+				for (const snapshot of snapshots) {
+					console.log(`${snapshot.padStart(snapshotNameLength, " ")}: ${formatSamples(results.get(snapshot))}`);
+				}
 			}
 			console.groupEnd();
 		}
