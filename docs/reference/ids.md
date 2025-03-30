@@ -56,3 +56,26 @@ A component for allocating a unique id using [`uniqueId`](#uniqueid).
 		],
 	})
 	```
+
+## `uniqueIdFor`
+Get a [unique id](#uniqueid) for the specified object.
+
+=== "JSX"
+	```jsx
+	import { uniqueIdFor, For } from "rvx/id";
+
+	<ul>
+		<For each={items}>
+			{item => <li id={uniqueIdFor(item)}>...</li>}
+		</For>
+	</ul>
+	```
+
+=== "No Build"
+	```jsx
+	import { uniqueIdFor, forEach, e } from "./rvx.js";
+
+	e("ul").append(
+		forEach(items, item => e("li").set("id", uniqueIdFor(item)).append(...))
+	)
+	```
