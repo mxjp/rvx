@@ -1,5 +1,9 @@
 # Changelog
 
+## 19.6
++ Use exact prototypes for wrapping objects in `rvx/store`.
++ Add `uniqueIdFor` utility.
+
 ## 19.5
 + Export `Falsy` utility type.
 + Export default barrier from `rvx/store`.
