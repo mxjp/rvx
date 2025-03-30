@@ -25,7 +25,14 @@ The `wrap` function creates a deep reactive wrapper:
 	e("h1").append(() => state.message)
 	```
 
-By default, `Arrays`, `Maps`, `Sets` and `Objects` without any or with the `Object` constructor are reactive. Anything else is returned as is.
+By default, objects with the following exact prototypes are wrapped:
+
+| Prototype | Wrapped using |
+|-|-|
+| `Object.prototype` | `createReactiveProxy` |
+| `Array.prototype` | `createReactiveArrayProxy` |
+| `Map.prototype` | `new ReactiveMap` |
+| `Set.prototype` | `new ReactiveSet` |
 
 ## Updates
 To update a reactive object, you can directly modify the wrapper.
