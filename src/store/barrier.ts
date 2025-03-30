@@ -76,26 +76,26 @@ export function wrap<T>(value: T): T {
 		if (wrapInstance) {
 			wrapper = wrapInstance(value);
 		} else {
-			switch (ctor) {
-				case null:
-				case undefined:
-				case Object:
+			const proto = Object.getPrototypeOf(value);
+			switch (proto) {
+				case Object.prototype:
 					wrapper = createReactiveProxy(value, BARRIER);
 					break;
 
-				case Array:
+				case Array.prototype:
 					wrapper = createReactiveArrayProxy(value as unknown[], BARRIER) as T;
 					break;
 
-				case Map:
+				case Map.prototype:
 					wrapper = new ReactiveMap(value as unknown as Map<unknown, unknown>, BARRIER) as T;
 					break;
 
-				case Set:
+				case Set.prototype:
 					wrapper = new ReactiveSet(value as unknown as Set<unknown>, BARRIER) as T;
 					break;
 
-				default: return value;
+				default:
+					return value;
 			}
 		}
 
