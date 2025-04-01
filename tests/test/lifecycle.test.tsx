@@ -2,7 +2,7 @@ import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
 import { capture, nocapture, teardown, TeardownHook, uncapture } from "rvx";
 import { onTeardownLeak } from "rvx/test";
-import { TEARDOWN_STACK } from "../../dist/es/core/internals.js";
+import { TEARDOWN_STACK } from "../../dist/es/core/internals/teardown-stack.js";
 
 await suite("test/lifecycle", async () => {
 	await test("leak", () => {

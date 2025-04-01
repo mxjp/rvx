@@ -1,6 +1,6 @@
 import { Context } from "./context.js";
-import { useStack } from "./internals.js";
 import { NOOP } from "./internals/noop.js";
+import { useStack } from "./internals/use-stack.js";
 import { capture, nocapture, teardown, TeardownHook } from "./lifecycle.js";
 
 /**

@@ -1,7 +1,7 @@
-import { TEARDOWN_STACK } from "../core/internals.js";
+import { TEARDOWN_STACK } from "../core/internals/teardown-stack.js";
 import { TeardownHook } from "../core/lifecycle.js";
 
-export type TeardownLeakHook = (hooK: TeardownHook) => void;
+export type TeardownLeakHook = (hook: TeardownHook) => void;
 
 /**
  * Register a hook to be called when any teardown hooks are registered outside of any capture calls.
