@@ -31,6 +31,8 @@ export function renderToString<P>(component: Component<P>, props?: P): string {
 	return html!;
 }
 
+export async function renderToStringAsync(component: Component): Promise<string>;
+export async function renderToStringAsync<P>(component: Component<P>, props: P): Promise<string>;
 export async function renderToStringAsync<P>(component: Component<P>, props?: P): Promise<string> {
 	const asyncCtx = new AsyncContext();
 	let view: View;
