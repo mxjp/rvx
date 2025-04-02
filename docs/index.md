@@ -5,40 +5,24 @@ hide:
   - toc
 ---
 
-![](./assets/banner.svg)
+# ![rvx](./assets/banner.svg)
 
-# rvx!
-This is a signal based frontend framework.
+Rvx is a signal based frontent framework.
 
-=== "JSX"
-	```jsx
-	import { $, mount } from "rvx";
+```jsx
+import { $, mount } from "rvx";
 
-	const count = $(0);
+const count = $(0);
 
-	mount(
-		document.body,
-		<button on:click={() => { count.value++ }}>
-			Clicked {count} times
-		</button>
-	);
-	```
+mount(
+	document.body,
+	<button on:click={() => { count.value++ }}>
+		Clicked {count} times
+	</button>
+);
+```
 
-=== "No Build"
-	```jsx
-	import { $, mount, e } from "./rvx.js";
-
-	const count = $(0);
-
-	mount(
-		document.body,
-		e("button").on("click", () => { count.value++ }).append(
-			"Clicked ", count, " times",
-		),
-	);
-	```
-
-## Features
+<br>
 
 <div class="grid cards" markdown>
 
