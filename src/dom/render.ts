@@ -18,6 +18,9 @@ function renderDetachedView(view: View) {
 	}
 }
 
+/**
+ * Render a component to HTML using rvx dom.
+ */
 export function renderToString(component: Component): string;
 export function renderToString<P>(component: Component<P>, props: P): string;
 export function renderToString<P>(component: Component<P>, props?: P): string {
@@ -31,6 +34,11 @@ export function renderToString<P>(component: Component<P>, props?: P): string {
 	return html!;
 }
 
+/**
+ * Render a component to HTML using rvx dom.
+ *
+ * This injects a new {@link AsyncContext} to wait for rendering to complete.
+ */
 export async function renderToStringAsync(component: Component): Promise<string>;
 export async function renderToStringAsync<P>(component: Component<P>, props: P): Promise<string>;
 export async function renderToStringAsync<P>(component: Component<P>, props?: P): Promise<string> {
