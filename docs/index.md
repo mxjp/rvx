@@ -59,7 +59,7 @@ mount(
 	```
 
 - ### Synchronous Rendering
-	Signal updates are processed synchronously for permanent consistency between your state & UI.
+	Signal updates are processed synchronously for permanent consistency between state & UI.
 	```jsx
 	message.value = "Hello World!";
 
