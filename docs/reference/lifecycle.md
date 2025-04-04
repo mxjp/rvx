@@ -71,7 +71,8 @@ Register a hook to be called as a microtask.
 	}
 	```
 
-If the current lifecycle is disposed immediately, the hook is never called. This also includes cases where the lifecycle has been disposed due to an error.
++ If the current lifecycle is disposed immediately, the hook is never called. This also includes cases where the lifecycle has been disposed due to an error.
++ The lifecycle within the created hook is treated as the current lifecycle.
 
 ## `capture`
 Capture teardown hooks during a function call:

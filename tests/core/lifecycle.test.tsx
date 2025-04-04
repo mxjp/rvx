@@ -347,6 +347,40 @@ await suite("lifecycle", async () => {
 			assertEvents(events, ["before", "after"]);
 		});
 
+		await test("lifecycle", async () => {
+			const events: unknown[] = [];
+			const dispose = capture(() => {
+				created(() => {
+					events.push("created");
+					teardown(() => {
+						events.push("teardown");
+					});
+				});
+			});
+			assertEvents(events, []);
+			await Promise.resolve();
+			assertEvents(events, ["created"]);
+			dispose();
+			assertEvents(events, ["teardown"]);
+		});
+
+		await test("lifecycle dispose in hook", async () => {
+			const events: unknown[] = [];
+			const dispose = capture(() => {
+				created(() => {
+					teardown(() => {
+						events.push("teardown");
+					});
+					dispose();
+					assertEvents(events, []);
+					events.push("done");
+				});
+			});
+			assertEvents(events, []);
+			await Promise.resolve();
+			assertEvents(events, ["done", "teardown"]);
+		});
+
 		await test("nocapture context", async () => {
 			const events: unknown[] = [];
 

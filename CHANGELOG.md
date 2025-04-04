@@ -2,6 +2,7 @@
 
 ## 19.7
 + Add optional `source` field to signals.
++ Add lifecycle support to `created` hooks.
 
 ## 19.6
 + Use exact prototypes for wrapping objects in `rvx/store`.
