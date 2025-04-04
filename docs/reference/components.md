@@ -190,7 +190,9 @@ The example below shows a basic text input and a `trim` function for trimming us
 	}
 
 	function trim(source: Signal<string>) {
-		const input = $(source.value);
+		// The second parameter is metadata to let other APIs
+		// know that "input" has been derived from "source":
+		const input = $(source.value, source);
 
 		// Update the source signal if the input changes:
 		watchUpdates(input, value => {
@@ -217,7 +219,7 @@ The example below shows a basic text input and a `trim` function for trimming us
 	<TextInput value={trim(text)} />
 
 	// The signal's pipe function does the same but is more
-	// readable when using multiple conversions:
+	// readable when using multiple derivations:
 	<TextInput value={text.pipe(trim).pipe(...)} />
 	```
 
@@ -240,7 +242,9 @@ The example below shows a basic text input and a `trim` function for trimming us
 	 * @param {import("./rvx.js").Signal<string>} source
 	 */
 	function trim(source) {
-		const input = $(source.value);
+		// The second parameter is metadata to let other APIs
+		// know that "input" has been derived from "source":
+		const input = $(source.value, source);
 
 		// Update the source signal if the input changes:
 		watchUpdates(input, value => {
@@ -267,7 +271,7 @@ The example below shows a basic text input and a `trim` function for trimming us
 	TextInput({ value: trim(text) })
 
 	// The signal's pipe function does the same but is more
-	// readable when using multiple conversions:
+	// readable when using multiple derivations:
 	TextInput({ value: text.pipe(trim).pipe(...) })
 	```
 
