@@ -1,8 +1,6 @@
 import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-
-import { $, batch, capture, Context, effect, get, isTracking, map, memo, optionalString, string, teardown, TeardownHook, track, trigger, TriggerPipe, uncapture, untrack, watch, watchUpdates } from "rvx";
-
+import { $, batch, capture, Context, effect, get, isTracking, map, memo, optionalString, Signal, string, teardown, TeardownHook, track, trigger, TriggerPipe, uncapture, untrack, watch, watchUpdates } from "rvx";
 import { assertEvents, lifecycleEvent, withMsg } from "../common.js";
 
 await suite("signals", async () => {
@@ -23,6 +21,15 @@ await suite("signals", async () => {
 
 		signal.access();
 		signal.notify();
+	});
+
+	await test("source", () => {
+		const a = $();
+		const b = $(42, a);
+		const c = new Signal(77, b);;
+		strictEqual(a.source, undefined);
+		strictEqual(b.source, a);
+		strictEqual(c.source, b);
 	});
 
 	await test("pipe", () => {
