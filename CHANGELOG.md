@@ -1,5 +1,8 @@
 # Changelog
 
+## 19.7
++ Add optional `source` field to signals.
+
 ## 19.6
 + Use exact prototypes for wrapping objects in `rvx/store`.
 + Add `uniqueIdFor` utility.

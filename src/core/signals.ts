@@ -48,6 +48,23 @@ const notify = (fn: NotifyHook) => fn();
 const queueBatch = (fn: NotifyHook) => BATCH!.add(fn);
 
 /**
+ * Represents the source that a signal has been derived from.
+ *
+ * When deriving a signal, the source should be passed via the signal constructor or shorthand.
+ * This has no impact on how a signal behaves, but allows other APIs to locate metadata about a signal's source.
+ *
+ * @example
+ * ```js
+ * function trim(source: Signal<string>) {
+ *   const input = $(source.value, source);
+ *   ...
+ *   return input;
+ * }
+ * ```
+ */
+export type SignalSource = Signal<unknown> | undefined;
+
+/**
  * Represents a value that changes over time.
  */
 export class Signal<T> {
@@ -65,12 +82,19 @@ export class Signal<T> {
 	#hooks = new Set<NotifyHook>();
 
 	/**
+	 * The {@link SignalSource source} this signal has been derived from.
+	 */
+	#source: SignalSource;
+
+	/**
 	 * Create a new signal.
 	 *
 	 * @param value The initial value.
+	 * @param source The {@link SignalSource source} this signal has been derived from.
 	 */
-	constructor(value: T) {
+	constructor(value: T, source?: SignalSource) {
 		this.#value = value;
+		this.#source = source;
 	}
 
 	/**
@@ -104,6 +128,13 @@ export class Signal<T> {
 			this.#value = value;
 			this.notify();
 		}
+	}
+
+	/**
+	 * The {@link SignalSource source} this signal has been derived from.
+	 */
+	get source(): SignalSource {
+		return this.#source;
 	}
 
 	/**
@@ -200,12 +231,13 @@ export class Signal<T> {
  * Create a new signal.
  *
  * @param value The initial value.
+ * @param source The {@link SignalSource source} this signal has been derived from.
  * @returns The signal.
  */
 export function $(): Signal<void>;
-export function $<T>(value: T): Signal<T>;
-export function $(value?: unknown): Signal<unknown> {
-	return new Signal(value);
+export function $<T>(value: T, source?: SignalSource): Signal<T>;
+export function $(value?: unknown, source?: SignalSource): Signal<unknown> {
+	return new Signal(value, source);
 }
 
 /**
