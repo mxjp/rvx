@@ -157,6 +157,43 @@ You can watch arbitrary [expressions](./signals.md#expressions) using the `watch
 	await watchFor(() => !isPending());
 	```
 
+## Polling
+You can poll arbitrary functions for the first truthy result using the `poll` function.
+
+=== "JSX"
+	```jsx
+	import { poll } from "rvx/test";
+
+	// Poll a synchronous function:
+	const heading = await poll(() => document.querySelector("h1"));
+	console.log(heading.textContent);
+
+	// Poll with a timeout:
+	await poll(() => { ... }, 100);
+
+	// Poll an async function:
+	await poll(async abortSignal => { ... });
+	```
+
+=== "No Build"
+	```jsx
+	import { poll } from "./rvx.js";
+
+	// Poll a synchronous function:
+	const heading = await poll(() => document.querySelector("h1"));
+	console.log(heading.textContent);
+
+	// Poll with a timeout:
+	await poll(() => { ... }, 100);
+
+	// Poll an async function:
+	await poll(async abortSignal => { ... });
+	```
+
+!!! warning
+	+ Avoid overly expensive computations in the callback as it runs every event cycle.
+	+ Without a timeout, `poll` might run forever.
+
 ## Leak Detection
 The [lifecycle API](./lifecycle.md) silently discards teardown hooks outside of `capture` calls. This can be a valid use case, for instance when rendering your application until the browser closes or when intentionally leaking teardown hooks using `uncapture`.
 
