@@ -3,7 +3,10 @@
 ## 19.7
 + Add optional `source` field to signals.
 + Add lifecycle support to `created` hooks.
-+ Add `poll` utility to `rvx/test`.
++ Add `poll` utility.
++ Add `useMicrotask` utility.
++ Add `useTimeout` utility.
++ Add `useInterval` utility.
 
 ## 19.6
 + Use exact prototypes for wrapping objects in `rvx/store`.
