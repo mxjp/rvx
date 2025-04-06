@@ -9,6 +9,7 @@
 + Add `useTimeout` utility.
 + Add `useInterval` utility.
 + Add `trim` utility.
++ Add `debounce` utility.
 
 ## 19.6
 + Use exact prototypes for wrapping objects in `rvx/store`.
