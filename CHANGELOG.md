@@ -1,9 +1,9 @@
 # Changelog
 
 ## 19.7
++ **Deprecated:** `created` will be removed in the next major version. `created` is now an alias for `useMicrotask` and has lifecycle support.
 + Add optional `source` field to signals.
-+ Add lifecycle support to `created` hooks.
-+ Add `poll` utility.
++ Add `poll` test utility.
 + Add `useMicrotask` utility.
 + Add `useTimeout` utility.
 + Add `useInterval` utility.
