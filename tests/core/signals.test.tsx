@@ -1305,18 +1305,6 @@ await suite("signals", async () => {
 		strictEqual((b as () => string)(), "42");
 	});
 
-	await test("string", () => {
-		strictEqual(get(string(42)), "42");
-		strictEqual(get(string(null)), "null");
-		strictEqual(get(string(undefined)), "undefined");
-	});
-
-	await test("optionalString", () => {
-		strictEqual(get(optionalString(42)), "42");
-		strictEqual(get(optionalString(null)), null);
-		strictEqual(get(optionalString(undefined)), undefined);
-	});
-
 	await suite("trigger", async () => {
 		await test("usage & lifecycle", () => {
 			const events: unknown[] = [];

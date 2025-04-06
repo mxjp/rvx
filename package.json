@@ -42,6 +42,10 @@
 			"types": "./dist/es/async/index.d.ts",
 			"default": "./dist/es/async/index.js"
 		},
+		"./convert": {
+			"types": "./dist/es/convert/index.d.ts",
+			"default": "./dist/es/convert/index.js"
+		},
 		"./dom": {
 			"types": "./dist/es/dom/index.d.ts",
 			"default": "./dist/es/dom/index.js"
