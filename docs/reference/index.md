@@ -35,11 +35,17 @@ hide:
 
 <div class="grid cards" markdown>
 
-- ### [Routing](./routing.md)
-	Render content based on the current location.
+- ### [Async Utilities](./async-utilities/async.md)
+	Utilities for async rendering, abort controllers, promises, etc.
 
-- ### [Store](./store.md)
-	Create deep reactive wrappers for arbitrary objects.
+- ### [Conversion Utilities](./convert.md)
+	Utilities for converting expressions & signals.
+
+- ### [Unique IDs](./ids.md)
+	Create small unique IDs for DOM elements.
+
+- ### [Event System](./events.md)
+	A tiny synchronous event system.
 
 - ### [Web Components](./web-components.md)
 	Use & author web components.
@@ -47,13 +53,10 @@ hide:
 - ### [Testing](./testing.md)
 	Utilities for testing rvx based applications.
 
-- ### [Async Utilities](./async-utilities/async.md)
-	Utilities for async rendering, abort controllers, promises, etc.
+- ### [Routing](./routing.md)
+	Render content based on the current location.
 
-- ### [Unique IDs](./ids.md)
-	Create small unique IDs for DOM elements.
-
-- ### [Event System](./events.md)
-	A tiny synchronous event system.
+- ### [Store](./store.md)
+	Create deep reactive wrappers for arbitrary objects.
 
 </div>

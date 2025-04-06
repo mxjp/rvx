@@ -16,7 +16,7 @@ import { $, Signal, watchUpdates } from "../core/signals.js";
  * ```tsx
  * import { debounce } from "rvx/convert";
  *
- * <TextInput value={someText.pipe(debounce, 300)} />
+ * <TextInput value={someSignal.pipe(debounce, 300)} />
  * ```
  */
 export function debounce<T>(source: Signal<T>, delay: number): Signal<T> {

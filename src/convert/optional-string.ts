@@ -1,7 +1,7 @@
 import { Expression, map } from "../core/signals.js";
 
 /**w
- * Map expression values to strings unless it's null or undefined.
+ * Map expression values to strings except `null` or `undefined`.
  *
  * See {@link map}.
  *

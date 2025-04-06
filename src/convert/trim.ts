@@ -14,7 +14,7 @@ import { $, Signal, watchUpdates } from "../core/signals.js";
  * ```tsx
  * import { trim } from "rvx/convert";
  *
- * <TextInput value={someText.pipe(trim)} />
+ * <TextInput value={someSignal.pipe(trim)} />
  * ```
  */
 export function trim(source: Signal<string>): Signal<string> {
