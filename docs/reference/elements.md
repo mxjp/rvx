@@ -98,7 +98,7 @@ Note, that the rules specified above apply to all attributes including aria attr
 
 === "JSX"
 	```jsx
-	import { string, optionalString } from "rvx";
+	import { string, optionalString } from "rvx/convert";
 
 	// Convert all values to strings including "null" and "undefined":
 	<div aria-disabled={string(someBooleanExpression)} />
