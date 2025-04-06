@@ -8,6 +8,7 @@
 + Add `useMicrotask` utility.
 + Add `useTimeout` utility.
 + Add `useInterval` utility.
++ Add `trim` utility.
 
 ## 19.6
 + Use exact prototypes for wrapping objects in `rvx/store`.
