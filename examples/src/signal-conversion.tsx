@@ -5,12 +5,20 @@ When building user inputs, signals are the best way to pass data in and out of y
 
 This example shows two functions `trim` and `debounce` that can be combined to change the behavior of inputs.
 
+!!! info
+	Note, that these two functions are already available in rvx, but are a good place to start if you need to customize that behavior in any way.
+
+	```jsx
+	import { trim, debounce } from "rvx/convert";
+	```
+
 */
 
-import { $, Signal, teardown, watchUpdates } from "rvx";
+import { $, Signal, watchUpdates } from "rvx";
+import { useTimeout } from "rvx/async";
 
 function trim(source: Signal<string>) {
-	const input = $(source.value);
+	const input = $(source.value, source);
 
 	// Trim and write into the source signal:
 	watchUpdates(input, value => {
@@ -32,9 +40,11 @@ function debounce<T>(source: Signal<T>, delay: number) {
 
 	// Schedule writing into the source signal:
 	watchUpdates(input, value => {
-		if (source.value !== value) {
-			const timer = setTimeout(() => { source.value = value; }, delay);
-			teardown(() => clearTimeout(timer));
+		if (!Object.is(source.value, value)) {
+			// This timeout is cleared automatically
+			// before the next input update is processed
+			// or when the outside lifecycle is disposed:
+			useTimeout(() => { source.value = value }, delay);
 		}
 	});
 
