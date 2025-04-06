@@ -12,6 +12,10 @@ import { capture, teardown, TeardownHook } from "../core/lifecycle.js";
 export function useMicrotask(callback: () => void): void {
 	let active = true;
 	let dispose: TeardownHook | undefined;
+	teardown(() => {
+		active = false;
+		dispose?.();
+	});
 	queueMicrotask(() => {
 		if (active) {
 			dispose = capture(callback);
@@ -19,10 +23,6 @@ export function useMicrotask(callback: () => void): void {
 				dispose?.();
 			}
 		}
-	});
-	teardown(() => {
-		active = false;
-		dispose?.();
 	});
 }
 
@@ -39,17 +39,18 @@ export function useMicrotask(callback: () => void): void {
 export function useTimeout(callback: () => void, timeout: number): void {
 	let active = true;
 	let dispose: TeardownHook | undefined;
-	const handle = setTimeout(() => {
-		dispose = capture(callback);
-		if (!active) {
-			dispose();
-		}
-	}, timeout);
+	let handle: undefined | number | NodeJS.Timeout;
 	teardown(() => {
 		active = false;
 		clearTimeout(handle);
 		dispose?.();
 	});
+	handle = setTimeout(() => {
+		dispose = capture(callback);
+		if (!active) {
+			dispose();
+		}
+	}, timeout);
 }
 
 /**
@@ -65,7 +66,13 @@ export function useTimeout(callback: () => void, timeout: number): void {
 export function useInterval(callback: () => void, interval: number): void {
 	let active = true;
 	let dispose: TeardownHook | undefined;
-	const handle = setInterval(() => {
+	let handle: undefined | number | NodeJS.Timeout;
+	teardown(() => {
+		active = false;
+		clearInterval(handle);
+		dispose?.();
+	});
+	handle = setInterval(() => {
 		dispose?.();
 		dispose = undefined;
 		dispose = capture(callback);
@@ -73,9 +80,4 @@ export function useInterval(callback: () => void, interval: number): void {
 			dispose();
 		}
 	}, interval);
-	teardown(() => {
-		active = false;
-		clearInterval(handle);
-		dispose?.();
-	});
 }
