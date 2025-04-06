@@ -10,7 +10,7 @@ hide:
 <div class="grid cards" markdown>
 
 - ## [Lifecycle](./lifecycle.md)
-	The lifecycle API allows you to register or capture teardown hooks to dispose side effects.
+	The lifecycle API allows you to register and manage cleanup code.
 
 - ## [Signals](./signals.md)
 	Signals are objects with a value that can be watched for changes.
