@@ -1,12 +1,9 @@
 # Lifecycle
-Lifecycle hooks allow you to run code after something has been created or when something is disposed.
-
-Currently, there are two types of lifecycle hooks:
-
-+ [**Teardown**](#teardown) hooks run to dispose something.
-+ [**Created**](#created) hooks run as a microtask after something has been created.
+Teardown hooks allow you to run cleanup code when the lifecycle of something is disposed.
 
 The lifecycle of any synchronous code can be manually managed using [`capture`](#capture), [`captureSelf`](#capture) and [`teardownOnError`](#teardownonerror).
+
+To run code after something has been created, you can use [`useMicrotask`](./async-utilities/timers.md#usemicrotask) or manually schedule a microtask.
 
 ## `teardown`
 Register a hook to be called when the current lifecycle is disposed:
@@ -37,42 +34,6 @@ Calling `teardown` outside of any functions listed below has no effect and "leak
 
 !!! warning
 	Teardown hooks always run in the context from which they are called in instead of the context they have been registered in.
-
-## `created`
-Register a hook to be called as a microtask.
-
-=== "JSX"
-	```jsx
-	import { created } from "rvx";
-
-	function ExampleComponent() {
-		const heading = <h1>Hello World!</h1>;
-
-		created(() => {
-			console.log(heading.isConnected);
-		});
-
-		return heading;
-	}
-	```
-
-=== "No Build"
-	```jsx
-	import { created, e } from "./rvx.js";
-
-	function ExampleComponent() {
-		const heading = e("h1").append("Hello World!");
-
-		created(() => {
-			console.log(heading.isConnected);
-		});
-
-		return heading;
-	}
-	```
-
-+ If the current lifecycle is disposed immediately, the hook is never called. This also includes cases where the lifecycle has been disposed due to an error.
-+ The lifecycle within the created hook is treated as the current lifecycle.
 
 ## `capture`
 Capture teardown hooks during a function call:
@@ -167,22 +128,16 @@ There are some places where registering teardown hooks is very likely a mistake.
 	nocapture(() => {
 		// This will throw an error:
 		teardown(() => { ... });
-
-		// This will throw an error:
-		created(() => { ... });
 	});
 	```
 
 === "No Build"
 	```jsx
-	import { nocapture, teardown, created } from "./rvx.js";
+	import { nocapture, teardown } from "./rvx.js";
 
 	nocapture(() => {
 		// This will throw an error:
 		teardown(() => { ... });
-
-		// This will throw an error:
-		created(() => { ... });
 	});
 	```
 
