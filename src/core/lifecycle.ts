@@ -134,29 +134,3 @@ export function teardown(hook: TeardownHook): void {
 		TEARDOWN_STACK[length - 1]?.push(hook);
 	}
 }
-
-/**
- * Register a function to be called as a microtask.
- *
- * + If the current lifecycle is disposed immediately, the hook is never called.
- * + The lifecycle within the created hook is treated as the current lifecycle.
- *
- * @param hook The hook to queue.
- * @throws An error if teardown hooks are {@link nocapture explicitly un-supported}.
- */
-export function created(hook: CreatedHook): void {
-	let active = true;
-	let dispose: TeardownHook | undefined;
-	teardown(() => {
-		active = false;
-		dispose?.();
-	});
-	queueMicrotask(() => {
-		if (active) {
-			dispose = capture(hook);
-			if (!active) {
-				dispose?.();
-			}
-		}
-	});
-}
