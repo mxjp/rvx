@@ -9,22 +9,22 @@ hide:
 
 <div class="grid cards" markdown>
 
-- ## [Lifecycle](./lifecycle.md)
+- ## [Lifecycle](./core/lifecycle.md)
 	The lifecycle API allows you to register and manage cleanup code.
 
-- ## [Signals](./signals.md)
+- ## [Signals](./core/signals.md)
 	Signals are objects with a value that can be watched for changes.
 
-- ## [Context](./context.md)
+- ## [Context](./core/context.md)
 	The context API implicitly passes values along the call stack.
 
-- ## [Elements](./elements.md)
+- ## [Elements](./core/elements.md)
 	Create elements with JSX or the element builder API.
 
-- ## [Components](./components.md)
+- ## [Components](./core/components.md)
 	Organize content and logic into components.
 
-- ## [Views](./views/index.md)
+- ## [Views](./core/views/index.md)
 	Views are sequences of nodes and enable conditional rendering of content.
 
 </div>

@@ -38,7 +38,7 @@ A tiny synchronous event system separate from DOM events.
 	Event listeners are in no way separated from the context where the event is emitted in.
 
 ### Lifecycle
-Event listeners running while capturing [teardown hooks](./lifecycle.md#capture) will be able to register hooks in that lifecycle:
+Event listeners running while capturing [teardown hooks](./core/lifecycle.md#capture) will be able to register hooks in that lifecycle:
 
 === "JSX"
 	```jsx
@@ -71,7 +71,7 @@ Event listeners running while capturing [teardown hooks](./lifecycle.md#capture)
 	});
 	```
 
-To prevent listeners from registering teardown hooks, use [`nocapture`](./lifecycle.md#nocapture):
+To prevent listeners from registering teardown hooks, use [`nocapture`](./core/lifecycle.md#nocapture):
 ```jsx
 nocapture(() => emitter.emit());
 ```
@@ -114,12 +114,12 @@ Event listeners running while signal accesses are tracked will be able to access
 	});
 	```
 
-To prevent this, you can use [`untrack`](./signals.md#track-untrack):
+To prevent this, you can use [`untrack`](./core/signals.md#track-untrack):
 ```jsx
 untrack(() => emitter.emit());
 ```
 
-Note, that this can still be circumvented by event listeners using [`track`](./signals.md#track-untrack).
+Note, that this can still be circumvented by event listeners using [`track`](./core/signals.md#track-untrack).
 
 ### Contexts
 Event listeners running while a value for a context is injected also have access to that value.

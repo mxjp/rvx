@@ -513,7 +513,7 @@ Observers like [`watch`](#watch) and [`trigger`](#trigger), signals and teardown
 	This prevents any signal related memory leaks and also isolates everything inside `showNotification` from the outside lifecycle context.
 
 !!! tip
-	In a development or testing environment, you can set up [leak detection](./testing.md#leak-detection) to automatically detect leaked teardown hooks.
+	In a development or testing environment, you can set up [leak detection](../testing.md#leak-detection) to automatically detect leaked teardown hooks.
 
 
 
@@ -553,7 +553,7 @@ counter.value.count++;
 counter.notify();
 ```
 
-If you need deeply reactive objects, you can use the [store API](./store.md).
+If you need deeply reactive objects, you can use the [store API](../store.md).
 
 ### Static Values
 The value of signals or expressions can always be used in a non reactive ways:

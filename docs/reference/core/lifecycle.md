@@ -3,7 +3,7 @@ Teardown hooks allow you to run cleanup code when the lifecycle of something is 
 
 The lifecycle of any synchronous code can be manually managed using [`capture`](#capture), [`captureSelf`](#capture) and [`teardownOnError`](#teardownonerror).
 
-To run code after something has been created, you can use [`useMicrotask`](./async-utilities/timers.md#usemicrotask) or manually schedule a microtask.
+To run code after something has been created, you can use [`useMicrotask`](../async-utilities/timers.md#usemicrotask) or manually schedule a microtask.
 
 ## `teardown`
 Register a hook to be called when the current lifecycle is disposed:
@@ -30,7 +30,7 @@ Register a hook to be called when the current lifecycle is disposed:
 	});
 	```
 
-Calling `teardown` outside of any functions listed below has no effect and "leaks" the teardown hook. When running tests, this behavior can be [configured](./testing.md#leak-detection) to log leaks or to throw an error.
+Calling `teardown` outside of any functions listed below has no effect and "leaks" the teardown hook. When running tests, this behavior can be [configured](../testing.md#leak-detection) to log leaks or to throw an error.
 
 !!! warning
 	Teardown hooks always run in the context from which they are called in instead of the context they have been registered in.
@@ -243,7 +243,7 @@ const dispose = capture(async () => {
 });
 ```
 
-In a test or development environment, you can configure [how leaked teardown hooks behave](./testing.md#leak-detection).
+In a test or development environment, you can configure [how leaked teardown hooks behave](../testing.md#leak-detection).
 
 To dispose things that are initialized later, you manually need to capture it's teardown hooks:
 ```jsx

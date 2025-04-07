@@ -1,7 +1,7 @@
 # Conversion Utilities
 
 ## `string / optionalString`
-[Map](./signals.md#map) expression values to strings.
+[Map](./core/signals.md#map) expression values to strings.
 
 This can be used to avoid the default behavior when setting element attributes regarding booleans, `null` and `undefined`.
 

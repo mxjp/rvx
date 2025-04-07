@@ -218,8 +218,8 @@ You can find more complex view implementation examples here:
 
 + [rvx core views](https://github.com/mxjp/rvx/blob/main/src/core/view.ts)
 + Examples
-	+ [Rotate](../../examples/view-rotate.md)
-	+ [Push](../../examples/view-push.md)
+	+ [Rotate](../../../examples/view-rotate.md)
+	+ [Push](../../../examples/view-push.md)
 
 ## Lifecycle Conventions
 When the [lifecycle](../lifecycle.md) in which a view was created is disposed, all of it's nodes should remain in place by convention.

@@ -1,4 +1,4 @@
-# Introduction
+# Getting Started
 
 !!! info
 	This framework assumes that you have a good fundamental understanding of JavaScript and HTML. If not, [MDN](https://developer.mozilla.org/docs/Web/JavaScript) is a good place to start.
@@ -181,7 +181,7 @@ mount(
 );
 ```
 
-In addition to `Show` and `For`, rvx provides some more view types you can find [here](./reference/views/index.md) or you can implement your own views for special use cases.
+In addition to `Show` and `For`, rvx provides some more view types you can find [here](./reference/core/views/index.md) or you can implement your own views for special use cases.
 
 ## Components
 Components in rvx are just functions that return arbitrary content. They are called once when the component is rendered.
@@ -258,6 +258,13 @@ function Message(props: { children?: unknown; }) {
 <Message>Hello World!</Message>;
 ```
 
----
+## Moving on...
+From here, you can take a look at [the reference](./reference/index.md) or [the examples](./examples/counter.md) to get a brief overview.
 
-From here, you can take a look at [the reference](./reference/index.md) to get an overview of what's possible.
+To develop a deep understanding of rvx, you should read through the core reference in the order below:
+
++ [Lifecycle](./reference/core/lifecycle.md) / [Context](./reference/core/context.md)
++ [Signals](./reference/core/signals.md)
++ [Elements](./reference/core/elements.md)
++ [Views](./reference/core/views/index.md)
++ [Components](./reference/core/components.md)

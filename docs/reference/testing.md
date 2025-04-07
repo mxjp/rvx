@@ -26,7 +26,7 @@ Testing rvx based applications is usually very simple because all of it's signal
 Note, that the `assert` function used on this page are not included in rvx.
 
 ## Synchronous Tests
-Rvx provides a lightweight wrapper for running small synchronous tests that takes care of calling [teardown hooks](./lifecycle.md) after the test.
+Rvx provides a lightweight wrapper for running small synchronous tests that takes care of calling [teardown hooks](./core/lifecycle.md) after the test.
 
 === "JSX"
 	```jsx
@@ -60,7 +60,7 @@ Rvx provides a lightweight wrapper for running small synchronous tests that take
 	```
 
 ## Asynchronous Tests
-There is a wrapper for async tests that allows you to run small synchronous parts of your test with a shared [async context](./async-utilities/async.md#tracking-completion). After the test, this will run [teardown hooks](./lifecycle.md) registered during any **"use(..)"** calls and wait for any pending tasks tracked in the async context.
+There is a wrapper for async tests that allows you to run small synchronous parts of your test with a shared [async context](./async-utilities/async.md#tracking-completion). After the test, this will run [teardown hooks](./core/lifecycle.md) registered during any **"use(..)"** calls and wait for any pending tasks tracked in the async context.
 
 The example below shows a test that asserts that asynchronously loaded content is displayed correctly:
 
@@ -122,7 +122,7 @@ The example below shows a test that asserts that asynchronously loaded content i
 	```
 
 ## Waiting For Expressions
-You can watch arbitrary [expressions](./signals.md#expressions) using the `watchFor` function.
+You can watch arbitrary [expressions](./core/signals.md#expressions) using the `watchFor` function.
 
 === "JSX"
 	```jsx
@@ -195,7 +195,7 @@ You can poll arbitrary functions for the first truthy result using the `poll` fu
 	+ Without a timeout, `poll` might run forever.
 
 ## Leak Detection
-The [lifecycle API](./lifecycle.md) silently discards teardown hooks outside of `capture` calls. This can be a valid use case, for instance when rendering your application until the browser closes or when intentionally leaking teardown hooks using `uncapture`.
+The [lifecycle API](./core/lifecycle.md) silently discards teardown hooks outside of `capture` calls. This can be a valid use case, for instance when rendering your application until the browser closes or when intentionally leaking teardown hooks using `uncapture`.
 
 However, this can result in accidental memory leaks when registering teardown hooks in async code:
 ```jsx

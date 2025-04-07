@@ -22,7 +22,7 @@ ENV.current.document.createElement("div");
 
 The `"rvx/dom"` module provides a fast minimal DOM implementation with the single purpose of rendering HTML strings on the server or during a build process.
 
-The `renderToString` utility can be used to synchronously render a [component](../components.md) to HTML:
+The `renderToString` utility can be used to synchronously render a [component](../core/components.md) to HTML:
 ```jsx
 import { renderToString } from "rvx/dom";
 
@@ -46,7 +46,7 @@ const html = await renderToStringAsync(() => {
 console.log(html); // "<h1>Hello World!</h1>"
 ```
 
-The [lifecycle](../lifecycle.md) of rendered components is disposed immediately after rendering the HTML string.
+The [lifecycle](../core/lifecycle.md) of rendered components is disposed immediately after rendering the HTML string.
 
 !!! warning
 	This module is **not** in any way optimized for code size and probably should not be used in a real browser.
