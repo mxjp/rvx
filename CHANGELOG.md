@@ -1,5 +1,8 @@
 # Changelog
 
+## 20.0
++ **Breaking:** Remove `IndexFor`. Use `Index` instead.
+
 ## 19.7
 + **Deprecated:** `created` will be removed in the next major version. `created` is now an alias for `useMicrotask` and has lifecycle support.
 + **Deprecated:** `string` & `optionalString` have been moved to `rvx/convert` and will be removed from the core module in the next major version.

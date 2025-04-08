@@ -771,11 +771,6 @@ export interface IndexContentFn<T> {
 }
 
 /**
- * @deprecated Use {@link IndexContentFn} instead.
- */
-export type IndexForContentFn<T> = IndexContentFn<T>;
-
-/**
  * Render content for each value in an iterable, keyed by index and value.
  *
  * If an error is thrown by iterating or by rendering an item, the update is stopped as if the previous item was the last one and the error is re-thrown.
@@ -906,11 +901,6 @@ export function Index<T>(props: {
 }): View {
 	return indexEach(props.each, props.children);
 }
-
-/**
- * @deprecated. Use {@link Index} instead.
- */
-export const IndexFor = Index;
 
 /**
  * A wrapper that can be used for moving and reusing views.
