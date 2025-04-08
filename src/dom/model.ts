@@ -3,7 +3,6 @@ import { WINDOW_MARKER } from "./internals.js";
 
 const NODE_LENGTH = Symbol("length");
 const NODE_APPEND_HTML_TO = Symbol("appendHtmlTo");
-const NODE_EXTRACT_RANGE = Symbol("extractRange");
 
 class NodeListIterator implements Iterator<Node> {
 	#current: Node | null;
@@ -192,57 +191,6 @@ export class Node extends NoopEventTarget {
 			child = child.nextSibling;
 		}
 		return html;
-	}
-
-	static [NODE_EXTRACT_RANGE](start: Node | null, end: Node | null): DocumentFragment {
-		if (start === null || end === null) {
-			throw new Error("invalid range");
-		}
-		const parent = start.#parent;
-		if (parent === null || parent !== end.#parent) {
-			throw new Error("invalid range");
-		}
-		const fragment = new DocumentFragment();
-		let child = start;
-		let length = 0;
-		updateParents: for (;;) {
-			child.#parent = fragment;
-			length++;
-			if (child === end) {
-				break updateParents;
-			}
-			const next = child.#next;
-			if (next === null) {
-				revertParents: for (;;) {
-					child.#parent = parent;
-					if (child === start) {
-						break revertParents;
-					}
-					child = child.#prev!;
-				}
-				throw new Error("unterminated range");
-			}
-			child = next;
-		}
-		const prev = start.#prev;
-		const next = end.#next;
-		if (prev === null) {
-			parent.#first = next;
-		} else {
-			prev.#next = next;
-		}
-		if (next === null) {
-			parent.#last = prev;
-		} else {
-			next.#prev = prev;
-		}
-		parent.#length -= length;
-		start.#prev = null;
-		end.#next = null;
-		fragment.#first = start;
-		fragment.#last = end;
-		fragment.#length = length;
-		return fragment;
 	}
 
 	contains(node: Node | null) {
@@ -494,26 +442,6 @@ export class Node extends NoopEventTarget {
 export interface Node {
 	nodeType: number;
 	nodeName: string;
-}
-
-/**
- * @deprecated This will be removed in the next major version without replacement.
- */
-export class Range {
-	#start: Node | null = null;
-	#end: Node | null = null;
-
-	setStartBefore(node: Node): void {
-		this.#start = node;
-	}
-
-	setEndAfter(node: Node): void {
-		this.#end = node;
-	}
-
-	extractContents(): DocumentFragment {
-		return Node[NODE_EXTRACT_RANGE](this.#start, this.#end);
-	}
 }
 
 export class DocumentFragment extends Node {
@@ -1079,7 +1007,6 @@ export class Window extends NoopEventTarget {
 		this.prototype.Element = Element;
 		this.prototype.Event = NoopEvent;
 		this.prototype.Node = Node;
-		this.prototype.Range = Range;
 		this.prototype.Text = Text;
 	}
 
@@ -1096,7 +1023,6 @@ export interface Window {
 	Element: typeof Element;
 	Event: typeof NoopEvent;
 	Node: typeof Node;
-	Range: typeof Range;
 	Text: typeof Text;
 }
 
