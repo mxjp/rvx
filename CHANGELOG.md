@@ -6,6 +6,9 @@
 + **Breaking:** Remove `created`. Use `useMicrotask` instead.
 + **Breaking:** Move `string` & `optionalString` to `rvx/convert`.
 + **Breaking:** Move & rename `onTeardownLeak` to `onLeak` in the core module.
++ **Breaking:** Rewrite bundling system:
+	+ Every module is now available as a pre-bundled version for no-build environments.
+	+ Custom bundles have been removed.
 
 ## 19.7
 + **Deprecated:** `created` will be removed in the next major version. `created` is now an alias for `useMicrotask` and has lifecycle support.

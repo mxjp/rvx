@@ -1,60 +1,33 @@
 import terser from "@rollup/plugin-terser";
-import { createHash } from "node:crypto";
-import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { readFile } from "node:fs/promises";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { rollup } from "rollup";
 import { dts } from "rollup-plugin-dts";
-import parseArgs from "yargs-parser";
-import { gzipSync, brotliCompressSync } from "node:zlib";
 
 const root = join(fileURLToPath(import.meta.url), "../..");
-const args = parseArgs(process.argv.slice(2), {
-	array: ["modules"],
-	string: ["modules", "output"],
-	boolean: ["readable", "minified", "gzip", "brotli", "types", "license"],
-	alias: {
-		modules: "m",
-		output: "o",
-	},
-});
+const dist = join(root, "dist");
+const tscOut = join(dist, "es");
 
-const modules = args.modules ?? ["core"];
-const output = args.output ?? "./dist/rvx.custom";
-
-const optionsHash = createHash("sha256").update(JSON.stringify({
-	modules,
-	output,
-})).digest("base64url");
-
-let entryContent = "";
-for (const name of modules) {
-	const dir = await stat(join(root, "src", name)).then(stats => {
-		return stats.isDirectory();
-	}, error => {
-		if (error.code === "ENOENT") {
-			return false;
-		}
-		throw error;
-	});
-	const path = `../dist/es/${name}${dir ? "/index" : ""}`;
-	entryContent += `export * from ${JSON.stringify(path)};\n`;
-}
-
-const build = join(root, "build");
-
-await mkdir(build, { recursive: true });
-
-const entryBase = `entry.${optionsHash}`;
-await writeFile(join(build, `${entryBase}.js`), entryContent);
-await writeFile(join(build, `${entryBase}.d.ts`), entryContent);
+const modules = [
+	"async",
+	"convert",
+	"core",
+	"dom",
+	"element",
+	"event",
+	"id",
+	"router",
+	"store",
+	"test",
+];
 
 const license = await readFile(join(root, "LICENSE"), "utf-8");
-const banner = (args.license ?? true) ? [{
+const bannerPlugin = {
 	banner: `/*!\n${license}*/`,
-}] : [];
+};
 
-const format = {
+const formatPlugin = {
 	generateBundle(_options, bundle) {
 		for (const name in bundle) {
 			const asset = bundle[name];
@@ -81,74 +54,115 @@ function onwarn(warn, fallback) {
 	fallback(warn);
 }
 
-{
-	const bundle = await rollup({
-		input: join(build, `${entryBase}.js`),
-		onwarn,
-	});
-	if (args.readable ?? true) {
-		await bundle.write({
-			format: "es",
-			file: join(root, output + ".js"),
-			plugins: [
-				banner,
-				format,
-			],
-		});
-	}
-	if (args.minified ?? true) {
-		await bundle.write({
-			format: "es",
-			file: join(root, output + ".min.js"),
-			plugins: [
-				terser(),
-				{
-					name: "rvx-compress-bundles",
-					generateBundle(_options, bundles) {
-						for (const name in bundles) {
-							if (bundles[name].type !== "chunk") {
-								continue;
-							}
-							const raw = Buffer.from(bundles[name].code, "utf-8");
-							if (args.gzip) {
-								const source = gzipSync(raw);
-								this.emitFile({
-									type: "asset",
-									fileName: name + ".gz",
-									source,
-								});
-							}
-							if (args.brotli) {
-								const source = brotliCompressSync(raw);
-								this.emitFile({
-									type: "asset",
-									fileName: name + ".br",
-									source,
-								})
-							}
-						}
-					},
-				},
-			],
-		});
-	}
+/**
+ * @param {string} moduleName
+ * @param {boolean} min
+ */
+function moduleFile(moduleName) {
+	return moduleName === "core" ? "rvx" : `rvx.${moduleName}`;
 }
 
-if (args.types ?? true) {
-	const bundle = await rollup({
+const MODULE_PREFIX = "rvx-module:";
+
+for (const moduleName of modules) {
+	console.group("bundle:", moduleName);
+
+	/**
+	 * @param {string} id
+	 * @param {string | undefined} parentId
+	 */
+	function resolveId(id, parentId) {
+		if (parentId === undefined) {
+			if (!isAbsolute(id)) {
+				throw new Error(`relative id without parent: ${id}`);
+			}
+		} else {
+			id = resolve(dirname(parentId), id);
+		}
+		const target = relative(tscOut, id);
+		const targetModuleName = /^([^\\\/]+)[\\\/]/.exec(target)?.[1];
+		if (!modules.includes(targetModuleName)) {
+			throw new Error(`invalid module name: ${targetModuleName}`);
+		}
+		if (targetModuleName !== moduleName) {
+			return MODULE_PREFIX + targetModuleName;
+		}
+	}
+
+	const esBundle = await rollup({
+		input: join(tscOut, moduleName, "index.js"),
+		onwarn,
+		external: id => {
+			return id.startsWith("rvx-module:");
+		},
+		plugins: [
+			{ resolveId },
+		],
+	});
+
+	await esBundle.write({
+		format: "es",
+		file: join(dist, moduleFile(moduleName) + ".js"),
+		paths: id => {
+			if (id.startsWith(MODULE_PREFIX)) {
+				return `./${moduleFile(id.slice(MODULE_PREFIX.length))}.js`;
+			}
+		},
+		plugins: [
+			bannerPlugin,
+			formatPlugin,
+		],
+	});
+
+	await esBundle.write({
+		format: "es",
+		file: join(dist, moduleFile(moduleName) + ".min.js"),
+		paths: id => {
+			if (id.startsWith(MODULE_PREFIX)) {
+				return `./${moduleFile(id.slice(MODULE_PREFIX.length))}.min.js`;
+			}
+		},
+		plugins: [
+			terser(),
+		],
+	});
+
+	const typesBundle = await rollup({
 		logLevel: "silent",
-		input: join(build, `${entryBase}.d.ts`),
+		input: join(tscOut, moduleName, "index.d.ts"),
+		external: (id, parentId) => {
+			return resolveId(id, parentId)?.startsWith("rvx-module:") ?? false;
+		},
 		plugins: [
 			dts({
 				tsconfig: join(root, "tsconfig-types.json"),
+				respectExternal: true,
 			}),
-			banner,
-			format,
+			bannerPlugin,
+			formatPlugin,
 		],
 		onwarn,
 	});
-	await bundle.write({
-		file: join(root, output + ".d.ts"),
-		format: "es",
+
+	await typesBundle.write({
+		file: join(dist, moduleFile(moduleName) + ".d.ts"),
+		paths: (id) => {
+			id = resolveId(id) ?? id;
+			if (id.startsWith(MODULE_PREFIX)) {
+				return `./${moduleFile(id.slice(MODULE_PREFIX.length))}.js`;
+			}
+		},
 	});
+
+	await typesBundle.write({
+		file: join(dist, moduleFile(moduleName) + ".min.d.ts"),
+		paths: (id) => {
+			id = resolveId(id) ?? id;
+			if (id.startsWith(MODULE_PREFIX)) {
+				return `./${moduleFile(id.slice(MODULE_PREFIX.length))}.min.js`;
+			}
+		},
+	});
+
+	console.groupEnd();
 }
