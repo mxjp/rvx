@@ -5,6 +5,7 @@
 + **Breaking:** Remove `Range` from `rvx/dom`.
 + **Breaking:** Remove `created`. Use `useMicrotask` instead.
 + **Breaking:** Move `string` & `optionalString` to `rvx/convert`.
++ **Breaking:** Move & rename `onTeardownLeak` to `onLeak` in the core module.
 
 ## 19.7
 + **Deprecated:** `created` will be removed in the next major version. `created` is now an alias for `useMicrotask` and has lifecycle support.

@@ -21,8 +21,8 @@ for (const key of [
 	(globalThis as any)[key] = dom.window[key];
 }
 
-const { onTeardownLeak } = await import("rvx/test");
+const { onLeak } = await import("rvx");
 
-onTeardownLeak(() => {
+onLeak(() => {
 	throw new Error("teardown leak");
 });

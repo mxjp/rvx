@@ -209,13 +209,13 @@ const stop = capture(async () => {
 stop();
 ```
 
-To catch these cases, you can use the `onTeardownLeak` function once before running all of your tests:
+To catch these cases, you can use the `onLeak` function once before running all of your tests:
 
 === "JSX"
 	```jsx
-	import { onTeardownLeak } from "rvx/test";
+	import { onLeak } from "rvx";
 
-	onTeardownLeak(hook => {
+	onLeak(hook => {
 		// "hook" is the teardown hook that is being registered.
 		console.trace("Leaked teardown hook:", hook);
 
@@ -232,9 +232,9 @@ To catch these cases, you can use the `onTeardownLeak` function once before runn
 
 === "No Build"
 	```jsx
-	import { onTeardownLeak } from "./rvx.js";
+	import { onLeak } from "./rvx.js";
 
-	onTeardownLeak(hook => {
+	onLeak(hook => {
 		// "hook" is the teardown hook that is being registered.
 		console.trace("Leaked teardown hook:", hook);
 

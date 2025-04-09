@@ -124,6 +124,6 @@ The stack trace will point to the place where the wrongly implemented view was i
 This is thrown by the [`<Routes>`](../routing.md) component if no router has been provided via the current [`context`](../core/context.md).
 
 ### `G4`
-**`onTeardownLeak` must only be called once and outside of any capture calls.**
+**`onLeak` must only be called once and outside of any capture calls.**
 
-[Leak detection](../testing.md#leak-detection) is meant for testing purposes. You need to ensure that `onTeardownLeak` is only called once per thread and before anything else is initialized.
+[Leak detection](../testing.md#leak-detection) is meant for testing purposes. You need to ensure that `onLeak` is only called once per thread and before anything else is initialized.

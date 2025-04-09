@@ -1,9 +1,8 @@
 import { JSDOM } from "jsdom";
-import { ENV } from "rvx";
-import { onTeardownLeak } from "rvx/test";
+import { ENV, onLeak } from "rvx";
 
 ENV.default = new JSDOM().window;
 
-onTeardownLeak(() => {
+onLeak(() => {
 	throw new Error("teardown leak");
 });
