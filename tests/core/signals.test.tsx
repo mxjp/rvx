@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { $, batch, capture, Context, effect, get, isTracking, map, memo, optionalString, Signal, string, teardown, TeardownHook, track, trigger, TriggerPipe, uncapture, untrack, watch, watchUpdates } from "rvx";
+import { $, batch, capture, Context, effect, isTracking, map, memo, Signal, teardown, TeardownHook, track, trigger, TriggerPipe, uncapture, untrack, watch, watchUpdates } from "rvx";
 import { assertEvents, lifecycleEvent, withMsg } from "../common.js";
 
 await suite("signals", async () => {

@@ -1,6 +1,6 @@
 import { fail, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { capture, captureSelf, created, nocapture, teardown, TeardownHook, teardownOnError, uncapture } from "rvx";
+import { capture, captureSelf, teardown, TeardownHook, teardownOnError, uncapture } from "rvx";
 import { assertEvents, withMsg } from "../common.js";
 
 await suite("lifecycle", async () => {
