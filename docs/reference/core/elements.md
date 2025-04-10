@@ -8,7 +8,7 @@ JSX expressions and the element builder API can be used to directly create DOM e
 
 === "No Build"
 	```jsx
-	import { e } from "./rvx.js"; // or "rvx"
+	import { e } from "./rvx.js";
 
 	e("div").class("example").append("Hello World!")
 	```
@@ -109,7 +109,8 @@ Note, that the rules specified above apply to all attributes including aria attr
 
 === "No Build"
 	```jsx
-	import { string, optionalString, e } from "./rvx.js";
+	import { e } from "./rvx.js";
+	import { string, optionalString } from "./rvx.convert.js";
 
 	// Convert all values to strings including "null" and "undefined":
 	e("div").set("aria-disabled", string(someBooleanExpression))

@@ -18,7 +18,7 @@ The `<Async>` component is meant for asynchronous rendering. E.g. loading page c
 
 === "No Build"
 	```jsx
-	import { Async } from "./rvx.js";
+	import { Async } from "./rvx.async.js";
 
 	// main.js:
 	Async({
@@ -78,7 +78,7 @@ To wait for async parts in a specific context to complete, you can use `AsyncCon
 
 === "No Build"
 	```jsx
-	import { ASYNC, Async, AsyncContext } from "./rvx.js";
+	import { ASYNC, Async, AsyncContext } from "./rvx.async.js";
 
 	const ctx = new AsyncContext();
 
@@ -119,7 +119,8 @@ When there are multiple async parts in the same place, tracking can be used to h
 
 === "No Build"
 	```jsx
-	import { $, movable, ASYNC, Async, AsyncContext } from "./rvx.js";
+	import { $, movable } from "./rvx.js";
+	import { ASYNC, Async, AsyncContext } from "./rvx.async.js";
 
 	const innerCtx = new AsyncContext();
 	const inner = movable(ASYNC.inject(innerCtx, () => [

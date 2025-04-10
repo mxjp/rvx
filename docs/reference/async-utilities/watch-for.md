@@ -14,7 +14,7 @@ This is a utility for watching an expression until it's output satisfies a condi
 
 === "No Build"
 	```jsx
-	import { watchFor } from "./rvx.js";
+	import { watchFor } from "./rvx.async.js";
 
 	// Wait for an expression to return a truthy result:
 	await watchFor(() => signal.value > 42);

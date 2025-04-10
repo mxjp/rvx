@@ -26,7 +26,7 @@ Depending on the use case, a task can be either **blocking** or a **side effect*
 
 === "No Build"
 	```jsx
-	import { Queue } from "./rvx.js";
+	import { Queue } from "./rvx.async.js";
 
 	const queue = new Queue();
 

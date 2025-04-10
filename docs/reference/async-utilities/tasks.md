@@ -24,7 +24,7 @@ The task system keeps track of pending tasks in a specific context. This is mean
 
 === "No Build"
 	```jsx
-	import { TASKS, Tasks, isPending, waitFor } from "./rvx.js";
+	import { TASKS, Tasks, isPending, waitFor } from "./rvx.async.js";
 
 	TASKS.inject(new Tasks(), () => [
 		e("button")

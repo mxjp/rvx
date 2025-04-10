@@ -21,7 +21,7 @@ You can either implement your own router using the `Router` interface or use one
 
 === "No Build"
 	```jsx
-	import { ROUTER, HistoryRouter } from "./rvx.js";
+	import { ROUTER, HistoryRouter } from "./rvx.router.js";
 
 	ROUTER.inject(new HistoryRouter(), () => [
 		"Everything in here has access to the history router."
@@ -52,7 +52,7 @@ The `Routes` component can be used to render content based on the current path.
 
 === "No Build"
 	```jsx
-	import { ROUTER, HistoryRouter, routes } from "./rvx.js";
+	import { ROUTER, HistoryRouter, routes } from "./rvx.router.js";
 
 	ROUTER.inject(new HistoryRouter(), () => [
 		routes([
@@ -132,7 +132,7 @@ Functions can return an object with the normalized matched path and optional par
 
 === "No Build"
 	```jsx
-	import { normalize } from "./rvx.js";
+	import { normalize } from "./rvx.router.js";
 
 	[
 		{
@@ -172,7 +172,7 @@ Below are some examples:
 
 === "No Build"
 	```jsx
-	import { normalize } from "./rvx.js";
+	import { normalize } from "./rvx.router.js";
 
 	normalize("") // ""
 	normalize("/") // ""
@@ -203,7 +203,8 @@ Routers implement a **push** function for regular navigation and a **replace** f
 
 === "No Build"
 	```jsx
-	import { ROUTER, e } from "./rvx.js";
+	import { e } from "./rvx.js";
+	import { ROUTER } from "./rvx.router.js";
 
 	function ExamplePage() {
 		const router = ROUTER.current.root;
@@ -246,7 +247,7 @@ The example below renders text for the paths `/, /foo/bar, /foo/baz`:
 
 === "No Build"
 	```jsx
-	import { ROUTER, HistoryRouter, routes } from "./rvx.js";
+	import { ROUTER, HistoryRouter, routes } from "./rvx.router.js";
 
 	ROUTER.inject(new HistoryRouter(), () => [
 		routes([
@@ -329,7 +330,7 @@ You can use the [`<Async>`](./async-utilities/async.md) component to dynamically
 	}
 
 	// main.js:
-	import { routes, Async } from "./rvx.js";
+	import { routes, Async } from "./rvx.router.js";
 
 	routes([
 		{

@@ -123,7 +123,7 @@ There are some places where registering teardown hooks is very likely a mistake.
 
 === "JSX"
 	```jsx
-	import { nocapture, teardown, created } from "rvx";
+	import { nocapture, teardown } from "rvx";
 
 	nocapture(() => {
 		// This will throw an error:

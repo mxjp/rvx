@@ -46,7 +46,8 @@ Rvx provides a lightweight wrapper for running small synchronous tests that take
 
 === "No Build"
 	```jsx
-	import { $, runTest, querySelector } from "./rvx.js";
+	import { $ } from "./rvx.js";
+	import { runTest, querySelector } from "./rvx.test.js";
 
 	runTest(() => {
 		const count = $(0);
@@ -96,7 +97,9 @@ The example below shows a test that asserts that asynchronously loaded content i
 
 === "No Build"
 	```jsx
-	import { mount, Async, runAsyncTest, querySelector, e } from "./rvx.js";
+	import { e, mount } from "./rvx.js";
+	import { Async } from "./rvx.async.js";
+	import { runAsyncTest, querySelector } from "./rvx.test.js";
 
 	await runAsyncTest(async ({ asyncCtx, use }) => {
 		const view = use(() => {
@@ -143,7 +146,8 @@ You can watch arbitrary [expressions](./core/signals.md#expressions) using the `
 
 === "No Build"
 	```jsx
-	import { $, watchFor, isPending } from "./rvx.js";
+	import { $ } from "./rvx.js";
+	import { watchFor, isPending } from "./rvx.async.js";
 
 	// Wait for a specific signal value:
 	const count = $(0);
@@ -177,7 +181,7 @@ You can poll arbitrary functions for the first truthy result using the `poll` fu
 
 === "No Build"
 	```jsx
-	import { poll } from "./rvx.js";
+	import { poll } from "./rvx.test.js";
 
 	// Poll a synchronous function:
 	const heading = await poll(() => document.querySelector("h1"));
@@ -267,7 +271,7 @@ It is generally possible to run tests for rvx based applications concurrently. H
 
 === "No Build"
 	```jsx
-	import { runAsyncTest, exclusive } from "./rvx.js";
+	import { runAsyncTest, exclusive } from "./rvx.test.js";
 
 	const FOCUS_ACTIONS = Symbol("focus actions");
 

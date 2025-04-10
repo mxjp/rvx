@@ -17,7 +17,8 @@ Allocate an ID that is unique in the current thread.
 
 === "No Build"
 	```jsx
-	import { uniqueId, e } from "./rvx.js";
+	import { e } from "./rvx.js";
+	import { uniqueId } from "./rvx.id.js";
 
 	const id = uniqueId();
 
@@ -47,7 +48,8 @@ A component for allocating a unique id using [`uniqueId`](#uniqueid).
 
 === "No Build"
 	```jsx
-	import { UseUniqueId, e } from "./rvx.js";
+	import { e } from "./rvx.js";
+	import { UseUniqueId } from "./rvx.id.js";
 
 	UseUniqueId({
 		children: id => [
@@ -73,7 +75,8 @@ Get a [unique id](#uniqueid) for the specified object.
 
 === "No Build"
 	```jsx
-	import { uniqueIdFor, forEach, e } from "./rvx.js";
+	import { forEach, e } from "./rvx.js";
+	import { uniqueIdFor } from "./rvx.id.js";
 
 	e("ul").append(
 		forEach(items, item => e("li").set("id", uniqueIdFor(item)).append(...))

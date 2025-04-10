@@ -28,7 +28,8 @@ To implement a web component, you can extend the `RvxElement` class which takes 
 
 === "No Build"
 	```jsx
-	import { RvxElement, e } from "./rvx.js";
+	import { e } from "./rvx.js";
+	import { RvxElement } from "./rvx.element.js";
 
 	class ExampleComponent extends RvxElement {
 		render() {
@@ -81,7 +82,8 @@ The `reflect` function can be used to get a signal that reflects an attribute va
 
 === "No Build"
 	```jsx
-	import { RvxElement, e } from "./rvx.js";
+	import { e } from "./rvx.js";
+	import { RvxElement } from "./rvx.element.js";
 
 	class ExampleCounter extends RvxElement {
 		// Allow this component to detect changes to the "count" attribute:
@@ -216,10 +218,11 @@ Due to it's simple lifecycle system, you can also implement web components manua
 
 === "No Build"
 	```jsx
-	import { mount, capture, teardown, TeardownHook, e } from "./rvx.js";
+	import { mount, capture, teardown, e } from "./rvx.js";
 
 	class ExampleComponent extends HTMLElement {
-		#dispose?: TeardownHook;
+		/** @type {import("./rvx.js").TeardownHook} */
+		#dispose;
 
 		constructor() {
 			super();

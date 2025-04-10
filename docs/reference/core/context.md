@@ -83,7 +83,7 @@ Contexts have a global default value which is returned if nothing, `null` or `un
 
 === "No Build"
 	```jsx
-	import { DefaultContext } from "./rvx.js";
+	import { Context } from "./rvx.js";
 
 	const CONTEXT = new Context(42);
 

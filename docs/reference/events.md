@@ -18,7 +18,7 @@ A tiny synchronous event system separate from DOM events.
 
 === "No Build"
 	```jsx
-	import { Emitter } from "./rvx.js";
+	import { Emitter } from "./rvx.event.js";
 
 	/** @type {Emitter<[address: string, port: number]>} */
 	const emitter = new Emitter();
@@ -58,7 +58,8 @@ Event listeners running while capturing [teardown hooks](./core/lifecycle.md#cap
 
 === "No Build"
 	```jsx
-	import { capture, Emitter } from "./rvx.js";
+	import { capture } from "./rvx.js";
+	import { Emitter } from "./rvx.event.js";
 
 	const emitter = new Emitter();
 
@@ -99,7 +100,8 @@ Event listeners running while signal accesses are tracked will be able to access
 
 === "No Build"
 	```jsx
-	import { effect, Emitter } from "./rvx.js";
+	import { effect } from "./rvx.js";
+	import { Emitter } from "./rvx.event.js";
 
 	const emitter = new Emitter();
 	const signal = $(42);
@@ -143,7 +145,8 @@ Event listeners running while a value for a context is injected also have access
 
 === "No Build"
 	```jsx
-	import { Context, Emitter } from "./rvx.js";
+	import { Context } from "./rvx.js";
+	import { Emitter } from "./rvx.event.js";
 
 	const MESSAGE = new Context();
 
@@ -190,11 +193,11 @@ To allow components to listen to events, it's enough to pass the `event` as a pr
 
 === "No Build"
 	```jsx
-	import { Emitter } from "./rvx.js";
+	import { Emitter } from "./rvx.event.js";
 
 	/**
 	 * @param {object} props
-	 * @param {import("./rvx.js").Event<[message: string]>} props.onMessage
+	 * @param {import("./rvx.event.js").Event<[message: string]>} props.onMessage
 	 */
 	function SomeComponent(props) {
 		props.onMessage(message => {

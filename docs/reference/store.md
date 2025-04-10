@@ -16,7 +16,8 @@ The `wrap` function creates a deep reactive wrapper:
 
 === "No Build"
 	```jsx
-	import { wrap, e } from "./rvx.js";
+	import { e } from "./rvx.js";
+	import { wrap } from "./rvx.store.js";
 
 	const state = wrap({
 		message: "Hello World!",
@@ -52,7 +53,7 @@ To update a reactive object, you can directly modify the wrapper.
 
 === "No Build"
 	```jsx
-	import { wrap } from "./rvx.js";
+	import { wrap } from "./rvx.store.js";
 
 	const todos = wrap([
 		{ name: "Foo", done: false },
@@ -99,7 +100,7 @@ The `reflect` utility can be used to create a [signal](./core/signals.md) that r
 
 === "No Build"
 	```jsx
-	import { reflect, wrap } from "./rvx.js";
+	import { reflect, wrap } from "./rvx.store.js";
 
 	const item = wrap({ name: "Foo", done: false });
 
@@ -130,7 +131,7 @@ By default, arbitrary class instances are not reactive unless you specify, how t
 
 === "No Build"
 	```jsx
-	import { wrapInstancesOf } from "./rvx.js";
+	import { wrapInstancesOf } from "./rvx.store.js";
 
 	class Example {
 		static {
@@ -179,7 +180,7 @@ Private fields are not reactive. Also, you need to ensure they are accessed thro
 
 === "No Build"
 	```jsx
-	import { wrapInstancesOf, wrap, unwrap } from "./rvx.js";
+	import { wrapInstancesOf, wrap, unwrap } from "./rvx.store.js";
 
 	class Example {
 		static {

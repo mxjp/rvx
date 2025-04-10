@@ -115,7 +115,8 @@ If needed, you can wait for [`<Async>`](../async-utilities/async.md) parts to co
 
 === "No Build"
 	```jsx
-	import { render, e, ASYNC, Async, AsyncContext } from "./rvx.js";
+	import { e, render } from "./rvx.js";
+	import { ASYNC, Async, AsyncContext } from "./rvx.async.js";
 
 	const asyncCtx = new AsyncContext();
 	const app = ASYNC.inject(asyncCtx, () => {

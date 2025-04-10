@@ -15,7 +15,7 @@ The same as `queueMicrotask`, but with lifecycle support.
 
 === "No Build"
 	```jsx
-	import { useMicrotask } from "./rvx.js";
+	import { useMicrotask } from "./rvx.async.js";
 
 	useMicrotask(() => { ... });
 	```
@@ -35,7 +35,7 @@ The same as `useTimeout`, but with lifecycle support.
 
 === "No Build"
 	```jsx
-	import { useTimeout } from "./rvx.js";
+	import { useTimeout } from "./rvx.async.js";
 
 	useTimeout(() => { ... }, 1000);
 	```
@@ -55,7 +55,7 @@ The same as `setInterval`, but with lifecycle support.
 
 === "No Build"
 	```jsx
-	import { useInterval } from "./rvx.js";
+	import { useInterval } from "./rvx.async.js";
 
 	useInterval(() => { ... }, 1000);
 	```

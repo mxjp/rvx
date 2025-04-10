@@ -24,7 +24,7 @@ This can be used to avoid the default behavior when setting element attributes r
 
 === "No Build"
 	```jsx
-	import { string, optionalString } from "./rvx.js";
+	import { string, optionalString } from "./rvx.convert.js";
 
 	e("div").set("some-value", true); // <div some-value="" />
 	e("div").set("some-value", false); // <div />
@@ -55,7 +55,7 @@ Create a derived signal for trimming user input.
 
 === "No Build"
 	```jsx
-	import { trim } from "./rvx.js";
+	import { trim } from "./rvx.convert.js";
 
 	TextInput({ value: someSignal.pipe(trim) })
 	```
@@ -76,7 +76,7 @@ Create a derived signal for debouncing user input updates.
 
 === "No Build"
 	```jsx
-	import { debounce } from "./rvx.js";
+	import { debounce } from "./rvx.convert.js";
 
 	TextInput({ value: someSignal.pipe(debounce, 300) })
 	```

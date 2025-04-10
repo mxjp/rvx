@@ -16,7 +16,7 @@ The `useAbortController` and `useAbortSignal` functions can be used to abort thi
 
 === "No Build"
 	```jsx
-	import { useAbortSignal } from "./rvx.js";
+	import { useAbortSignal } from "./rvx.async.js";
 
 	// Abort a fetch request when disposed:
 	fetch("/info.txt", { signal: useAbortSignal() });

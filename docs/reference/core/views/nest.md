@@ -19,7 +19,7 @@ Watch an [expression](../signals.md#expressions) and render dynamic content from
 
 === "No Build"
 	```jsx
-	import { $, nest, e } from "./rvx.js";
+	import { $, e, nest } from "./rvx.js";
 
 	const message = $({ type: "heading", value: "Hello World!" });
 
