@@ -15,6 +15,8 @@ You can find all of these bundles in the [npm package's](#npm-package) `dist/` d
 _This table is created when building the docs._
 <!-- RVX:MODULES:END -->
 
+Note, that the bundles above depend on each other in different ways. Any additional dependencies that may be introduced in the future are considered breaking changes.
+
 ## JSX
 Rvx provides a react 17 and a legacy JSX runtime.
 
