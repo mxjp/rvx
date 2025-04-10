@@ -7,8 +7,7 @@ This can be useful when you only ever append or prepend elements and you require
 
 */
 
-import { $, capture, Component, Nest, render, teardown, TeardownHook, View } from "rvx";
-import { Emitter, Event } from "rvx/event";
+import { $, capture, Component, Emitter, Event, Nest, render, teardown, TeardownHook, View } from "rvx";
 
 export function Example() {
 	const reset = $();

@@ -30,6 +30,9 @@ hide:
 - ### [Unique IDs](./core/ids.md)
 	Create small unique IDs for DOM elements.
 
+- ### [Event System](./core/events.md)
+	A tiny synchronous event system.
+
 </div>
 
 ---
@@ -43,9 +46,6 @@ hide:
 
 - ### [Conversion Utilities](./convert.md)
 	Utilities for converting expressions & signals.
-
-- ### [Event System](./events.md)
-	A tiny synchronous event system.
 
 - ### [Web Components](./web-components.md)
 	Use & author web components.

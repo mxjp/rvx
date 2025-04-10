@@ -7,8 +7,7 @@ You can toggle the visibility of the entire view or one of it's children to demo
 
 */
 
-import { $, Attach, View, render } from "rvx";
-import { Emitter, Event } from "rvx/event";
+import { $, Attach, Emitter, Event, View, render } from "rvx";
 
 export function Example() {
 	const rotate = new Emitter<[]>();

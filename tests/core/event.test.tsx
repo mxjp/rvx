@@ -1,9 +1,6 @@
 import { throws } from "node:assert";
 import test, { suite } from "node:test";
-
-import { capture, uncapture } from "rvx";
-import { Emitter } from "rvx/event";
-
+import { capture, Emitter, uncapture } from "rvx";
 import { assertEvents, withMsg } from "../common.js";
 
 await suite("event", async () => {

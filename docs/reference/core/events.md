@@ -3,7 +3,7 @@ A tiny synchronous event system separate from DOM events.
 
 === "JSX"
 	```jsx
-	import { Emitter } from "rvx/event";
+	import { Emitter } from "rvx";
 
 	const emitter = new Emitter<[address: string, port: number]>();
 
@@ -18,7 +18,7 @@ A tiny synchronous event system separate from DOM events.
 
 === "No Build"
 	```jsx
-	import { Emitter } from "./rvx.event.js";
+	import { Emitter } from "./rvx.js";
 
 	/** @type {Emitter<[address: string, port: number]>} */
 	const emitter = new Emitter();
@@ -38,12 +38,11 @@ A tiny synchronous event system separate from DOM events.
 	Event listeners are in no way separated from the context where the event is emitted in.
 
 ### Lifecycle
-Event listeners running while capturing [teardown hooks](./core/lifecycle.md#capture) will be able to register hooks in that lifecycle:
+Event listeners running while capturing [teardown hooks](./lifecycle.md#capture) will be able to register hooks in that lifecycle:
 
 === "JSX"
 	```jsx
-	import { capture } from "rvx";
-	import { Emitter } from "rvx/event";
+	import { capture, Emitter } from "rvx";
 
 	const emitter = new Emitter<[]>();
 
@@ -58,8 +57,7 @@ Event listeners running while capturing [teardown hooks](./core/lifecycle.md#cap
 
 === "No Build"
 	```jsx
-	import { capture } from "./rvx.js";
-	import { Emitter } from "./rvx.event.js";
+	import { capture, Emitter } from "./rvx.js";
 
 	const emitter = new Emitter();
 
@@ -72,7 +70,7 @@ Event listeners running while capturing [teardown hooks](./core/lifecycle.md#cap
 	});
 	```
 
-To prevent listeners from registering teardown hooks, use [`nocapture`](./core/lifecycle.md#nocapture):
+To prevent listeners from registering teardown hooks, use [`nocapture`](./lifecycle.md#nocapture):
 ```jsx
 nocapture(() => emitter.emit());
 ```
@@ -82,8 +80,7 @@ Event listeners running while signal accesses are tracked will be able to access
 
 === "JSX"
 	```jsx
-	import { effect } from "rvx";
-	import { Emitter } from "rvx/event";
+	import { effect, Emitter } from "rvx";
 
 	const emitter = new Emitter<[]>();
 	const signal = $(42);
@@ -100,8 +97,7 @@ Event listeners running while signal accesses are tracked will be able to access
 
 === "No Build"
 	```jsx
-	import { effect } from "./rvx.js";
-	import { Emitter } from "./rvx.event.js";
+	import { effect, Emitter } from "./rvx.js";
 
 	const emitter = new Emitter();
 	const signal = $(42);
@@ -116,20 +112,19 @@ Event listeners running while signal accesses are tracked will be able to access
 	});
 	```
 
-To prevent this, you can use [`untrack`](./core/signals.md#track-untrack):
+To prevent this, you can use [`untrack`](./signals.md#track-untrack):
 ```jsx
 untrack(() => emitter.emit());
 ```
 
-Note, that this can still be circumvented by event listeners using [`track`](./core/signals.md#track-untrack).
+Note, that this can still be circumvented by event listeners using [`track`](./signals.md#track-untrack).
 
 ### Contexts
 Event listeners running while a value for a context is injected also have access to that value.
 
 === "JSX"
 	```jsx
-	import { Context } from "rvx";
-	import { Emitter } from "rvx/event";
+	import { Context, Emitter } from "rvx";
 
 	const MESSAGE = new Context<string | undefined>();
 
@@ -145,8 +140,7 @@ Event listeners running while a value for a context is injected also have access
 
 === "No Build"
 	```jsx
-	import { Context } from "./rvx.js";
-	import { Emitter } from "./rvx.event.js";
+	import { Context, Emitter } from "./rvx.js";
 
 	const MESSAGE = new Context();
 

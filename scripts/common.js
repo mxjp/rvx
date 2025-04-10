@@ -22,7 +22,6 @@ export const moduleNames = [
 	"convert",
 	"dom",
 	"element",
-	"event",
 	"router",
 	"store",
 	"test",
