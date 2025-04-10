@@ -1,5 +1,5 @@
 import type { Component } from "../core/types.js";
-import { NEXT_ID } from "./internals.js";
+import { NEXT_ID } from "./internals/next-unique-id.js";
 
 /**
  * Allocate an ID that is unique in the current thread.
@@ -56,4 +56,21 @@ export function UseUniqueId(props: {
 	children: Component<string>;
 }): unknown {
 	return props.children(uniqueId());
+}
+
+const IDS = new WeakMap();
+
+/**
+ * Get a {@link uniqueId unique id} for the specified object.
+ *
+ * @param target The target object.
+ * @returns The id. This is always the same id for the same object.
+ */
+export function uniqueIdFor(target: object): string {
+	let id = IDS.get(target);
+	if (id === undefined) {
+		id = uniqueId();
+		IDS.set(target, id);
+	}
+	return id;
 }

@@ -23,7 +23,6 @@ export const moduleNames = [
 	"dom",
 	"element",
 	"event",
-	"id",
 	"router",
 	"store",
 	"test",

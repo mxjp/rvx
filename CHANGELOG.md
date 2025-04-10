@@ -1,6 +1,7 @@
 # Changelog
 
 ## 20.0
++ **Breaking:** Move `rvx/id` to `rvx`.
 + **Breaking:** Remove `IndexFor`. Use `Index` instead.
 + **Breaking:** Remove `Range` from `rvx/dom`.
 + **Breaking:** Remove `created`. Use `useMicrotask` instead.

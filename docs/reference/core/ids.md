@@ -5,7 +5,7 @@ Allocate an ID that is unique in the current thread.
 
 === "JSX"
 	```jsx
-	import { uniqueId } from "rvx/id";
+	import { uniqueId } from "rvx";
 
 	const id = uniqueId();
 
@@ -17,8 +17,7 @@ Allocate an ID that is unique in the current thread.
 
 === "No Build"
 	```jsx
-	import { e } from "./rvx.js";
-	import { uniqueId } from "./rvx.id.js";
+	import { e, uniqueId } from "./rvx.js";
 
 	const id = uniqueId();
 
@@ -36,7 +35,7 @@ A component for allocating a unique id using [`uniqueId`](#uniqueid).
 
 === "JSX"
 	```jsx
-	import { UseUniqueId } from "rvx/id";
+	import { UseUniqueId } from "rvx";
 
 	<UseUniqueId>
 		{id => <>
@@ -48,8 +47,7 @@ A component for allocating a unique id using [`uniqueId`](#uniqueid).
 
 === "No Build"
 	```jsx
-	import { e } from "./rvx.js";
-	import { UseUniqueId } from "./rvx.id.js";
+	import { e, UseUniqueId } from "./rvx.js";
 
 	UseUniqueId({
 		children: id => [
@@ -64,7 +62,7 @@ Get a [unique id](#uniqueid) for the specified object.
 
 === "JSX"
 	```jsx
-	import { uniqueIdFor, For } from "rvx/id";
+	import { For, uniqueIdFor } from "rvx";
 
 	<ul>
 		<For each={items}>
@@ -75,8 +73,7 @@ Get a [unique id](#uniqueid) for the specified object.
 
 === "No Build"
 	```jsx
-	import { forEach, e } from "./rvx.js";
-	import { uniqueIdFor } from "./rvx.id.js";
+	import { e, forEach, uniqueIdFor } from "./rvx.js";
 
 	e("ul").append(
 		forEach(items, item => e("li").set("id", uniqueIdFor(item)).append(...))

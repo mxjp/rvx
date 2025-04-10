@@ -27,6 +27,9 @@ hide:
 - ## [Views](./core/views/index.md)
 	Views are sequences of nodes and enable conditional rendering of content.
 
+- ### [Unique IDs](./core/ids.md)
+	Create small unique IDs for DOM elements.
+
 </div>
 
 ---
@@ -40,9 +43,6 @@ hide:
 
 - ### [Conversion Utilities](./convert.md)
 	Utilities for converting expressions & signals.
-
-- ### [Unique IDs](./ids.md)
-	Create small unique IDs for DOM elements.
 
 - ### [Event System](./events.md)
 	A tiny synchronous event system.

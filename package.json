@@ -58,10 +58,6 @@
 			"types": "./dist/es/event/index.d.ts",
 			"default": "./dist/es/event/index.js"
 		},
-		"./id": {
-			"types": "./dist/es/id/index.d.ts",
-			"default": "./dist/es/id/index.js"
-		},
 		"./router": {
 			"types": "./dist/es/router/index.d.ts",
 			"default": "./dist/es/router/index.js"

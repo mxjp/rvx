@@ -5,4 +5,5 @@ export * from "./env.js";
 export * from "./lifecycle.js";
 export * from "./signals.js";
 export type * from "./types.js";
+export * from "./unique-id.js";
 export * from "./view.js";
