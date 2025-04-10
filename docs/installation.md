@@ -1,29 +1,19 @@
 # Installation
 
-## Buildless Options
-Rvx can be used without any build system by directly using one of the es module bundles listed below. Note, that these bundles don't include any JSX related code.
-
-You can find all of these bundles in the [npm package's](#npm-package) `dist/` directory or use one of the CDNs below:
-
-=== "unpkg.com"
-	| Modules | Human Readable | Minified | Types |
-	|-|-|-|-|
-	| Core | [rvx.js](https://unpkg.com/rvx/dist/rvx.js) | [rvx.min.js](https://unpkg.com/rvx/dist/rvx.min.js) | [rvx.d.ts](https://unpkg.com/rvx/dist/rvx.d.ts) |
-	| All | [rvx.all.js](https://unpkg.com/rvx/dist/rvx.all.js) | [rvx.all.min.js](https://unpkg.com/rvx/dist/rvx.all.min.js) | [rvx.all.d.ts](https://unpkg.com/rvx/dist/rvx.all.d.ts) |
-
-=== "jsdelivr.com"
-	| Modules | Human Readable | Minified | Types |
-	|-|-|-|-|
-	| Core | [rvx.js](https://cdn.jsdelivr.net/npm/rvx/dist/rvx.js) | [rvx.min.js](https://cdn.jsdelivr.net/npm/rvx/dist/rvx.min.js) | [rvx.d.ts](https://cdn.jsdelivr.net/npm/rvx/dist/rvx.d.ts) |
-	| All | [rvx.all.js](https://cdn.jsdelivr.net/npm/rvx/dist/rvx.all.js) | [rvx.all.min.js](https://cdn.jsdelivr.net/npm/rvx/dist/rvx.all.min.js) | [rvx.all.d.ts](https://cdn.jsdelivr.net/npm/rvx/dist/rvx.all.d.ts) |
-
-If none of these fit your needs, you can [create a custom bundle](#custom-bundles).
-
 ## Npm Package
 Rvx is available as an [npm package](https://www.npmjs.com/package/rvx).
 ```bash
 npm i rvx
 ```
+
+## Buildless Options
+Rvx can be used without any build system by directly using one of the es module bundles listed below. Note, that these bundles don't include any JSX related code.
+
+You can find all of these bundles in the [npm package's](#npm-package) `dist/` directory or use one of the CDNs below:
+
+<!-- RVX:MODULES:START -->
+_This table is created when building the docs._
+<!-- RVX:MODULES:END -->
 
 ## JSX
 Rvx provides a react 17 and a legacy JSX runtime.
@@ -91,31 +81,3 @@ To use the legacy runtime, you can manually import the `jsx` factory and the `Fr
 ```js
 import { jsx, Fragment } from "rvx/jsx";
 ```
-
-### Custom Bundles
-If the bundles above don't fit your needs, you can build a custom bundle that only includes the modules you need:
-```bash
-git clone https://github.com/mxjp/rvx
-cd rvx
-
-npm ci
-npm run build
-node scripts/bundle.js [...args]
-
-# Bundle "core" and "async" into "./custom.js", "./custom.min.js" and "./custom.d.ts":
-node scripts/bundle.js -m core async -o ./custom
-```
-
-+ `--modules | -m <...modules>`
-	+ Specify what modules to include.
-	+ This can be any directory or filename that exists in the [src](https://github.com/mxjp/rvx/tree/main/src) directory without file extension.
-	+ Default is `core`
-+ `--output | -o <path>`
-	+ Specify the output path of the bundle without extension.
-	+ Default is `./dist/rvx.custom`
-+ `--no-readable` - Skip generating the human readable bundle.
-+ `--no-minified` - Skip generating the minified bundle.
-+ `--no-types` - Skip generating the type definition bundle.
-+ `--no-license` - Omit the license banner. The license banner is always omitted from minified bundles.
-+ `--gzip` - Emit a gzip compressed bundle with additional `.gz` extension.
-+ `--brotli` - Emit a brotli compressed bundle with additional `.br` extension.

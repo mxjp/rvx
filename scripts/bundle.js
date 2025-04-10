@@ -1,26 +1,9 @@
 import terser from "@rollup/plugin-terser";
 import { readFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import { rollup } from "rollup";
 import { dts } from "rollup-plugin-dts";
-
-const root = join(fileURLToPath(import.meta.url), "../..");
-const dist = join(root, "dist");
-const tscOut = join(dist, "es");
-
-const modules = [
-	"async",
-	"convert",
-	"core",
-	"dom",
-	"element",
-	"event",
-	"id",
-	"router",
-	"store",
-	"test",
-];
+import { bundleName, dist, moduleNames, root, tscOut } from "./common.js";
 
 const license = await readFile(join(root, "LICENSE"), "utf-8");
 const bannerPlugin = {
@@ -54,17 +37,9 @@ function onwarn(warn, fallback) {
 	fallback(warn);
 }
 
-/**
- * @param {string} moduleName
- * @param {boolean} min
- */
-function moduleFile(moduleName) {
-	return moduleName === "core" ? "rvx" : `rvx.${moduleName}`;
-}
-
 const MODULE_PREFIX = "rvx-module:";
 
-for (const moduleName of modules) {
+for (const moduleName of moduleNames) {
 	console.group("bundle:", moduleName);
 
 	/**
@@ -81,7 +56,7 @@ for (const moduleName of modules) {
 		}
 		const target = relative(tscOut, id);
 		const targetModuleName = /^([^\\\/]+)[\\\/]/.exec(target)?.[1];
-		if (!modules.includes(targetModuleName)) {
+		if (!moduleNames.includes(targetModuleName)) {
 			throw new Error(`invalid module name: ${targetModuleName}`);
 		}
 		if (targetModuleName !== moduleName) {
@@ -102,10 +77,10 @@ for (const moduleName of modules) {
 
 	await esBundle.write({
 		format: "es",
-		file: join(dist, moduleFile(moduleName) + ".js"),
+		file: join(dist, bundleName(moduleName) + ".js"),
 		paths: id => {
 			if (id.startsWith(MODULE_PREFIX)) {
-				return `./${moduleFile(id.slice(MODULE_PREFIX.length))}.js`;
+				return `./${bundleName(id.slice(MODULE_PREFIX.length))}.js`;
 			}
 		},
 		plugins: [
@@ -116,10 +91,10 @@ for (const moduleName of modules) {
 
 	await esBundle.write({
 		format: "es",
-		file: join(dist, moduleFile(moduleName) + ".min.js"),
+		file: join(dist, bundleName(moduleName) + ".min.js"),
 		paths: id => {
 			if (id.startsWith(MODULE_PREFIX)) {
-				return `./${moduleFile(id.slice(MODULE_PREFIX.length))}.min.js`;
+				return `./${bundleName(id.slice(MODULE_PREFIX.length))}.min.js`;
 			}
 		},
 		plugins: [
@@ -145,21 +120,11 @@ for (const moduleName of modules) {
 	});
 
 	await typesBundle.write({
-		file: join(dist, moduleFile(moduleName) + ".d.ts"),
+		file: join(dist, bundleName(moduleName) + ".d.ts"),
 		paths: (id) => {
 			id = resolveId(id) ?? id;
 			if (id.startsWith(MODULE_PREFIX)) {
-				return `./${moduleFile(id.slice(MODULE_PREFIX.length))}.js`;
-			}
-		},
-	});
-
-	await typesBundle.write({
-		file: join(dist, moduleFile(moduleName) + ".min.d.ts"),
-		paths: (id) => {
-			id = resolveId(id) ?? id;
-			if (id.startsWith(MODULE_PREFIX)) {
-				return `./${moduleFile(id.slice(MODULE_PREFIX.length))}.min.js`;
+				return `./${bundleName(id.slice(MODULE_PREFIX.length))}.js`;
 			}
 		},
 	});

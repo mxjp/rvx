@@ -32,6 +32,7 @@ jobs:
       - run: npm run build
       - run: npm ci --prefix examples
       - run: npm run build --prefix examples
+      - run: node scripts/update-install-docs.js
       - run: python -m venv venv
       - run: venv/bin/pip install mkdocs-material
       - run: venv/bin/python -m mkdocs build --site-dir docs_out
