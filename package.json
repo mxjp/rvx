@@ -76,7 +76,7 @@
 		}
 	},
 	"scripts": {
-		"build": "mx-parallel npm:build:es npm:build:types && mx-parallel npm:build:bundle:* npm:build:tests npm:build:jsx-legacy-runtime-tests",
+		"build": "mx-parallel npm:build:es npm:build:types && mx-parallel npm:build:bundles npm:build:tests npm:build:jsx-legacy-runtime-tests",
 		"build:es": "tsc -p tsconfig-es.json",
 		"build:types": "tsc -p tsconfig-types.json",
 		"build:tests": "tsc -p tests/tsconfig.json",
