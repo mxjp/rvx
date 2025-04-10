@@ -1,16 +1,18 @@
 #!/usr/bin/env node
 import { spawn } from "node:child_process";
 import { access, mkdir } from "node:fs/promises";
-import { dirname, join, relative } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { rollup } from "rollup";
 import yargsParser from "yargs-parser";
+import { tscOut } from "../scripts/common.js";
 
 const ctx = dirname(fileURLToPath(import.meta.url));
 const repo = join(ctx, "..");
 const snapshots = join(ctx, "src/snapshots");
 
 const args = yargsParser(process.argv.slice(2), {
-	boolean: ["build", "bundle"],
+	boolean: ["build"],
 	string: ["name"],
 });
 
@@ -25,9 +27,34 @@ if (args.build ?? true) {
 	await exec(repo, "npm run build:es");
 }
 
-if (args.bundle ?? true) {
-	await exec(repo, `node scripts/bundle.js --no-minified --no-types --no-license -m core core/jsx/r17 dom -o ${join(relative(repo, snapshots), name)}`);
-}
+const MAIN = "rvx:benchmark:main";
+
+const bundle = await rollup({
+	input: MAIN,
+	plugins: [
+		{
+			resolveId(id) {
+				if (id === MAIN) {
+					return id;
+				}
+			},
+			load(id) {
+				if (id === MAIN) {
+					return [
+						"core/index.js",
+						"core/jsx/r17.js",
+						"dom/index.js",
+					].map(file => `export * from ${JSON.stringify(join(tscOut, file))};`).join("\n");
+				}
+			},
+		},
+	],
+});
+
+await bundle.write({
+	format: "es",
+	file: join(snapshots, name + ".js"),
+});
 
 console.log(`Created snapshot: ${name}.js`);
 
