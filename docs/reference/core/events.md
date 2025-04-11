@@ -172,7 +172,7 @@ To allow components to listen to events, it's enough to pass the `event` as a pr
 
 === "JSX"
 	```jsx
-	import { Event, Emitter } from "rvx/event";
+	import { Event, Emitter } from "rvx";
 
 	function SomeComponent(props: { onMessage: Event<[message: string]> }) {
 		props.onMessage(message => {
@@ -187,7 +187,7 @@ To allow components to listen to events, it's enough to pass the `event` as a pr
 
 === "No Build"
 	```jsx
-	import { Emitter } from "./rvx.event.js";
+	import { Emitter } from "./rvx.js";
 
 	/**
 	 * @param {object} props

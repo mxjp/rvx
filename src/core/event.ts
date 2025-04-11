@@ -16,7 +16,7 @@ export interface Event<T extends unknown[]> {
  *
  * @example
  * ```tsx
- * import { Emitter } from "rvx/event";
+ * import { Emitter } from "rvx";
  *
  * const emitter = new Emitter<[address: string, port: number]>();
  *
