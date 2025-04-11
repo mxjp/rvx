@@ -1,4 +1,4 @@
-import { useTimeout } from "../async/timers.js";
+import { teardown } from "../core/lifecycle.js";
 import { $, Signal, watchUpdates } from "../core/signals.js";
 
 /**
@@ -24,7 +24,8 @@ export function debounce<T>(source: Signal<T>, delay: number): Signal<T> {
 
 	watchUpdates(input, value => {
 		if (!Object.is(source.value, value)) {
-			useTimeout(() => source.value = value, delay);
+			const timeout = setTimeout(() => { source.value = value }, delay);
+			teardown(() => clearTimeout(timeout));
 		}
 	});
 
