@@ -1,5 +1,8 @@
 # Changelog
 
+## 20.1
++ Add `useAnimation` utility.
+
 ## 20.0
 + **Breaking:** Move `rvx/id` to `rvx`.
 + **Breaking:** Move `rvx/event` to `rvx`.

@@ -81,3 +81,33 @@ export function useInterval(callback: () => void, interval: number): void {
 		}
 	}, interval);
 }
+
+/**
+ * Repeatedly {@link requestAnimationFrame request animation frames}.
+ *
+ * + If the current lifecycle is disposed, the latest request is cancelled.
+ * + The lifecycle within the callback is disposed before each call and when the current lifecycle is disposed.
+ *
+ * @param callback The callback to run with a {@link performance.now high resolution timestamp}.
+ * @throws An error if teardown hooks are explicitly un-supported in this context.
+ */
+export function useAnimation(callback: (now: number) => void): void {
+	let active = true;
+	let dispose: TeardownHook | undefined;
+	let handle: number;
+	teardown(() => {
+		active = false;
+		cancelAnimationFrame(handle);
+		dispose?.();
+	});
+	handle = requestAnimationFrame(function next(now) {
+		handle = requestAnimationFrame(next);
+		dispose?.();
+		dispose = undefined;
+		dispose = capture(() => callback(now));
+		if (!active) {
+			dispose();
+			dispose = undefined;
+		}
+	});
+}

@@ -1,4 +1,5 @@
 import { JSDOM } from "jsdom";
+import { polyfillAnimationFrames } from "./polyfills/animation-frames.js";
 
 const dom = new JSDOM();
 
@@ -26,3 +27,5 @@ const { onLeak } = await import("rvx");
 onLeak(() => {
 	throw new Error("teardown leak");
 });
+
+polyfillAnimationFrames();

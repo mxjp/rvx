@@ -1,9 +1,9 @@
 import test, { suite } from "node:test";
 import { capture, nocapture, teardown } from "rvx";
-import { useInterval, useMicrotask, useTimeout } from "rvx/async";
+import { useAnimation, useInterval, useMicrotask, useTimeout } from "rvx/async";
 import { poll } from "rvx/test";
 import { assertEvents, withMsg } from "../common.js";
-import { throws } from "node:assert";
+import { strictEqual, throws } from "node:assert";
 
 await suite("async/timers", async () => {
 	await suite("useMicrotask", async () => {
@@ -73,7 +73,7 @@ await suite("async/timers", async () => {
 				}, delay);
 			});
 			assertEvents(events, []);
-			await poll(() => events.includes("done"), delay * 2);
+			await poll(() => events.includes("done"), 1000);
 			assertEvents(events, ["done"]);
 			dispose();
 			assertEvents(events, ["teardown"]);
@@ -101,7 +101,7 @@ await suite("async/timers", async () => {
 					events.push("done");
 				}, delay);
 			});
-			await poll(() => events.includes("done"), delay * 2);
+			await poll(() => events.includes("done"), 1000);
 			assertEvents(events, ["done", "teardown"]);
 		});
 
@@ -136,7 +136,7 @@ await suite("async/timers", async () => {
 					}
 				}, delay);
 			});
-			await poll(() => events.includes("dispose"), delay * 4);
+			await poll(() => events.includes("dispose"), 1000);
 			assertEvents(events, ["s:0", "e:0", "s:1", "e:1", "s:2", "dispose", "e:2"]);
 			await new Promise<void>(r => setTimeout(r, delay * 2));
 			assertEvents(events, []);
@@ -169,7 +169,7 @@ await suite("async/timers", async () => {
 					}
 				}, delay);
 			});
-			await poll(() => events.includes("dispose"), delay * 4);
+			await poll(() => events.includes("dispose"), 1000);
 			assertEvents(events, ["s:0", "e:0", "s:1", "e:1", "s:2", "dispose", "e:2"]);
 			await new Promise<void>(r => setTimeout(r, delay * 2));
 			assertEvents(events, []);
@@ -184,6 +184,83 @@ await suite("async/timers", async () => {
 				}, withMsg("G0"));
 			});
 			await new Promise<void>(r => setTimeout(r, delay * 2));
+			assertEvents(events, []);
+		});
+	});
+
+	await suite("useAnimation", async () => {
+		await test("regular usage", async () => {
+			const events: unknown[] = [];
+			const dispose = capture(() => {
+				let nextId = 0;
+				useAnimation(now => {
+					strictEqual(typeof now, "number");
+					const id = nextId++;
+					teardown(() => {
+						events.push(`e:${id}`);
+					});
+					events.push(`s:${id}`);
+					if (id === 2) {
+						queueMicrotask(dispose);
+						events.push("dispose");
+					}
+				});
+			});
+			try {
+				await poll(() => events.includes("dispose"), 1000);
+				assertEvents(events, ["s:0", "e:0", "s:1", "e:1", "s:2", "dispose", "e:2"]);
+			} finally {
+				dispose();
+			}
+		});
+
+		await test("immediate disposal", async () => {
+			const events: unknown[] = [];
+			capture(() => {
+				useAnimation(() => {
+					events.push("timeout");
+					throw new Error("not disposed");
+				});
+			})();
+			await new Promise<void>(r => setTimeout(r, 50));
+			assertEvents(events, []);
+		});
+
+		await test("callback disposal", async () => {
+			const events: unknown[] = [];
+			const dispose = capture(() => {
+				let nextId = 0;
+				useAnimation(now => {
+					const id = nextId++;
+					teardown(() => {
+						events.push(`e:${id}`);
+					});
+					events.push(`s:${id}`);
+					if (id === 2) {
+						dispose();
+						events.push("dispose");
+					}
+				});
+			});
+			try {
+				await poll(() => events.includes("dispose"), 1000);
+				assertEvents(events, ["s:0", "e:0", "s:1", "e:1", "s:2", "dispose", "e:2"]);
+			} finally {
+				dispose();
+			}
+		});
+
+		await test("nocapture context", async () => {
+			const events: unknown[] = [];
+			nocapture(() => {
+				throws(() => {
+					useAnimation(() => {
+						events.push("done");
+						throw new Error("not disposed");
+					});
+				}, withMsg("G0"));
+			});
+			await new Promise<void>(r => setTimeout(r, 50));
 			assertEvents(events, []);
 		});
 	});
