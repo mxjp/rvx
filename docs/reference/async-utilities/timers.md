@@ -59,3 +59,16 @@ The same as `setInterval`, but with lifecycle support.
 
 	useInterval(() => { ... }, 1000);
 	```
+
+## `useAnimation`
+Repeatedly request animation frames using `requestAnimationFrame`.
+
++ If the current lifecycle is disposed, the latest request is cancelled.
++ The lifecycle within the callback is disposed before each call and when the current lifecycle is disposed.
+
+=== "JSX"
+	```jsx
+	import { useAnimation } from "rvx/async";
+
+	useAnimation(() => { ... });
+	```
