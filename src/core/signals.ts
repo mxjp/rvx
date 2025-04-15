@@ -87,6 +87,11 @@ export class Signal<T> {
 	#source: SignalSource;
 
 	/**
+	 * The {@link SignalSource source root}.
+	 */
+	#root: Signal<unknown>;
+
+	/**
 	 * Create a new signal.
 	 *
 	 * @param value The initial value.
@@ -95,6 +100,7 @@ export class Signal<T> {
 	constructor(value: T, source?: SignalSource) {
 		this.#value = value;
 		this.#source = source;
+		this.#root = source ? source.#root : this;
 	}
 
 	/**
@@ -131,10 +137,17 @@ export class Signal<T> {
 	}
 
 	/**
-	 * The {@link SignalSource source} this signal has been derived from.
+	 * The {@link SignalSource source}, this signal has been derived from.
 	 */
 	get source(): SignalSource {
 		return this.#source;
+	}
+
+	/**
+	 * The root {@link SignalSource source}, this signal has been derived from or this signal itself if it hasn't been derived.
+	 */
+	get root(): Signal<unknown> {
+		return this.#root;
 	}
 
 	/**

@@ -27,9 +27,15 @@ await suite("signals", async () => {
 		const a = $();
 		const b = $(42, a);
 		const c = new Signal(77, b);;
+
 		strictEqual(a.source, undefined);
+		strictEqual(a.root, a);
+
 		strictEqual(b.source, a);
+		strictEqual(b.root, a);
+
 		strictEqual(c.source, b);
+		strictEqual(c.root, a);
 	});
 
 	await test("pipe", () => {

@@ -1,5 +1,8 @@
 # Changelog
 
+## 20.2
++ Add `Signal.root` property.
+
 ## 20.1
 + Add `useAnimation` utility.
 
