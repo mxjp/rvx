@@ -1506,7 +1506,10 @@ await suite("signals", async () => {
 		await test("external untrack", () => {
 			const events: unknown[] = [];
 			const signal = $(1);
-			const pipe = uncapture(() => trigger(() => events.push("trigger")));
+			const pipe = uncapture(() => trigger(() => {
+				strictEqual(isTracking(), false);
+				events.push("trigger");
+			}));
 			uncapture(() => {
 				effect(() => {
 					strictEqual(isTracking(), true);
@@ -1531,7 +1534,10 @@ await suite("signals", async () => {
 		await test("internal untrack", () => {
 			const events: unknown[] = [];
 			const signal = $(1);
-			const pipe = uncapture(() => trigger(() => events.push("trigger")));
+			const pipe = uncapture(() => trigger(() => {
+				strictEqual(isTracking(), false);
+				events.push("trigger");
+			}));
 			uncapture(() => {
 				effect(() => {
 					pipe(() => {
@@ -1547,6 +1553,91 @@ await suite("signals", async () => {
 			assertEvents(events, ["access"]);
 			signal.notify();
 			assertEvents(events, []);
+		});
+
+		await test("callback side effect", () => {
+			const events: unknown[] = [];
+			const signal = $(1);
+			const pipe = uncapture(() => trigger(() => {
+				strictEqual(isTracking(), false);
+				const value = signal.value;
+				events.push(`t:${value}`);
+				if (value === 2) {
+					signal.value++;
+				}
+			}));
+			strictEqual(pipe(signal), 1);
+			assertEvents(events, []);
+			signal.value = 2;
+			assertEvents(events, ["t:2"]);
+		});
+
+		await test("callback re-entry", () => {
+			const events: unknown[] = [];
+			const signal = $(1);
+			const pipe = uncapture(() => trigger(() => {
+				strictEqual(isTracking(), false);
+				const value = signal.value;
+				events.push(`t:${value}`);
+				if (value < 4) {
+					strictEqual(pipe(signal), value);
+					signal.value++;
+				}
+				events.push(`e:${value}`);
+			}));
+			strictEqual(pipe(signal), 1);
+			assertEvents(events, []);
+			signal.value = 2;
+			assertEvents(events, ["t:2", "t:3", "t:4", "e:4", "e:3", "e:2"]);
+		});
+
+		await test("self nesting", () => {
+			const events: unknown[] = [];
+			const a = $(1);
+			const b = $(2);
+
+			const pipe = uncapture(() => trigger(() => {
+				strictEqual(isTracking(), false);
+				events.push(`${a.value}:${b.value}`);
+			}));
+
+			strictEqual(pipe(() => {
+				strictEqual(a.value, 1);
+				strictEqual(b.value, 2);
+				assertEvents(events, []);
+
+				strictEqual(pipe(() => {
+					b.access();
+					return "a";
+				}), "a");
+				a.value = 3;
+				assertEvents(events, []);
+				b.value = 4;
+				assertEvents(events, ["3:4"]);
+
+				a.access();
+				b.value = 5;
+				assertEvents(events, []);
+				a.value = 6;
+				assertEvents(events, ["6:5"]);
+
+				strictEqual(pipe(() => "b"), "b");
+				a.value = 7;
+				b.value = 8;
+				assertEvents(events, []);
+
+				strictEqual(pipe(() => {
+					a.access();
+					return "c";
+				}), "c");
+				return 42;
+			}), 42);
+
+			assertEvents(events, []);
+			b.value = 9;
+			assertEvents(events, []);
+			a.value = 10;
+			assertEvents(events, ["10:9"]);
 		});
 	});
 });

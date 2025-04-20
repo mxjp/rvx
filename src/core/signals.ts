@@ -628,7 +628,7 @@ export interface TriggerPipe {
 export function trigger(fn: () => void): TriggerPipe {
 	const hookFn = Context.wrap(() => {
 		clear();
-		fn();
+		useStack(ACCESS_STACK, undefined, fn);
 	});
 	const { c: clear, a: access } = _observer(hookFn);
 	teardown(clear);
