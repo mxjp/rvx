@@ -627,8 +627,16 @@ export interface TriggerPipe {
  */
 export function trigger(fn: () => void): TriggerPipe {
 	const hookFn = Context.wrap(() => {
-		clear();
-		useStack(ACCESS_STACK, undefined, fn);
+		try {
+			clear();
+			ACCESS_STACK.push(undefined);
+			// Default tracking behavior is restored in case this observer is notified during an "untrack" call:
+			TRACKING_STACK.push(true);
+			fn();
+		} finally {
+			ACCESS_STACK.pop();
+			TRACKING_STACK.pop();
+		}
 	});
 	const { c: clear, a: access } = _observer(hookFn);
 	teardown(clear);

@@ -1555,6 +1555,28 @@ await suite("signals", async () => {
 			assertEvents(events, []);
 		});
 
+		await test("callback tracking stack isolation", () => {
+			const events: unknown[] = [];
+			const outer = $(1);
+			const outerPipe = uncapture(() => trigger(() => {
+				events.push("outer");
+
+				const inner = $(1);
+				const innerPipe = uncapture(() => trigger(() => {
+					events.push("inner");
+				}));
+
+				innerPipe(inner);
+				inner.value = 2;
+			}));
+
+			outerPipe(outer);
+			untrack(() => {
+				outer.value = 2;
+			});
+			assertEvents(events, ["outer", "inner"]);
+		});
+
 		await test("callback side effect", () => {
 			const events: unknown[] = [];
 			const signal = $(1);
