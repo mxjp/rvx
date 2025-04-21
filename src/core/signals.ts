@@ -351,6 +351,24 @@ const _observer = (hook: NotifyHook): Observer => {
 };
 
 /**
+ * Internal utility to call a function while tracking signal accesses.
+ *
+ * @param frame The access hook.
+ * @param fn The function to call.
+ * @returns The function's return value.
+ */
+const _access = <T>(frame: AccessHook | undefined, fn: () => T): T => {
+	try {
+		ACCESS_STACK.push(frame);
+		TRACKING_STACK.push(true);
+		return fn();
+	} finally {
+		ACCESS_STACK.pop();
+		TRACKING_STACK.pop();
+	}
+};
+
+/**
  * Watch an expression until the current lifecycle is disposed.
  *
  * @param expr The expression to watch.
@@ -391,23 +409,12 @@ export function watch<T>(expr: Expression<T>, fn: (value: T) => void): void {
 				// This covers an edge case where this observer is notified during a batch and then disposed immediately.
 				return;
 			}
-			try {
-				clear();
-				ACCESS_STACK.push(access);
-				// Default tracking behavior is restored in case this observer is notified during an "untrack" call:
-				TRACKING_STACK.push(true);
-				value = nocapture(runExpr);
-			} finally {
-				ACCESS_STACK.pop();
-				TRACKING_STACK.pop();
-			}
-			try {
-				ACCESS_STACK.push(undefined);
+			clear();
+			value = _access(access, () => nocapture(runExpr));
+			dispose = _access(undefined, () => {
 				dispose();
-				dispose = capture(runFn);
-			} finally {
-				ACCESS_STACK.pop();
-			}
+				return capture(runFn);
+			});
 		}));
 		const { c: clear, a: access } = _observer(entry);
 		teardown(() => {
@@ -458,19 +465,9 @@ export function effect(fn: () => void): void {
 			// This covers an edge case where this observer is notified during a batch and then disposed immediately.
 			return;
 		}
-		if (dispose) {
-			useStack(ACCESS_STACK, undefined, dispose);
-		}
-		try {
-			clear();
-			ACCESS_STACK.push(access);
-			// Default tracking behavior is restored in case this observer is notified during an "untrack" call:
-			TRACKING_STACK.push(true);
-			dispose = capture(runFn);
-		} finally {
-			ACCESS_STACK.pop();
-			TRACKING_STACK.pop();
-		}
+		useStack(ACCESS_STACK, undefined, dispose);
+		clear();
+		dispose = _access(access, () => capture(runFn));
 	});
 	const { c: clear, a: access } = _observer(entry);
 	teardown(() => {
@@ -627,16 +624,8 @@ export interface TriggerPipe {
  */
 export function trigger(fn: () => void): TriggerPipe {
 	const hookFn = Context.wrap(() => {
-		try {
-			clear();
-			ACCESS_STACK.push(undefined);
-			// Default tracking behavior is restored in case this observer is notified during an "untrack" call:
-			TRACKING_STACK.push(true);
-			fn();
-		} finally {
-			ACCESS_STACK.pop();
-			TRACKING_STACK.pop();
-		}
+		clear();
+		_access(undefined, fn);
 	});
 	const { c: clear, a: access } = _observer(hookFn);
 	teardown(clear);
