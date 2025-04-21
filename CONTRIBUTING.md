@@ -25,11 +25,10 @@ scripts/
 # All the runtime source code:
 src/
 	async/   # Async utilities
+	convert/ # Reactive conversion utilities
 	core/    # The core module
 	dom/     # rvx dom
 	element/ # Web Component API (RvxElement)
-	event/   # Event System
-	id/      # Unique ID utilities
 	router/  # Routing API
 	store/   # Store API (reactive wrappers)
 	test/    # Test utilities
@@ -37,6 +36,7 @@ src/
 # Minimal templates for new projects:
 templates/
 	vite/     # Vite + TypeScript & JSX
+	vite-js/  # Vite only
 	vite-ssg/ # Vite + TypeScript & JSX (Static site generation)
 	webpack/  # Webpack + TypeScript & JSX
 
