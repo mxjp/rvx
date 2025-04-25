@@ -1,16 +1,10 @@
 import { NOOP } from "./internals/noop.js";
-import { TEARDOWN_STACK, TeardownFrame } from "./internals/teardown-stack.js";
-import { useStack } from "./internals/use-stack.js";
+import { TEARDOWN_STACK, TeardownFrame, useStack } from "./internals/stacks.js";
 
 /**
  * A function that is called to dispose something.
  */
 export type TeardownHook = () => void;
-
-/**
- * A function that is called after something has been synchronously created. E.g. after rendering a tree of elements.
- */
-export type CreatedHook = () => void;
 
 /**
  * Internal utility to dispose the specified hooks in reverse order.

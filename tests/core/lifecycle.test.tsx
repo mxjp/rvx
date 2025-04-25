@@ -1,7 +1,7 @@
 import { deepStrictEqual, fail, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
 import { capture, captureSelf, nocapture, onLeak, teardown, TeardownHook, teardownOnError, uncapture } from "rvx";
-import { TEARDOWN_STACK } from "../../dist/es/core/internals/teardown-stack.js";
+import { TEARDOWN_STACK } from "../../dist/es/core/internals/stacks.js";
 import { assertEvents, withMsg } from "../common.js";
 
 await suite("lifecycle", async () => {

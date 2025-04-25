@@ -1,6 +1,6 @@
 import { Context } from "./context.js";
 import { NOOP } from "./internals/noop.js";
-import { useStack } from "./internals/use-stack.js";
+import { ACCESS_STACK, AccessHook, NotifyHook, TRACKING_STACK, useStack } from "./internals/stacks.js";
 import { capture, nocapture, teardown, TeardownHook } from "./lifecycle.js";
 
 /**
@@ -9,33 +9,6 @@ import { capture, nocapture, teardown, TeardownHook } from "./lifecycle.js";
  * Outside of a batch, this is undefined.
  */
 let BATCH: Set<NotifyHook> | undefined;
-
-/**
- * A stack where the top value controls if signal accesses are currently tracked.
- */
-const TRACKING_STACK: boolean[] = [true];
-
-/**
- * A stack where the top value is called for each tracked signal access.
- */
-const ACCESS_STACK: (AccessHook | undefined)[] = [];
-
-/**
- * A function that is called by a signal or batch when updated.
- */
-interface NotifyHook {
-	(): void;
-}
-
-/**
- * A function that is called by a signal when accessed.
- */
-interface AccessHook {
-	/**
-	 * @param hooks See `Signal.#hooks`.
-	 */
-	(hooks: Set<NotifyHook>): void;
-}
 
 /**
  * Internal function to call the specified hook.

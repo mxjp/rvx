@@ -1,10 +1,4 @@
-
-/**
- * Stack of context windows.
- *
- * Each context window is a stack of contexts where a value was provided during that window.
- */
-const WINDOWS: Context<unknown>[][] = [[]];
+import { CONTEXT_WINDOWS } from "./internals/stacks.js";
 
 /**
  * Internal function to capture the current state of the specified context.
@@ -54,7 +48,7 @@ export class Context<T> {
 	 * Get the current value for this context.
 	 */
 	get current(): T {
-		if (this.#windowId === WINDOWS.length) {
+		if (this.#windowId === CONTEXT_WINDOWS.length) {
 			const stack = this.#stack;
 			return stack[stack.length - 1] ?? this.default;
 		}
@@ -72,11 +66,11 @@ export class Context<T> {
 	 * @returns The function's return value.
 	 */
 	inject<F extends (...args: any) => any>(value: T | null | undefined, fn: F, ...args: Parameters<F>): ReturnType<F> {
-		const window = WINDOWS[WINDOWS.length - 1];
+		const window = CONTEXT_WINDOWS[CONTEXT_WINDOWS.length - 1];
 		const stack = this.#stack;
 		const parent = this.#windowId;
 		try {
-			this.#windowId = WINDOWS.length;
+			this.#windowId = CONTEXT_WINDOWS.length;
 			window.push(this);
 			stack.push(value);
 			return fn(...args);
@@ -104,10 +98,10 @@ export class Context<T> {
 	 */
 	static window<F extends (...args: any) => any>(states: ContextState<unknown>[], fn: F, ...args: Parameters<F>): ReturnType<F> {
 		try {
-			WINDOWS.push([]);
+			CONTEXT_WINDOWS.push([]);
 			return Context.inject<F>(states, fn, ...args);
 		} finally {
-			WINDOWS.pop();
+			CONTEXT_WINDOWS.pop();
 		}
 	}
 
@@ -123,8 +117,8 @@ export class Context<T> {
 	 */
 	static inject<F extends (...args: any) => any>(states: ContextState<unknown>[], fn: F, ...args: Parameters<F>): ReturnType<F> {
 		const active: ActiveState<unknown>[] = [];
-		const windowId = WINDOWS.length;
-		const window = WINDOWS[windowId - 1];
+		const windowId = CONTEXT_WINDOWS.length;
+		const window = CONTEXT_WINDOWS[windowId - 1];
 		for (let i = 0; i < states.length; i++) {
 			const { context, value } = states[i];
 			active.push({ c: context, p: context.#windowId });
@@ -148,7 +142,7 @@ export class Context<T> {
 	 * Capture all current context states.
 	 */
 	static capture(): ContextState<unknown>[] {
-		return WINDOWS[WINDOWS.length - 1].map(_capture);
+		return CONTEXT_WINDOWS[CONTEXT_WINDOWS.length - 1].map(_capture);
 	}
 
 	/**
