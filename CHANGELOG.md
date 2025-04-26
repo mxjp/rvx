@@ -1,5 +1,8 @@
 # Changelog
 
+## 21.0
++ Add `isolate` utility.
+
 ## 20.2
 + Add `Signal.root` property.
 
