@@ -1,7 +1,7 @@
 import { deepStrictEqual, fail, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
 import { capture, captureSelf, nocapture, onLeak, teardown, TeardownHook, teardownOnError, uncapture } from "rvx";
-import { TEARDOWN_STACK } from "../../dist/es/core/internals/stacks.js";
+import { getLeakHook, setLeakHook } from "../../dist/es/core/internals/stacks.js";
 import { assertEvents, withMsg } from "../common.js";
 
 await suite("lifecycle", async () => {
@@ -60,16 +60,13 @@ await suite("lifecycle", async () => {
 		});
 
 		function cleanTeardownStack(fn: () => void): void {
-			strictEqual(TEARDOWN_STACK.length, 1);
-			const originalStack = Array.from(TEARDOWN_STACK);
-			TEARDOWN_STACK.length = 0;
+			const original = getLeakHook();
 			try {
+				setLeakHook(undefined);
 				fn();
 			} finally {
-				TEARDOWN_STACK.length = 0;
-				TEARDOWN_STACK.push(...originalStack);
+				setLeakHook(original);
 			}
-			strictEqual(TEARDOWN_STACK.length, 1);
 		}
 	});
 

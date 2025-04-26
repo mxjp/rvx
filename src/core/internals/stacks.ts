@@ -27,10 +27,20 @@ export interface AccessHook {
 	(hooks: Set<NotifyHook>): void;
 }
 
+export const LEAK: TeardownFrame = {
+	push(hook) {
+		LEAK_HOOK?.(hook);
+	},
+};
+
 /**
- * A stack where the last item may be an array which teardown hooks are captured in.
+ * A stack where the last item may be an object which teardown hooks are captured in.
+ *
+ * `undefined` indicates that hooks are intentionally not captured.
  */
-export const TEARDOWN_STACK: (TeardownFrame | undefined)[] = [];
+export const TEARDOWN_STACK: (TeardownFrame | undefined)[] = [LEAK];
+
+let LEAK_HOOK: LeakHook | undefined = undefined;
 
 /**
  * A stack where the top value controls if signal accesses are currently tracked.
@@ -59,4 +69,27 @@ export function useStack<T, R>(stack: T[], frame: T, fn: () => R): R {
 	} finally {
 		stack.pop();
 	}
+}
+
+export type LeakHook = (hook: TeardownHook) => void;
+
+/**
+ * Register a hook to be called when any teardown hooks are registered outside of any capture calls.
+ *
+ * Errors thrown from the leak hook will be thrown by the **teardown** calls.
+ */
+export function onLeak(hook: LeakHook): void {
+	if (LEAK_HOOK !== undefined) {
+		// onLeak must only be called once and outside of any capture calls:
+		throw new Error("G4");
+	}
+	LEAK_HOOK = hook;
+}
+
+export function getLeakHook(): LeakHook | undefined {
+	return LEAK_HOOK;
+}
+
+export function setLeakHook(hook: LeakHook | undefined): void {
+	LEAK_HOOK = hook;
 }

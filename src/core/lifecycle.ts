@@ -1,6 +1,8 @@
 import { NOOP } from "./internals/noop.js";
 import { TEARDOWN_STACK, TeardownFrame, useStack } from "./internals/stacks.js";
 
+export { LeakHook, onLeak } from "./internals/stacks.js";
+
 /**
  * A function that is called to dispose something.
  */
@@ -13,21 +15,6 @@ function dispose(hooks: TeardownHook[]) {
 	for (let i = hooks.length - 1; i >= 0; i--) {
 		hooks[i]();
 	}
-}
-
-export type LeakHook = (hook: TeardownHook) => void;
-
-/**
- * Register a hook to be called when any teardown hooks are registered outside of any capture calls.
- *
- * Errors thrown from the leak hook will be thrown by the **teardown** calls.
- */
-export function onLeak(hook: LeakHook): void {
-	if (TEARDOWN_STACK.length > 0) {
-		// onLeak must only be called once and outside of any capture calls:
-		throw new Error("G4");
-	}
-	TEARDOWN_STACK.push({ push: hook });
 }
 
 /**
