@@ -1,5 +1,6 @@
 import { NOOP } from "./internals/noop.js";
 import { TEARDOWN_STACK, TeardownFrame, useStack } from "./internals/stacks.js";
+import { isolate } from "./isolate.js";
 
 export { LeakHook, onLeak } from "./internals/stacks.js";
 
@@ -31,13 +32,10 @@ export function capture(fn: () => void): TeardownHook {
 	try {
 		useStack(TEARDOWN_STACK, hooks, fn);
 	} catch (error) {
-		dispose(hooks);
+		isolate(dispose, hooks);
 		throw error;
 	}
-	const length = hooks.length;
-	return length === 1
-		? hooks[0]
-		: (length === 0 ? NOOP : () => dispose(hooks));
+	return hooks.length === 0 ? NOOP : () => isolate(dispose, hooks);
 }
 
 /**
