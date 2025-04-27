@@ -1,6 +1,9 @@
 # Changelog
 
 ## 21.0
++ **Breaking:** The following APIs now isolate signal accesses and teardown hooks:
+	+ JSX element event listeners.
+	+ Element builder API event listeners.
 + Add `isolate` utility.
 
 ## 20.2

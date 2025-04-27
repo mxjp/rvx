@@ -1,6 +1,7 @@
 import { Context } from "../context.js";
 import { Attributes, ClassValue, EventArgs, EventListener, RefFn, StyleValue, TagNameMap, XMLNS } from "../element-common.js";
 import { ENV } from "../env.js";
+import { isolate } from "../isolate.js";
 import { watch } from "../signals.js";
 import { appendContent } from "./append-content.js";
 import { setAttr } from "./set-attr.js";
@@ -33,7 +34,8 @@ export function createElement(tagName: string, attrs: Attributes<TagNameMap[keyo
 				} else {
 					listener = value as EventListener<Event>;
 				}
-				elem.addEventListener(name.slice(3), Context.wrap(listener), options);
+				const wrapped = Context.wrap(listener);
+				elem.addEventListener(name.slice(3), event => isolate(wrapped, event), options);
 			} else if (name.startsWith("prop:")) {
 				const prop = name.slice(5);
 				watch(value, value => (elem as any)[prop] = value);

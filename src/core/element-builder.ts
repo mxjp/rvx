@@ -5,6 +5,7 @@ import { appendContent } from "./internals/append-content.js";
 import { setAttr } from "./internals/set-attr.js";
 import { setClass } from "./internals/set-class.js";
 import { setStyle } from "./internals/set-style.js";
+import { isolate } from "./isolate.js";
 import { Expression, watch } from "./signals.js";
 
 export class ElementBuilder<E extends Element> implements NodeTarget {
@@ -47,7 +48,8 @@ export class ElementBuilder<E extends Element> implements NodeTarget {
 	on<K extends keyof HTMLElementEventMap>(type: K, listener: EventListener<HTMLElementEventMap[K]>, options?: AddEventListenerOptions): this;
 	on<E extends Event>(type: string, listener: EventListener<E>, options?: AddEventListenerOptions): this;
 	on(type: string, listener: EventListener<Event>, options?: AddEventListenerOptions): this {
-		this.elem.addEventListener(type, Context.wrap(listener), options);
+		const wrapped = Context.wrap(listener);
+		this.elem.addEventListener(type, event => isolate(wrapped, event), options);
 		return this;
 	}
 
