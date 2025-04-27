@@ -5,6 +5,7 @@
 	+ JSX element event listeners.
 	+ Element builder API event listeners.
 	+ Teardown hooks.
+	+ Trigger callbacks.
 + Add `isolate` utility.
 
 ## 20.2

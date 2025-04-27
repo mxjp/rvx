@@ -1,6 +1,7 @@
 import { Context } from "./context.js";
 import { NOOP } from "./internals/noop.js";
 import { ACCESS_STACK, AccessHook, NotifyHook, TRACKING_STACK, useStack } from "./internals/stacks.js";
+import { isolate } from "./isolate.js";
 import { capture, nocapture, teardown, TeardownHook } from "./lifecycle.js";
 
 /**
@@ -598,7 +599,7 @@ export interface TriggerPipe {
 export function trigger(fn: () => void): TriggerPipe {
 	const hookFn = Context.wrap(() => {
 		clear();
-		_access(undefined, fn);
+		isolate(fn);
 	});
 	const { c: clear, a: access } = _observer(hookFn);
 	teardown(clear);
