@@ -2,6 +2,7 @@ import { NODE, NodeTarget } from "./element-common.js";
 import { ENV } from "./env.js";
 import { createText } from "./internals/create-text.js";
 import { NOOP } from "./internals/noop.js";
+import { isolate } from "./isolate.js";
 import { capture, nocapture, teardown, TeardownHook } from "./lifecycle.js";
 import { $, effect, Expression, ExpressionResult, get, memo, Signal, watch } from "./signals.js";
 import type { Component, Falsy } from "./types.js";
@@ -680,7 +681,7 @@ export function forEach<T>(each: Expression<Iterable<T>>, component: ForContentF
 								v: undefined!,
 							};
 
-							instance.d = capture(() => {
+							instance.d = isolate(capture, () => {
 								instance.v = render(component(value, () => instance.i.value));
 								instance.v.setBoundaryOwner((_, last) => {
 									if (instances[instances.length - 1] === instance && instance.c === cycle) {
@@ -839,7 +840,7 @@ export function indexEach<T>(each: Expression<Iterable<T>>, component: IndexCont
 						v: undefined!,
 					};
 
-					instance.d = capture(() => {
+					instance.d = isolate(capture, () => {
 						instance.v = render(component(value, index));
 						instance.v.setBoundaryOwner((_, last) => {
 							if (instances[instances.length - 1] === instance) {

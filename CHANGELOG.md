@@ -6,6 +6,7 @@
 	+ Element builder API event listeners.
 	+ Teardown hooks.
 	+ Trigger callbacks.
++ Fix signal access isolation in `<For>`, `forEach`, `<Index>` and `indexEach`.
 + Add `isolate` utility.
 
 ## 20.2
