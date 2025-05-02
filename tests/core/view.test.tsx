@@ -894,6 +894,28 @@ await suite("view", async () => {
 			proxy.splice(1, 0, "c");
 			strictEqual(viewText(view), "acb");
 		});
+
+		await test("component access isolation", async () => {
+			const events: unknown[] = [];
+			const values = $([1]);
+			const signal = $(2);
+			const view = uncapture(() => {
+				return <For each={() => {
+					events.push("iter");
+					return values.value;
+				}}>
+					{value => value + signal.value}
+				</For> as View;
+			});
+			strictEqual(viewText(view), "3");
+			assertEvents(events, ["iter"]);
+			signal.value = 4;
+			strictEqual(viewText(view), "3");
+			assertEvents(events, []);
+			values.value = [5];
+			strictEqual(viewText(view), "9");
+			assertEvents(events, ["iter"]);
+		});
 	});
 
 	await suite("Index", async () => {
@@ -1184,6 +1206,28 @@ await suite("view", async () => {
 			strictEqual(viewText(view), "ab");
 			proxy.splice(1, 0, "c");
 			strictEqual(viewText(view), "acb");
+		});
+
+		await test("component access isolation", async () => {
+			const events: unknown[] = [];
+			const values = $([1]);
+			const signal = $(2);
+			const view = uncapture(() => {
+				return <Index each={() => {
+					events.push("iter");
+					return values.value;
+				}}>
+					{value => value + signal.value}
+				</Index> as View;
+			});
+			strictEqual(viewText(view), "3");
+			assertEvents(events, ["iter"]);
+			signal.value = 4;
+			strictEqual(viewText(view), "3");
+			assertEvents(events, []);
+			values.value = [5];
+			strictEqual(viewText(view), "9");
+			assertEvents(events, ["iter"]);
 		});
 	});
 
