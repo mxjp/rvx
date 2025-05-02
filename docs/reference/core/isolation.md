@@ -1,7 +1,7 @@
 # Side Effect Isolation
 The [signal](./signals.md) and [lifecycle](./lifecycle.md) APIs can cause side effects such as tracking a signal access or registering a teardown hook.
 
-The `isolate` function can be used to run arbitrary code in isolation from the current context:
+The `isolate` function can be used to run arbitrary code in isolation from signal access tracking and the current lifecycle.
 
 === "JSX"
 	```jsx
@@ -99,7 +99,7 @@ Signal accesses are not tracked as if the signal was accessed outside of any obs
 	});
 	```
 
-To only control if signal accesses are tracked, use [`track` and `untrack`](./signals.md#track--untrack) instead.
+To only control if signal accesses are tracked, use [`track` and `untrack`](./signals.md#track-untrack) instead.
 
 ## Non Isolated APIs
 [Batches](./signals.md#batch) are not isolated as this could lead to inconsistent signal access tracking:
