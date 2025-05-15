@@ -16,7 +16,7 @@ export function createReactiveArrayProxy<T>(target: T[], barrier: Barrier): T[] 
 				indexProbes.access(index);
 				return barrier.wrap(target[index]);
 			}
-			if (Object.prototype.hasOwnProperty.call(replacements, prop)) {
+			if (Object.hasOwn(replacements, prop)) {
 				return replacements[prop as keyof typeof Array.prototype];
 			}
 			return Reflect.get(target, prop, recv);
