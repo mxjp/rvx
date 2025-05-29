@@ -1,9 +1,7 @@
 import { deepStrictEqual, notStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-
-import { $, Attach, capture, Component, ENV, For, Index, memo, mount, movable, Nest, render, Show, teardown, TeardownHook, uncapture, View, watch, watchUpdates } from "rvx";
+import { $, Attach, capture, Component, ENV, For, Index, memo, mount, movable, Nest, render, Show, teardown, uncapture, View, watch, watchUpdates } from "rvx";
 import { wrap } from "rvx/store";
-
 import { assertEvents, boundaryEvents, lifecycleEvent, TestView, testView, text, viewText, withMsg } from "../common.js";
 
 await suite("view", async () => {
@@ -885,7 +883,7 @@ await suite("view", async () => {
 			});
 		});
 
-		await test("iterator internal updates", async () => {
+		await test("iterator internal updates", () => {
 			const proxy = wrap(["a", "b"]);
 			const view = uncapture(() => {
 				return <For each={proxy}>{v => v}</For> as View;
@@ -895,7 +893,7 @@ await suite("view", async () => {
 			strictEqual(viewText(view), "acb");
 		});
 
-		await test("component access isolation", async () => {
+		await test("component access isolation", () => {
 			const events: unknown[] = [];
 			const values = $([1]);
 			const signal = $(2);
@@ -915,6 +913,26 @@ await suite("view", async () => {
 			values.value = [5];
 			strictEqual(viewText(view), "9");
 			assertEvents(events, ["iter"]);
+		});
+
+		await test("expression & iteration lifecycle", () => {
+			const events: unknown[] = [];
+			const signal = $(0);
+			const view = uncapture(() => {
+				return <For each={function * () {
+					lifecycleEvent(events, "a");
+					yield signal.value;
+					lifecycleEvent(events, "b");
+				}}>
+					{value => {
+						lifecycleEvent(events, value);
+						return value;
+					}}
+				</For>;
+			});
+			assertEvents(events, ["s:a", "s:0", "s:b"]);
+			signal.value++;
+			assertEvents(events, ["e:b", "e:a", "s:a", "s:1", "s:b", "e:0"]);
 		});
 	});
 
@@ -1198,7 +1216,7 @@ await suite("view", async () => {
 			});
 		});
 
-		await test("iterator internal updates", async () => {
+		await test("iterator internal updates", () => {
 			const proxy = wrap(["a", "b"]);
 			const view = uncapture(() => {
 				return <Index each={proxy}>{v => v}</Index> as View;
@@ -1208,7 +1226,7 @@ await suite("view", async () => {
 			strictEqual(viewText(view), "acb");
 		});
 
-		await test("component access isolation", async () => {
+		await test("component access isolation", () => {
 			const events: unknown[] = [];
 			const values = $([1]);
 			const signal = $(2);
@@ -1228,6 +1246,26 @@ await suite("view", async () => {
 			values.value = [5];
 			strictEqual(viewText(view), "9");
 			assertEvents(events, ["iter"]);
+		});
+
+		await test("expression & iteration lifecycle", () => {
+			const events: unknown[] = [];
+			const signal = $(0);
+			const view = uncapture(() => {
+				return <Index each={function * () {
+					lifecycleEvent(events, "a");
+					yield signal.value;
+					lifecycleEvent(events, "b");
+				}}>
+					{value => {
+						lifecycleEvent(events, value);
+						return value;
+					}}
+				</Index>;
+			});
+			assertEvents(events, ["s:a", "s:0", "s:b"]);
+			signal.value++;
+			assertEvents(events, ["e:b", "e:a", "s:a", "e:0", "s:1", "s:b"]);
 		});
 	});
 

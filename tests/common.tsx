@@ -67,7 +67,7 @@ export function boundaryEvents(events: unknown[]): ViewBoundaryOwner {
 	};
 }
 
-export function lifecycleEvent(events: unknown[], key: string): void {
+export function lifecycleEvent(events: unknown[], key: unknown): void {
 	events.push(`s:${key}`);
 	teardown(() => {
 		events.push(`e:${key}`);
