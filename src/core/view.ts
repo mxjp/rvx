@@ -663,7 +663,7 @@ export function forEach<T>(each: Expression<Iterable<T>>, component: ForContentF
 			let index = 0;
 			let last = first;
 			try {
-				for (const value of nocapture(() => get(each))) {
+				for (const value of get(each)) {
 					let instance: Instance | undefined = instances[index];
 					if (instance && Object.is(instance.u, value)) {
 						instance.c = cycle;
@@ -821,7 +821,7 @@ export function indexEach<T>(each: Expression<Iterable<T>>, component: IndexCont
 			let index = 0;
 			let last = first;
 			try {
-				for (const value of nocapture(() => get(each))) {
+				for (const value of get(each)) {
 					if (index < instances.length) {
 						const current = instances[index];
 						if (Object.is(current.u, value)) {

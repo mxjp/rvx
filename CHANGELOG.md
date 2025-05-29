@@ -1,5 +1,8 @@
 # Changelog
 
+## 21.1
++ Support lifecycle hooks in expressions & iteration in `<For>`, `forEach`, `<Index>` and `indexEach`.
+
 ## 21.0
 + **Breaking:** The following APIs now isolate signal accesses and teardown hooks:
 	+ JSX element event listeners.
