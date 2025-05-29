@@ -5,7 +5,7 @@
 		"build": "rollup --config rollup.config.js && tsc --noEmit"
 	},
 	"dependencies": {
-		"i18next": "^24.2.3",
+		"i18next": "^25.2.1",
 		"rvx": "file:.."
 	},
 	"devDependencies": {
