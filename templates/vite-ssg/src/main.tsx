@@ -1,4 +1,4 @@
-import { Context, render } from "rvx";
+import { Context, render, View } from "rvx";
 import { ASYNC, AsyncContext } from "rvx/async";
 import { HistoryRouter, ROUTER } from "rvx/router";
 import { App } from "./app.js";
@@ -31,11 +31,8 @@ async function main() {
 
 		if (start && end) {
 			await asyncCtx.complete();
-			app.insertBefore(document.body, start);
-			const range = new Range();
-			range.setStartBefore(start);
-			range.setEndAfter(end);
-			range.deleteContents();
+			app.appendTo(document.body);
+			new View(u => u(start, end)).detach();
 		} else {
 			app.appendTo(document.body);
 		}
