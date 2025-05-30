@@ -173,7 +173,7 @@ To support data flow in both directions, you can use [signals](signals.md) as pr
 
 Using signals for two way data flow also allows converting values in both directions in a nicely composable way.
 
-The example below shows a basic text input and a `trim` function for trimming user input:
+The example below shows a basic text input and a [`trim`](../convert.md#trim) function for trimming user input:
 
 === "JSX"
 	```jsx
@@ -276,7 +276,7 @@ The example below shows a basic text input and a `trim` function for trimming us
 	```
 
 ### Forwarding special attributes
-Sometimes it can be useful to forward properties to the root element of a component for allowing the user of the component to set the `class`, `style` or any other attributes.
+Sometimes it can be useful to forward properties to the root element of a component for allowing the user of the component to set `class`, `style` or any other attributes.
 
 === "JSX"
 	```jsx

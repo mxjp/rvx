@@ -192,7 +192,7 @@ Since the concept of logical nodes doesn't exist at runtime, you need to convert
 		return <>
 			A
 			{nodeB}
-			D
+			C
 		</>;
 	}
 	```
@@ -205,7 +205,7 @@ Since the concept of logical nodes doesn't exist at runtime, you need to convert
 		return [
 			"A",
 			nodeB,
-			"B",
+			"C",
 		];
 	}
 	```

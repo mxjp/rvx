@@ -6,7 +6,7 @@ Views can be used as [element content](../elements.md#content) or can be returne
 ## Creating Views
 Rvx provides the following views for common use cases:
 
-+ [`render` & `mount`](./render.md) - Wrap content in a view.
++ [`render` & `mount`](./render.md) - Create a view from arbitrary content.
 + [`<Show> / when`](show.md) - Render content if a condition is met.
 + [`<Attach> / attachWhen`](attach.md) -  Attach already rendered content if a condition is met.
 + [`<Nest> / nest`](nest.md) - Render a component returned from an expression.

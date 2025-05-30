@@ -578,7 +578,7 @@ The value of signals or expressions can always be used in a non reactive ways:
 	get(count);
 	```
 
-For accesses to be reactive, you need to use a signal directly or access it's value ina function:
+For accesses to be reactive, you need to use a signal directly or access it's value in a function:
 
 === "JSX"
 	```jsx

@@ -1,5 +1,5 @@
 # Wrapping Content
-The `mount` and `render` functions can be used to wrap arbitrary [supported content](../elements.md#content) in a view.
+The `mount` and `render` functions can be used to create a view from arbitrary [supported content](../elements.md#content).
 
 === "JSX"
 	```jsx
@@ -33,6 +33,11 @@ The `mount` function also appends the created view to a parent node until the cu
 
 ## Portalling
 In addition to being the entry point of your application, the `mount` function allows you to render content into a different part of the DOM. This is commonly known as "portalling" in other frameworks.
+
+!!! warning
+	Avoid directly mounting content into other places rendered by rvx.
+
+	If you need to, you can provide a slot that other code can render into using [`<Nest> / nest`](./nest.md) or read about [external mutations](../../advanced-topics/external-mutations.md).
 
 === "JSX"
 	```jsx

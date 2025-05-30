@@ -282,7 +282,8 @@ Any DOM nodes are moved into the parent element.
 
 Note, that nodes are removed from their parent depending on when the content is actually used in an element. E.g. when returning a document fragment from a [component](components.md), it's children are removed from the fragment as soon as the components return value is used in an element expression.
 
-Reusing DOM nodes may result in undefined behavior. Consider using [`movable`](./views/movable.md) for safely reusing & moving arbitrary content.
+!!! warning
+	Reusing DOM nodes may result in undefined behavior. Consider using [`movable`](./views/movable.md) for safely reusing & moving arbitrary content or read more about [external mutations](../advanced-topics/external-mutations.md).
 
 If objects have a `NODE` symbol property, this node is used instead. This is internally used by the builder API, but you can also implement your own:
 
@@ -330,7 +331,8 @@ If objects have a `NODE` symbol property, this node is used instead. This is int
 	)
 	```
 
-Reusing view instances may result in undefined behavior. Consider using [`movable`](./views/movable.md) for safely reusing & moving arbitrary content.
+!!! warning
+	Reusing view instances may result in undefined behavior. Consider using [`movable`](./views/movable.md) for safely reusing & moving arbitrary content or read more about [external mutations](../advanced-topics/external-mutations.md).
 
 ### Arrays & Fragments
 Content can be wrapped in arbitrarily nested arrays and JSX fragments.
