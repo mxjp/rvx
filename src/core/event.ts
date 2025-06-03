@@ -43,7 +43,7 @@ export class Emitter<T extends unknown[]> {
 	 *
 	 * Note, that listeners will run immediately in the current context.
 	 */
-	emit(...args: T): void {
+	emit: EventFn<T> = (...args: T): void => {
 		this.#listeners.forEach(fn => fn(...args));
-	}
+	};
 }
