@@ -406,11 +406,6 @@ export function watch<T>(expr: Expression<T>, fn?: (value: T) => void): void {
 }
 
 /**
- * @deprecated Use {@link watch} with only one parameter instead.
- */
-export const effect: (fn: () => void) => void = watch;
-
-/**
  * Watch an expression until the current lifecycle is disposed.
  *
  * @param expr The expression to watch.
@@ -430,7 +425,6 @@ export function watchUpdates<T>(expr: Expression<T>, fn: (value: T) => void): T 
 	});
 	return first!;
 }
-
 
 /**
  * Defer signal updates until a function finishes.

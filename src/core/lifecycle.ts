@@ -1,5 +1,5 @@
 import { NOOP } from "./internals/noop.js";
-import { TEARDOWN_STACK, TeardownFrame, useStack } from "./internals/stacks.js";
+import { TEARDOWN_STACK, useStack } from "./internals/stacks.js";
 import { isolate } from "./isolate.js";
 
 export { LeakHook, onLeak } from "./internals/stacks.js";
@@ -74,29 +74,6 @@ export function captureSelf<T>(fn: (dispose: TeardownHook) => T): T {
  */
 export function uncapture<T>(fn: () => T): T {
 	return useStack(TEARDOWN_STACK, undefined, fn);
-}
-
-const NOCAPTURE: TeardownFrame = {
-	push() {
-		// Teardown hooks are explicitly not supported in this context and registering them is very likely a mistake:
-		throw new Error("G0");
-	},
-};
-
-/**
- * Run a function and explicitly un-support teardown hooks.
- *
- * Teardown hooks are still supported when using {@link capture}, {@link captureSelf} or {@link uncapture} inside of the function.
- *
- * This should be used in places where lifecycle side are never expected.
- *
- * @deprecated Use {@link uncapture} or {@link isolate} in combination with leak detection instead.
- *
- * @param fn The function to run.
- * @returns The function's return value.
- */
-export function nocapture<T>(fn: () => T): T {
-	return useStack(TEARDOWN_STACK, NOCAPTURE, fn);
 }
 
 /**
