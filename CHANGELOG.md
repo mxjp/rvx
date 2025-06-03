@@ -1,5 +1,8 @@
 # Changelog
 
+## 21.2
++ **Deprecated:** `nocapture` will be removed in the next major version.
+
 ## 21.1
 + Support lifecycle hooks in expressions & iteration in `<For>`, `forEach`, `<Index>` and `indexEach`.
 

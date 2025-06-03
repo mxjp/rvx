@@ -90,6 +90,8 @@ const NOCAPTURE: TeardownFrame = {
  *
  * This should be used in places where lifecycle side are never expected.
  *
+ * @deprecated Use {@link uncapture} or {@link isolate} in combination with leak detection instead.
+ *
  * @param fn The function to run.
  * @returns The function's return value.
  */
