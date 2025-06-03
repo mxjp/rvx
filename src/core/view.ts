@@ -3,8 +3,8 @@ import { ENV } from "./env.js";
 import { createText } from "./internals/create-text.js";
 import { NOOP } from "./internals/noop.js";
 import { isolate } from "./isolate.js";
-import { capture, nocapture, teardown, TeardownHook } from "./lifecycle.js";
-import { $, effect, Expression, ExpressionResult, get, memo, Signal, watch } from "./signals.js";
+import { capture, teardown, TeardownHook } from "./lifecycle.js";
+import { $, Expression, ExpressionResult, get, memo, Signal, watch } from "./signals.js";
 import type { Component, Falsy } from "./types.js";
 
 /**
@@ -654,7 +654,7 @@ export function forEach<T>(each: Expression<Iterable<T>>, component: ForContentF
 			}
 		});
 
-		effect(() => {
+		watch(() => {
 			let parent = self.parent;
 			if (!parent) {
 				parent = createParent(env);
@@ -812,7 +812,7 @@ export function indexEach<T>(each: Expression<Iterable<T>>, component: IndexCont
 			}
 		});
 
-		effect(() => {
+		watch(() => {
 			let parent = self.parent;
 			if (!parent) {
 				parent = createParent(env);

@@ -1,7 +1,7 @@
 import { strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 
-import { ENV, map, nocapture, teardown } from "rvx";
+import { ENV, map, teardown } from "rvx";
 import { RvxElement, RvxElementOptions } from "rvx/element";
 
 import { assertEvents } from "../common.js";
@@ -32,7 +32,7 @@ await suite("element/element", async () => {
 
 	await test("default lifecycle & attributes", async () => {
 		options = undefined;
-		const elem = nocapture(() => <test-element /> as TestElement);
+		const elem = <test-element /> as TestElement;
 		strictEqual(elem instanceof TestElement, true);
 		assertEvents(elem.events, []);
 		for (let i = 0; i < 3; i++) {
@@ -58,7 +58,7 @@ await suite("element/element", async () => {
 			start: "manual",
 			dispose: "manual",
 		};
-		const elem = nocapture(() => <test-element /> as TestElement);
+		const elem = <test-element /> as TestElement;
 		strictEqual(elem instanceof TestElement, true);
 		assertEvents(elem.events, []);
 
@@ -89,7 +89,7 @@ await suite("element/element", async () => {
 		options = {
 			shadow: false,
 		};
-		const elem = nocapture(() => <test-element /> as TestElement);
+		const elem = <test-element /> as TestElement;
 		strictEqual(elem instanceof TestElement, true);
 		assertEvents(elem.events, []);
 		strictEqual(elem.shadowRoot, null);

@@ -1,6 +1,6 @@
 import { deepStrictEqual, fail, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { capture, captureSelf, nocapture, onLeak, teardown, TeardownHook, teardownOnError, uncapture } from "rvx";
+import { capture, captureSelf, onLeak, teardown, TeardownHook, teardownOnError, uncapture } from "rvx";
 import { getLeakHook, setLeakHook } from "../../dist/es/core/internals/stacks.js";
 import { assertEvents, withMsg } from "../common.js";
 
@@ -47,14 +47,6 @@ await suite("lifecycle", async () => {
 
 				capture(() => {
 					teardown(() => {});
-				});
-
-				nocapture(() => {
-					throws(() => {
-						teardown(() => {});
-					}, error => {
-						return error instanceof Error && error.message === "G0";
-					});
 				});
 			});
 		});

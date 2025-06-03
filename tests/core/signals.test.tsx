@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { $, batch, capture, Context, effect, isTracking, map, memo, Signal, teardown, TeardownHook, track, trigger, TriggerPipe, uncapture, untrack, watch, watchUpdates } from "rvx";
+import { $, batch, capture, Context, isTracking, map, memo, Signal, teardown, TeardownHook, track, trigger, TriggerPipe, uncapture, untrack, watch, watchUpdates } from "rvx";
 import { assertEvents, lifecycleEvent, withMsg } from "../common.js";
 
 await suite("signals", async () => {
@@ -103,7 +103,7 @@ await suite("signals", async () => {
 			const events: unknown[] = [];
 			const signal = $(0);
 			const dispose = capture(() => {
-				effect(() => {
+				watch(() => {
 					lifecycleEvent(events, `${signal.value}`);
 					if (signal.value < 3) {
 						signal.value++;
@@ -119,7 +119,7 @@ await suite("signals", async () => {
 			const events: unknown[] = [];
 			const signal = $(0);
 			const dispose = capture(() => {
-				effect(() => {
+				watch(() => {
 					lifecycleEvent(events, `${signal.value}`);
 					if (signal.value < 5) {
 						signal.value++;
@@ -137,7 +137,7 @@ await suite("signals", async () => {
 			const a = $(0);
 			const b = $(0);
 			const dispose = capture(() => {
-				effect(() => {
+				watch(() => {
 					const value = a.value + b.value;
 					lifecycleEvent(events, `${value}`);
 					if (value < 5) {
@@ -157,7 +157,7 @@ await suite("signals", async () => {
 			const b = $();
 
 			uncapture(() => {
-				effect(() => {
+				watch(() => {
 					strictEqual(isTracking(), true);
 					events.push(`a:${a.value}`);
 					if (a.value < 3) {
@@ -167,7 +167,7 @@ await suite("signals", async () => {
 				});
 				assertEvents(events, ["a:0", "a:end"]);
 
-				effect(() => {
+				watch(() => {
 					strictEqual(isTracking(), true);
 					events.push(`b:start`);
 					b.access();
@@ -251,7 +251,7 @@ await suite("signals", async () => {
 			const events: unknown[] = [];
 			const signal = $(0);
 			const dispose = capture(() => {
-				effect(() => {
+				watch(() => {
 					if (signal.value > 0) {
 						const value = signal.value;
 						events.push(`s:${value}`);
@@ -461,9 +461,9 @@ await suite("signals", async () => {
 			const events: unknown[] = [];
 			const signal = $(42);
 			uncapture(() => watch(() => {
-				throws(() => {
-					teardown(() => {});
-				}, withMsg("G0"));
+				// throws(() => {
+				// 	teardown(() => {});
+				// }, withMsg("G0"));
 				uncapture(() => {
 					teardown(() => {});
 				});
@@ -505,39 +505,6 @@ await suite("signals", async () => {
 
 			signal.value = 3;
 			assertEvents(events, []);
-		});
-
-		await test("teardown un-support", () => {
-			const events: unknown[] = [];
-			const signal = $(1);
-
-			strictEqual(isTracking(), false);
-			uncapture(() => watch(() => {
-				strictEqual(isTracking(), true);
-
-				throws(() => {
-					teardown(() => {});
-				}, withMsg("G0"));
-				throws(() => {
-					watch(() => {}, () => {});
-				}, withMsg("G0"));
-				throws(() => {
-					watchUpdates(() => {}, () => {});
-				}, withMsg("G0"));
-				throws(() => {
-					effect(() => {});
-				}, withMsg("G0"));
-
-				return signal.value;
-			}, value => {
-				strictEqual(isTracking(), false);
-				events.push(value);
-			}));
-			strictEqual(isTracking(), false);
-
-			assertEvents(events, [1]);
-			signal.value = 2;
-			assertEvents(events, [2]);
 		});
 
 		await test("access isolation (expr)", () => {
@@ -775,12 +742,12 @@ await suite("signals", async () => {
 		}
 	});
 
-	await suite("effect", async () => {
+	await suite("watch (effect style)", async () => {
 		await test("normal usage", () => {
 			const events: unknown[] = [];
 			const signal = $(1);
 			const dispose = capture(() => {
-				effect(() => {
+				watch(() => {
 					strictEqual(isTracking(), true);
 					const value = signal.value;
 					events.push(`s${value}`);
@@ -806,7 +773,7 @@ await suite("signals", async () => {
 			const a = $("a");
 			const b = $(1);
 			uncapture(() => {
-				effect(() => {
+				watch(() => {
 					events.push(`${a.value}${b.value}`);
 				});
 			});
@@ -825,9 +792,9 @@ await suite("signals", async () => {
 			const outer = $(1);
 			const inner = $(1);
 			uncapture(() => {
-				effect(() => {
+				watch(() => {
 					events.push(`o${outer.value}`);
-					effect(() => {
+					watch(() => {
 						events.push(`i${inner.value}`);
 					});
 				});
@@ -848,7 +815,7 @@ await suite("signals", async () => {
 			const outer = $(1);
 			const inner = $(1);
 			uncapture(() => {
-				effect(() => {
+				watch(() => {
 					const value = inner.value;
 					strictEqual(isTracking(), true);
 					events.push(`s${value}`);
@@ -857,7 +824,7 @@ await suite("signals", async () => {
 						events.push(`e${value}`);
 					});
 				});
-				effect(() => {
+				watch(() => {
 					strictEqual(isTracking(), true);
 					events.push(`o${outer.value}`);
 					inner.value = untrack(() => inner.value) + 1;
@@ -872,13 +839,13 @@ await suite("signals", async () => {
 			const events: unknown[] = [];
 			const signal = $();
 			uncapture(() => {
-				effect(() => {
+				watch(() => {
 					events.push("a");
 					strictEqual(isTracking(), true);
 					signal.access();
 				});
 				assertEvents(events, ["a"]);
-				effect(() => {
+				watch(() => {
 					strictEqual(isTracking(), true);
 					untrack(() => {
 						strictEqual(isTracking(), false);
@@ -896,7 +863,7 @@ await suite("signals", async () => {
 			let count = 0;
 			const signal = $(0);
 			uncapture(() => {
-				effect(() => {
+				watch(() => {
 					if (count < 5) {
 						count++;
 						signal.value++;
@@ -910,7 +877,7 @@ await suite("signals", async () => {
 			await test("immediate, no access", () => {
 				uncapture(() => {
 					throws(() => {
-						effect(() => {
+						watch(() => {
 							throw new Error("test");
 						});
 					}, withMsg("test"));
@@ -921,18 +888,18 @@ await suite("signals", async () => {
 				const events: unknown[] = [];
 				const signal = $(42);
 				const dispose = capture(() => {
-					effect(() => {
+					watch(() => {
 						events.push(`a${signal.value}`);
 					});
 
 					throws(() => {
-						effect(() => {
+						watch(() => {
 							signal.access();
 							throw new Error("test");
 						});
 					}, withMsg("test"));
 
-					effect(() => {
+					watch(() => {
 						events.push(`b${signal.value}`);
 					});
 
@@ -1284,10 +1251,10 @@ await suite("signals", async () => {
 		await test("disposed effect", () => {
 			const events: unknown[] = [];
 			const signal = $(42);
-			const dispose = capture(() => effect(() => {
+			const dispose = capture(() => watch(() => {
 				events.push("a", signal.value);
 			}));
-			uncapture(() => effect(() => {
+			uncapture(() => watch(() => {
 				events.push("b", signal.value);
 			}));
 			assertEvents(events, ["a", 42, "b", 42]);
@@ -1511,7 +1478,7 @@ await suite("signals", async () => {
 				events.push("trigger");
 			}));
 			uncapture(() => {
-				effect(() => {
+				watch(() => {
 					strictEqual(isTracking(), true);
 					untrack(() => {
 						strictEqual(isTracking(), false);
@@ -1539,7 +1506,7 @@ await suite("signals", async () => {
 				events.push("trigger");
 			}));
 			uncapture(() => {
-				effect(() => {
+				watch(() => {
 					pipe(() => {
 						strictEqual(isTracking(), true);
 						untrack(() => {

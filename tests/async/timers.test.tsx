@@ -1,5 +1,5 @@
 import test, { suite } from "node:test";
-import { capture, nocapture, teardown } from "rvx";
+import { capture, teardown } from "rvx";
 import { useAnimation, useInterval, useMicrotask, useTimeout } from "rvx/async";
 import { poll } from "rvx/test";
 import { assertEvents, withMsg } from "../common.js";
@@ -47,17 +47,6 @@ await suite("async/timers", async () => {
 			await new Promise<void>(r => queueMicrotask(r));
 			assertEvents(events, ["done", "teardown"]);
 		});
-
-		await test("nocapture context", async () => {
-			const events: unknown[] = [];
-			nocapture(() => {
-				throws(() => {
-					useMicrotask(() => events.push("done"));
-				}, withMsg("G0"));
-			});
-			await new Promise<void>(r => queueMicrotask(r));
-			assertEvents(events, []);
-		});
 	});
 
 	await suite("useTimeout", async () => {
@@ -103,18 +92,6 @@ await suite("async/timers", async () => {
 			});
 			await poll(() => events.includes("done"), 1000);
 			assertEvents(events, ["done", "teardown"]);
-		});
-
-		await test("nocapture context", async () => {
-			const delay = 10;
-			const events: unknown[] = [];
-			nocapture(() => {
-				throws(() => {
-					useTimeout(() => events.push("done"), delay);
-				}, withMsg("G0"));
-			});
-			await new Promise<void>(r => setTimeout(r, delay * 2));
-			assertEvents(events, []);
 		});
 	});
 
@@ -171,18 +148,6 @@ await suite("async/timers", async () => {
 			});
 			await poll(() => events.includes("dispose"), 1000);
 			assertEvents(events, ["s:0", "e:0", "s:1", "e:1", "s:2", "dispose", "e:2"]);
-			await new Promise<void>(r => setTimeout(r, delay * 2));
-			assertEvents(events, []);
-		});
-
-		await test("nocapture context", async () => {
-			const delay = 10;
-			const events: unknown[] = [];
-			nocapture(() => {
-				throws(() => {
-					useInterval(() => events.push("done"), delay);
-				}, withMsg("G0"));
-			});
 			await new Promise<void>(r => setTimeout(r, delay * 2));
 			assertEvents(events, []);
 		});
@@ -248,20 +213,6 @@ await suite("async/timers", async () => {
 			} finally {
 				dispose();
 			}
-		});
-
-		await test("nocapture context", async () => {
-			const events: unknown[] = [];
-			nocapture(() => {
-				throws(() => {
-					useAnimation(() => {
-						events.push("done");
-						throw new Error("not disposed");
-					});
-				}, withMsg("G0"));
-			});
-			await new Promise<void>(r => setTimeout(r, 50));
-			assertEvents(events, []);
 		});
 	});
 });

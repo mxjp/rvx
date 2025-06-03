@@ -1,6 +1,6 @@
 import { strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { $, batch, Context, effect, isolate, isTracking, teardown, trigger, uncapture, untrack } from "rvx";
+import { $, batch, Context, isolate, isTracking, teardown, trigger, uncapture, untrack, watch } from "rvx";
 import { assertEvents, withMsg } from "../common.js";
 
 await suite("isolate", async () => {
@@ -18,7 +18,7 @@ await suite("isolate", async () => {
 		const events: unknown[] = [];
 		const signal = $(0);
 		uncapture(() => {
-			effect(() => {
+			watch(() => {
 				isolate(() => {
 					events.push(signal.value);
 				});
@@ -65,7 +65,7 @@ await suite("isolate", async () => {
 		const a = $(1);
 		const b = $(2);
 		uncapture(() => {
-			effect(() => {
+			watch(() => {
 				events.push(a.value + b.value);
 			});
 		});
