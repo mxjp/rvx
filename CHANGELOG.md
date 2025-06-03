@@ -1,7 +1,9 @@
 # Changelog
 
-## 21.2
-+ **Deprecated:** `nocapture` will be removed in the next major version.
+## 22.0
++ **Breaking:** Remove `nocapture`. Use `uncapture` or `isolate` instead.
++ **Breaking:** Remove `effect`. Use `watch` with only one parameter instead.
++ **Breaking:** `watch` now captures teardown hooks from the expression.
 
 ## 21.1
 + Support lifecycle hooks in expressions & iteration in `<For>`, `forEach`, `<Index>` and `indexEach`.
