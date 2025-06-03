@@ -2,7 +2,7 @@ import { Context } from "./context.js";
 import { NOOP } from "./internals/noop.js";
 import { ACCESS_STACK, AccessHook, NotifyHook, TRACKING_STACK, useStack } from "./internals/stacks.js";
 import { isolate } from "./isolate.js";
-import { capture, nocapture, teardown, TeardownHook } from "./lifecycle.js";
+import { capture, teardown, TeardownHook } from "./lifecycle.js";
 
 /**
  * During a {@link batch}, notify hooks are added to this set instead of being called.
@@ -370,24 +370,27 @@ const _access = <T>(frame: AccessHook | undefined, fn: () => T): T => {
  * count.value = 2;
  * ```
  */
-export function watch<T>(expr: Expression<T>, fn: (value: T) => void): void {
+export function watch(expr: () => void): void;
+export function watch<T>(expr: Expression<T>, fn: (value: T) => void): void;
+export function watch<T>(expr: Expression<T>, fn?: (value: T) => void): void {
 	const isSignal = expr instanceof Signal;
 	if (isSignal || typeof expr === "function") {
 		let value: T;
 		let disposed = false;
 		let dispose: TeardownHook = NOOP;
 		const runExpr = isSignal ? () => (expr as Signal<T>).value : (expr as () => T);
-		const runFn = () => fn(value);
 		const entry = _unfold(Context.wrap(() => {
 			if (disposed) {
 				// This covers an edge case where this observer is notified during a batch and then disposed immediately.
 				return;
 			}
 			clear();
-			value = _access(access, () => nocapture(runExpr));
-			dispose = _access(undefined, () => {
-				dispose();
-				return capture(runFn);
+			isolate(dispose);
+			dispose = capture(() => {
+				value = _access(access, runExpr);
+				if (fn) {
+					_access(undefined, () => fn(value));
+				}
 			});
 		}));
 		const { c: clear, a: access } = _observer(entry);
@@ -398,9 +401,14 @@ export function watch<T>(expr: Expression<T>, fn: (value: T) => void): void {
 		});
 		entry();
 	} else {
-		fn(expr);
+		fn!(expr);
 	}
 }
+
+/**
+ * @deprecated Use {@link watch} with only one parameter instead.
+ */
+export const effect: (fn: () => void) => void = watch;
 
 /**
  * Watch an expression until the current lifecycle is disposed.
@@ -423,34 +431,6 @@ export function watchUpdates<T>(expr: Expression<T>, fn: (value: T) => void): T 
 	return first!;
 }
 
-/**
- * Run and watch a function until the current lifecycle is disposed.
- *
- * Note, that this doesn't separate signal accesses from side effects which makes it easier to accidentally cause infinite loops. If possible, use {@link watch} or {@link watchUpdates} instead.
- *
- * @param fn The function to run. Lifecycle hooks  are called before the next function call or when the current lifecycle is disposed.
- */
-export function effect(fn: () => void): void {
-	let disposed = false;
-	let dispose: TeardownHook = NOOP;
-	const runFn = Context.wrap(fn);
-	const entry = _unfold(() => {
-		if (disposed) {
-			// This covers an edge case where this observer is notified during a batch and then disposed immediately.
-			return;
-		}
-		useStack(ACCESS_STACK, undefined, dispose);
-		clear();
-		dispose = _access(access, () => capture(runFn));
-	});
-	const { c: clear, a: access } = _observer(entry);
-	teardown(() => {
-		disposed = true;
-		clear();
-		dispose();
-	});
-	entry();
-}
 
 /**
  * Defer signal updates until a function finishes.
@@ -527,7 +507,7 @@ export function batch<T>(fn: () => T): T {
  */
 export function memo<T>(fn: Expression<T>): () => T {
 	const signal = $<T>(undefined!);
-	effect(() => signal.value = get(fn));
+	watch(() => signal.value = get(fn));
 	return () => signal.value;
 }
 
