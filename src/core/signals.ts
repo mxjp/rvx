@@ -345,8 +345,11 @@ const _access = <T>(frame: AccessHook | undefined, fn: () => T): T => {
 /**
  * Watch an expression until the current lifecycle is disposed.
  *
+ * + Both the expression and effect are called at least once immediately.
+ * + Lifecycle hooks from the expression or effect are called before the next cycle or when the current lifecycle is disposed.
+ *
  * @param expr The expression to watch.
- * @param fn The function to call with the expression result. This is guaranteed to be called at least once immediately. Lifecycle hooks are called before the next function call or when the current lifecycle is disposed.
+ * @param effect An optional function to call with each expression result without tracking signal accesses.
  *
  * @example
  * ```tsx
@@ -371,8 +374,8 @@ const _access = <T>(frame: AccessHook | undefined, fn: () => T): T => {
  * ```
  */
 export function watch(expr: () => void): void;
-export function watch<T>(expr: Expression<T>, fn: (value: T) => void): void;
-export function watch<T>(expr: Expression<T>, fn?: (value: T) => void): void {
+export function watch<T>(expr: Expression<T>, effect: (value: T) => void): void;
+export function watch<T>(expr: Expression<T>, effect?: (value: T) => void): void {
 	const isSignal = expr instanceof Signal;
 	if (isSignal || typeof expr === "function") {
 		let value: T;
@@ -388,8 +391,8 @@ export function watch<T>(expr: Expression<T>, fn?: (value: T) => void): void {
 			isolate(dispose);
 			dispose = capture(() => {
 				value = _access(access, runExpr);
-				if (fn) {
-					_access(undefined, () => fn(value));
+				if (effect) {
+					_access(undefined, () => effect(value));
 				}
 			});
 		}));
@@ -401,7 +404,7 @@ export function watch<T>(expr: Expression<T>, fn?: (value: T) => void): void {
 		});
 		entry();
 	} else {
-		fn!(expr);
+		effect!(expr);
 	}
 }
 
@@ -409,15 +412,15 @@ export function watch<T>(expr: Expression<T>, fn?: (value: T) => void): void {
  * Watch an expression until the current lifecycle is disposed.
  *
  * @param expr The expression to watch.
- * @param fn The function to call with the expression result when any updates occur.
+ * @param effect A function to call with each subsequent expression result without tracking signal accesses.
  * @returns The first expression result.
  */
-export function watchUpdates<T>(expr: Expression<T>, fn: (value: T) => void): T {
+export function watchUpdates<T>(expr: Expression<T>, effect: (value: T) => void): T {
 	let first: T;
 	let update = false;
 	watch(expr, value => {
 		if (update) {
-			fn(value);
+			effect(value);
 		} else {
 			first = value;
 			update = true;
@@ -479,12 +482,10 @@ export function batch<T>(fn: () => T): T {
 }
 
 /**
- * Run and watch a function until the current lifecycle is disposed.
+ * {@link watch Watch} an expression and get a function to reactively access it's result.
  *
- * This is similar to {@link effect}, but returns a function to reactively access the latest return value.
- *
- * @param fn The function to run.
- * @returns A function to access the latest result.
+ * @param expr The expression to watch.
+ * @returns A function to reactively access the latest result.
  *
  * @example
  * ```tsx
@@ -499,9 +500,9 @@ export function batch<T>(fn: () => T): T {
  * });
  * ```
  */
-export function memo<T>(fn: Expression<T>): () => T {
+export function memo<T>(expr: Expression<T>): () => T {
 	const signal = $<T>(undefined!);
-	watch(() => signal.value = get(fn));
+	watch(() => signal.value = get(expr));
 	return () => signal.value;
 }
 
@@ -545,19 +546,19 @@ export function track<T>(fn: () => T): T {
 }
 
 /**
- * Check if a currently evaluating expression is tracking signal accesses.
+ * Check if signal accesses are currently tracked.
  */
 export function isTracking(): boolean {
 	return TRACKING_STACK[TRACKING_STACK.length - 1] && ACCESS_STACK[ACCESS_STACK.length - 1] !== undefined;
 }
 
 /**
- * A function to evaluate an expression while tracking signal accesses.
+ * Run a function while tracking signal accesses to invoke the trigger callback when updated.
  *
  * See {@link trigger}.
  */
 export interface TriggerPipe {
-	<T>(expr: Expression<T>): T;
+	<T>(fn: Expression<T>): T;
 }
 
 /**
@@ -567,13 +568,13 @@ export interface TriggerPipe {
  * + It is guaranteed that the function is called before any other observers like {@link watch} or {@link effect} are notified.
  * + If pipes are nested, the callback for the most inner one is called first.
  *
- * @param fn The callback to invoke when a signal is updated.
+ * @param callback The callback to invoke when a signal is updated.
  * @returns The pipe to evaluate expressions.
  */
-export function trigger(fn: () => void): TriggerPipe {
+export function trigger(callback: () => void): TriggerPipe {
 	const hookFn = Context.wrap(() => {
 		clear();
-		isolate(fn);
+		isolate(callback);
 	});
 	const { c: clear, a: access } = _observer(hookFn);
 	teardown(clear);
@@ -604,7 +605,7 @@ export function trigger(fn: () => void): TriggerPipe {
 }
 
 /**
- * Evaulate an expression.
+ * Manually evaluate an expression in the current context.
  *
  * This can be used to access reactive and non reactive inputs.
  *
