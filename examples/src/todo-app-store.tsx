@@ -7,7 +7,7 @@ Note, that this example doesn't include any storage error handling or validation
 
 */
 
-import { $, For, Show, Signal, effect } from "rvx";
+import { $, For, Show, Signal, watch } from "rvx";
 import { reflect, wrap } from "rvx/store";
 
 const STORAGE_KEY = "rvx-examples:todo-app";
@@ -33,10 +33,10 @@ export function Example() {
 		}
 	}
 
-	effect(() => {
+	watch(() => {
 		try {
-			// "JSON.stringify" accesses all reactive properties of
-			// "items" and will re-run this effect when anything changes:
+			// "JSON.stringify" accesses all reactive properties of "items"
+			// and will cause this function to re-run when anything changes:
 			localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
 		} catch (error) {
 			console.error(error);
