@@ -117,29 +117,6 @@ To explicitly leak teardown hooks, the `uncapture` function can be used. Code ru
 	});
 	```
 
-## `nocapture`
-There are some places where registering teardown hooks is very likely a mistake. E.g. inside of [expressions](signals.md#expressions). Trying to register lifecycle hooks during a `nocapture` call will throw an error:
-
-=== "JSX"
-	```jsx
-	import { nocapture, teardown } from "rvx";
-
-	nocapture(() => {
-		// This will throw an error:
-		teardown(() => { ... });
-	});
-	```
-
-=== "No Build"
-	```jsx
-	import { nocapture, teardown } from "./rvx.js";
-
-	nocapture(() => {
-		// This will throw an error:
-		teardown(() => { ... });
-	});
-	```
-
 ## `teardownOnError`
 Run a function and immediately call teardown hooks if it throws an error.
 
@@ -167,47 +144,35 @@ Run a function and immediately call teardown hooks if it throws an error.
 	```
 
 ## Nesting
-Any lifecycle related API calls can be arbitrarily nested unless documented otherwise:
+Any lifecycle related API calls can be arbitrarily nested.
 
 === "JSX"
 	```jsx
-	import { capture, captureSelf, uncapture, nocapture } from "rvx";
+	import { capture, uncapture, teardown } from "rvx";
 
-	nocapture(() => {
+	uncapture(() => {
 		const dispose = capture(() => {
-			// This works:
-			teardown(() => { ... });
-			uncapture(() => {
-				// This is ignored:
-				teardown(() => { ... });
+			teardown(() => {
+				...
 			});
 		});
 
 		dispose();
-
-		// This will fail:
-		teardown({ ... });
 	});
 	```
 
 === "No Build"
 	```jsx
-	import { capture, captureSelf, uncapture, nocapture } from "./rvx.js";
+	import { capture, uncapture, teardown } from "./rvx.js";
 
-	nocapture(() => {
+	uncapture(() => {
 		const dispose = capture(() => {
-			// This works:
-			teardown(() => { ... });
-			uncapture(() => {
-				// This is ignored:
-				teardown(() => { ... });
+			teardown(() => {
+				...
 			});
 		});
 
 		dispose();
-
-		// This will fail:
-		teardown({ ... });
 	});
 	```
 

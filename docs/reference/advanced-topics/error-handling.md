@@ -99,13 +99,6 @@ If you need some kind of error boundary, you can use a component like the one be
 ## Error Codes
 To keep the runtime as small as possible, rvx uses the error codes below instead of error messages.
 
-### `G0`
-**Teardown hooks are explicitly not supported in this context and registering them is very likely a mistake.**
-
-This is thrown when registering teardown hooks in an expression or during [`nocapture`](../core/lifecycle.md#nocapture) calls. If you are sure that it's not a mistake if the teardown hook will never be called, you can ignore this error by using [`uncapture`](../core/lifecycle.md#uncapture).
-
-The stack trace will point to the place where the teardown hook was wrongly registered. Note, that things like `watch`, `watchUpdates`, `effect`, and element expressions might all register teardown hooks.
-
 ### `G1`
 **View boundary was not completely initialized.**
 
