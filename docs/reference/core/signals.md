@@ -111,7 +111,7 @@ The second effect parameter can be omitted if you want or need to run side effec
 	```
 
 !!! tip
-	You can use [`untrack`](#track--untrack) to ignore specific signal accesses or [`isolate`](isolation.md) all side effects of arbitrary code.
+	You can use [`untrack`](#track-untrack) to ignore specific signal accesses or [`isolate`](isolation.md) all side effects of arbitrary code.
 
 ## `watchUpdates`
 This is the same as [`watch`](#watch), but the initial value is returned instead of being passed to the effect.
