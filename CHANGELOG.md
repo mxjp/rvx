@@ -5,6 +5,7 @@
 + **Breaking:** Remove `effect`. Use `watch` with only one parameter instead.
 + **Breaking:** `watch` now captures teardown hooks from the expression.
 + `Emitter.emit` is now bound to the emitter instance by default.
++ The `rvx/dom` module is now stable.
 
 ## 21.1
 + Support lifecycle hooks in expressions & iteration in `<For>`, `forEach`, `<Index>` and `indexEach`.

@@ -16,10 +16,6 @@ ENV.current.document.createElement("div");
 ```
 
 ## Rvx DOM
-
-!!! warning
-	The Rvx DOM API is currently **experimental** and may change at any time.
-
 The `"rvx/dom"` module provides a fast minimal DOM implementation with the single purpose of rendering HTML strings on the server or during a build process.
 
 The `renderToString` utility can be used to synchronously render a [component](../core/components.md) to HTML:
