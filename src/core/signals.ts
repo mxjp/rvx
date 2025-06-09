@@ -346,7 +346,7 @@ const _access = <T>(frame: AccessHook | undefined, fn: () => T): T => {
  * Watch an expression until the current lifecycle is disposed.
  *
  * + Both the expression and effect are called at least once immediately.
- * + Lifecycle hooks from the expression or effect are called before the next cycle or when the current lifecycle is disposed.
+ * + Lifecycle hooks from the expression or effect are called before a signal update is processed or when the current lifecycle is disposed.
  *
  * @param expr The expression to watch.
  * @param effect An optional function to call with each expression result without tracking signal accesses.

@@ -37,9 +37,8 @@ Lifecycle hooks are automatically captured in:
 + `capture`
 + `captureSelf`
 + `teardownOnError`
-+ `watch` (excluding the expression)
-+ `watchUpdates` (excluding the expression)
-+ `effect`
++ `watch`
++ `watchUpdates`
 + All render callbacks in rvx's [view implementations](../core/views/index.md#creating-views).
 
 ## Render Errors

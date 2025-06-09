@@ -66,7 +66,7 @@ $(42);
 ```
 
 ## `watch`
-Watch an expression and run a callback with it's result.
+Watch an expression until the current lifecycle is disposed.
 
 === "JSX"
 	```jsx
@@ -86,13 +86,35 @@ Watch an expression and run a callback with it's result.
 	});
 	```
 
-+ The current [context](context.md) is available in both the expression and callback.
++ The current [context](context.md) is available in both the expression and effect.
 + Evaluation is stopped when the current [lifecycle](lifecycle.md) is disposed.
-+ Teardown hooks from the callback are called when the current [lifecycle](lifecycle.md) is disposed or before the next call.
-+ Teardown hooks are not supported in the expression.
++ Teardown hooks are called before a signal update is processed or when the current [lifecycle](lifecycle.md) is disposed.
+
+The second effect parameter can be omitted if you want or need to run side effects inside the expression:
+
+=== "JSX"
+	```jsx
+	import { watch, get } from "rvx";
+
+	watch(() => {
+		console.log("Count:", get(count));
+	});
+	```
+
+=== "No Build"
+	```jsx
+	import { watch, get } from "./rvx.js";
+
+	watch(() => {
+		console.log("Count:", get(count));
+	});
+	```
+
+!!! tip
+	You can use [`untrack`](#track--untrack) to ignore specific signal accesses or [`isolate`](isolation.md) all side effects of arbitrary code.
 
 ## `watchUpdates`
-This is the same as [`watch`](#watch), but the initial value is returned instead of being passed to the callback.
+This is the same as [`watch`](#watch), but the initial value is returned instead of being passed to the effect.
 
 === "JSX"
 	```jsx
@@ -111,40 +133,6 @@ This is the same as [`watch`](#watch), but the initial value is returned instead
 		console.log("Count:", value);
 	});
 	```
-
-## `effect`
-Run a function and re-run when any accessed signals are updated.
-
-=== "JSX"
-	```jsx
-	import { effect } from "rvx";
-
-	effect(() => {
-		console.log("Count:", count.value);
-	});
-	```
-
-=== "No Build"
-	```jsx
-	import { effect } from "./rvx.js";
-
-	effect(() => {
-		console.log("Count:", count.value);
-	});
-	```
-
-+ The current [context](context.md) is available in the callback.
-+ Execution is stopped when the current [lifecycle](lifecycle.md) is disposed.
-+ Teardown hooks from the callback are called when the current [lifecycle](lifecycle.md) is disposed or before the next call.
-
-Prefer using [`watch`](#watch) or [`watchUpdates`](#watchupdates) if possible because it's easy to build infinite loops using `effect`:
-```jsx
-effect(() => {
-	// This will cause an infinite loop because this
-	// both accesses and updates the value:
-	count.value++;
-});
-```
 
 ## `batch`
 Signal updates are always processed immediately. The `batch` function can be used to deduplicate and defer updates until the batch callback finishes:
@@ -180,7 +168,7 @@ If updates from a batch cause immediate recursive side effects, these are also p
 ## `memo`
 Run a function and re-run when any accessed signals are updated.
 
-This is the same as [`effect`](#effect) except that it returns a function to reactively access the latest return value.
+This is the same as [`watch`](#watch) except that it returns a function to reactively access the latest expression result.
 
 === "JSX"
 	```jsx
@@ -306,7 +294,7 @@ When the lifecycle at which the pipe was created is disposed, the callback funct
 	signal.value = 77;
 	```
 
-It is guaranteed that the function is called before any other observers like [`watch`](#watch) or [`effect`](#effect) are notified. This can be used to run side effects like clearing a cache before an expression is re-evaluated:
+It is guaranteed that the function is called before any other observers like [`watch`](#watch) or [`watchUpdates`](#watchupdates) are notified. This can be used to run side effects like clearing a cache before an expression is re-evaluated:
 
 === "JSX"
 	```jsx

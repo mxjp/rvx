@@ -61,9 +61,9 @@ Signal accesses are not tracked as if the signal was accessed outside of any obs
 
 === "JSX"
 	```jsx
-	import { effect, isolate, track } from "rvx";
+	import { isolate, track, watch } from "rvx";
 
-	effect(() => {
+	watch(() => {
 		// This is tracked:
 		signalA.access();
 
@@ -81,9 +81,9 @@ Signal accesses are not tracked as if the signal was accessed outside of any obs
 
 === "No Build"
 	```jsx
-	import { effect, isolate, track } from "./rvx.js";
+	import { isolate, track, watch } from "./rvx.js";
 
-	effect(() => {
+	watch(() => {
 		// This is tracked:
 		signalA.access();
 
