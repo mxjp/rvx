@@ -3,7 +3,7 @@ import test from "node:test";
 import { get } from "rvx";
 import { optionalString } from "rvx/convert";
 
-await test("convert/optionalString", async () => {
+await test("convert/optionalString", () => {
 	strictEqual(get(optionalString(42)), "42");
 	strictEqual(get(optionalString(true)), "true");
 	strictEqual(get(optionalString(false)), "false");

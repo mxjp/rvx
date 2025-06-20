@@ -795,13 +795,11 @@ await suite("view", async () => {
 			const dispose = capture(() => {
 				<For each={signal}>
 					{(value, index) => {
-						// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 						events.push(["create", value, index()]);
 						watchUpdates(index, index => {
 							events.push(["index", value, index]);
 						});
 						teardown(() => {
-							// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 							events.push(["dispose", value, index()]);
 						});
 					}}
@@ -1127,13 +1125,11 @@ await suite("view", async () => {
 			const dispose = capture(() => {
 				<Index each={signal}>
 					{(value, index) => {
-						// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 						events.push(["create", value, index]);
 						watchUpdates(index, index => {
 							events.push(["index", value, index]);
 						});
 						teardown(() => {
-							// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 							events.push(["dispose", value, index]);
 						});
 					}}

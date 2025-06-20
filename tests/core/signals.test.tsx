@@ -175,7 +175,6 @@ await suite("signals", async () => {
 					events.push("b:end");
 				});
 
-				/* eslint-disable @typescript-eslint/indent */
 				assertEvents(events, [
 					"b:start",
 						"a:1",
@@ -192,7 +191,6 @@ await suite("signals", async () => {
 						"a:end",
 					"b:end",
 				]);
-				/* eslint-enable @typescript-eslint/indent */
 			});
 		});
 
@@ -226,7 +224,6 @@ await suite("signals", async () => {
 					events.push("b:end");
 				});
 
-				/* eslint-disable @typescript-eslint/indent */
 				assertEvents(events, [
 					"b:start",
 						"a:1",
@@ -243,7 +240,6 @@ await suite("signals", async () => {
 						"a:end",
 					"b:end",
 				]);
-				/* eslint-enable @typescript-eslint/indent */
 			});
 		});
 

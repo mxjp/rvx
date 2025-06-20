@@ -22,7 +22,6 @@ export function viewText(view: View): string {
 	return str;
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function testView(prefix = "") {
 	let nextFirst!: () => Node;
 	let nextLast!: () => Node;

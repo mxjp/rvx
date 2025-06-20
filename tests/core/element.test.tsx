@@ -43,7 +43,6 @@ await suite("element", async () => {
 							on:click={event => {
 								strictEqual(ctx.current, "bar");
 								// Don't remove, only for testing the type:
-								// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 								const _: MouseEvent = event;
 								events.push(event);
 							}}
@@ -59,7 +58,6 @@ await suite("element", async () => {
 							.on("click", event => {
 								strictEqual(ctx.current, "bar");
 								// Don't remove, only for testing the type:
-								// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 								const _: MouseEvent = event;
 								events.push(event);
 							})

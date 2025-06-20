@@ -5,7 +5,6 @@ import { unwrap, wrap } from "rvx/store";
 
 await suite("store/barrier", async () => {
 	await test("non-reactive types", () => {
-		// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 		class Test {}
 
 		for (const value of [

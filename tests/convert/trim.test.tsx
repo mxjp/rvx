@@ -3,7 +3,7 @@ import test from "node:test";
 import { $, capture, Signal } from "rvx";
 import { trim } from "rvx/convert";
 
-await test("convert/trim", async () => {
+await test("convert/trim", () => {
 	const source = $("foo");
 
 	let input!: Signal<string>;
