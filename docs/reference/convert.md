@@ -39,6 +39,34 @@ This can be used to avoid the default behavior when setting element attributes r
 	e("div").set("some-value", optionalString(null)); // <div />
 	```
 
+## `separated`
+Map an expression to join array elements using the specified separator.
+
++ This can be useful for setting attributes that are represented as space separated lists like many aria attributes.
++ Any non array value is passed through as is.
+
+=== "JSX"
+	```jsx
+	import { separated } from "rvx/convert";
+
+	// Space is the default separator:
+	<div aria-owns={separated(["a", "b"])} />
+
+	// Or specify a custom separator:
+	<div aria-owns={separated(["a", "b"], " ")} />
+	```
+
+=== "No Build"
+	```jsx
+	import { separated } from "./rvx.convert.js";
+
+	// Space is the default separator:
+	e("div").set("aria-owns", separated(["a", "b"]));
+
+	// Or specify a custom separator:
+	e("div").set("aria-owns", separated(["a", "b"], " "));
+	```
+
 ## `trim`
 Create a derived signal for trimming user input.
 

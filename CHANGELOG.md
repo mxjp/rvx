@@ -1,5 +1,8 @@
 # Changelog
 
+## 22.1
++ Add `separated` conversion utility.
+
 ## 22.0
 + **Breaking:** Remove `nocapture`. Use `uncapture` or `isolate` instead.
 + **Breaking:** Remove `effect`. Use `watch` with only one parameter instead.
