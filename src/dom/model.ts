@@ -180,10 +180,19 @@ export class Node extends NoopEventTarget {
 		return this.#childNodes;
 	}
 
+	/**
+	 * Get the direct number of child nodes.
+	 */
 	[NODE_LENGTH](): number {
 		return this.#length;
 	}
 
+	/**
+	 * Append the HTML representation of this node to the specified HTML string.
+	 *
+	 * @param html An existing HTML string.
+	 * @returns The concatenated HTML string.
+	 */
 	[NODE_APPEND_HTML_TO](html: string): string {
 		let child = this.firstChild;
 		while (child !== null) {
