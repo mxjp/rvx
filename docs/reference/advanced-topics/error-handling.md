@@ -119,3 +119,6 @@ This is thrown by the [`<Routes>`](../routing.md) component if no router has bee
 **`onLeak` must only be called once and outside of any capture calls.**
 
 [Leak detection](../testing.md#leak-detection) is meant for testing purposes. You need to ensure that `onLeak` is only called once per thread and before anything else is initialized.
+
+### Reserved Error Codes
+The following error codes existed in previous versions: `G0`
