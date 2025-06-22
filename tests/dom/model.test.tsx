@@ -1,7 +1,7 @@
 import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
 import { HTML, MATHML, SVG } from "rvx";
-import { Document, DocumentFragment, Element, htmlEscapeAppendTo, isVoidTag, Node, NoopComment, RawHTML, resolveNamespaceURI, Text, Window, XMLNS_HTML, XMLNS_MATHML, XMLNS_SVG } from "rvx/dom";
+import { Comment, Document, DocumentFragment, Element, htmlEscapeAppendTo, isVoidTag, Node, RawHTML, resolveNamespaceURI, Text, VISIBLE_COMMENTS, Window, XMLNS_HTML, XMLNS_MATHML, XMLNS_SVG } from "rvx/dom";
 
 await suite("dom/model", async () => {
 	await test("htmlEscape", () => {
@@ -635,29 +635,40 @@ await suite("dom/model", async () => {
 	await test("node text content", () => {
 		const parent = new Node();
 		parent.appendChild(new Text("foo"));
-		parent.appendChild(new NoopComment("bar"));
+		parent.appendChild(new Comment("bar"));
 		parent.appendChild(new Text("baz"));
 		strictEqual(parent.textContent, "foobaz");
 	});
 
-	await test("comment", () => {
-		const node = new NoopComment("foo");
-		strictEqual(node.nodeType, 8);
-		strictEqual(node.nodeName, "#comment");
-		strictEqual(node.textContent, "foo");
-		strictEqual(node.outerHTML, "");
+	await suite("comment", async () => {
+		await test("usage", () => {
+			const node = new Comment("foo");
+			strictEqual(node.nodeType, 8);
+			strictEqual(node.nodeName, "#comment");
+			strictEqual(node.textContent, "foo");
+			strictEqual(node.outerHTML, "");
 
-		node.textContent = "";
-		strictEqual(node.textContent, "");
-		strictEqual(node.outerHTML, "");
+			node.textContent = "";
+			strictEqual(node.textContent, "");
+			strictEqual(node.outerHTML, "");
 
-		node.textContent = "-->";
-		strictEqual(node.textContent, "-->");
-		strictEqual(node.outerHTML, "");
+			node.textContent = "-->";
+			strictEqual(node.textContent, "-->");
+			strictEqual(node.outerHTML, "");
 
-		node.textContent = 42 as any;
-		strictEqual(node.textContent, "42");
-		strictEqual(node.outerHTML, "");
+			node.textContent = 42 as any;
+			strictEqual(node.textContent, "42");
+			strictEqual(node.outerHTML, "");
+		});
+
+		await test("visible", () => {
+			VISIBLE_COMMENTS.inject(true, () => {
+				const node = new Comment("foo");
+				strictEqual(node.outerHTML, "<!--foo-->");
+				node.textContent = "-->";
+				strictEqual(node.outerHTML, "<!---->-->");
+			});
+		});
 	});
 
 	await test("text", () => {
@@ -684,7 +695,7 @@ await suite("dom/model", async () => {
 
 		await test("createComment", () => {
 			const node = new Document().createComment("test");
-			strictEqual(node instanceof NoopComment, true);
+			strictEqual(node instanceof Comment, true);
 			strictEqual(node.textContent, "test");
 		});
 
