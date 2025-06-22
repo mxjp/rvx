@@ -1,3 +1,4 @@
+import { Context } from "../core/context.js";
 import { HTML, MATHML, SVG } from "../core/element-common.js";
 import { WINDOW_MARKER } from "./internals.js";
 
@@ -127,7 +128,7 @@ export class Document extends NoopEventTarget {
 	}
 
 	createComment(data: string) {
-		return new NoopComment(data);
+		return new Comment(data);
 	}
 
 	createDocumentFragment() {
@@ -460,19 +461,34 @@ export class DocumentFragment extends Node {
 	}
 }
 
-export class NoopComment extends Node {
+/**
+ * A context that controls if newly created comment nodes are visible in rendered html.
+ *
+ * **SECURITY:** Comment data is not escaped when rendering and can be used to produce invalid or malicious HTML.
+ *
+ * @default false
+ */
+export const VISIBLE_COMMENTS = new Context(false);
+
+export class Comment extends Node {
 	static {
 		this.prototype.nodeType = 8;
 		this.prototype.nodeName = "#comment";
 	}
 
 	#data: string;
+	#visible = VISIBLE_COMMENTS.current;
 
 	constructor(data: string) {
 		super();
 		this.#data = String(data);
 	}
 
+	/**
+	 * Get or set comment data.
+	 *
+	 * **SECURITY:** Comment data is not escaped when rendering and can be used to produce invalid or malicious HTML.
+	 */
 	get textContent() {
 		return this.#data;
 	}
@@ -482,10 +498,18 @@ export class NoopComment extends Node {
 	}
 
 	[NODE_APPEND_HTML_TO](html: string): string {
-		return html;
-		// return html + "<!--" + this.#data + "-->";
+		if (this.#visible) {
+			return html + "<!--" + this.#data + "-->";
+		} else {
+			return html;
+		}
 	}
 }
+
+/**
+ * @deprecated Use {@link Comment} instead.
+ */
+export const NoopComment = Comment;
 
 export class Text extends Node {
 	static {
@@ -1009,7 +1033,7 @@ export class RawHTML extends Node {
 export class Window extends NoopEventTarget {
 	static {
 		this.prototype[WINDOW_MARKER] = true;
-		this.prototype.Comment = NoopComment;
+		this.prototype.Comment = Comment;
 		this.prototype.CustomEvent = NoopEvent;
 		this.prototype.Document = Document;
 		this.prototype.DocumentFragment = DocumentFragment;
@@ -1025,7 +1049,7 @@ export class Window extends NoopEventTarget {
 
 export interface Window {
 	[WINDOW_MARKER]: boolean;
-	Comment: typeof NoopComment;
+	Comment: typeof Comment;
 	CustomEvent: typeof NoopEvent;
 	Document: typeof Document;
 	DocumentFragment: typeof DocumentFragment;
