@@ -1,19 +1,9 @@
 import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
 import { HTML, MATHML, SVG } from "rvx";
-import { Comment, Document, DocumentFragment, Element, htmlEscapeAppendTo, isVoidTag, Node, RawHTML, resolveNamespaceURI, Text, VISIBLE_COMMENTS, Window, XMLNS_HTML, XMLNS_MATHML, XMLNS_SVG } from "rvx/dom";
+import { Comment, Document, DocumentFragment, Element, Node, RawHTML, Text, VISIBLE_COMMENTS, Window } from "rvx/dom";
 
 await suite("dom/model", async () => {
-	await test("htmlEscape", () => {
-		strictEqual(htmlEscapeAppendTo("", ""), "");
-		strictEqual(htmlEscapeAppendTo("", "abc"), "abc");
-		strictEqual(htmlEscapeAppendTo("&123;", ""), "&123;");
-		strictEqual(htmlEscapeAppendTo("&123;", "abc"), "&123;abc");
-		strictEqual(htmlEscapeAppendTo("&123;", "&&&"), "&123;&amp;&amp;&amp;");
-		strictEqual(htmlEscapeAppendTo("&123;", "\"'<>&\"'<>&"), "&123;&#34;&#39;&lt;&gt;&amp;&#34;&#39;&lt;&gt;&amp;");
-		strictEqual(htmlEscapeAppendTo("&123;", "01\"23'45<67>89&ab"), "&123;01&#34;23&#39;45&lt;67&gt;89&amp;ab");
-	});
-
 	await suite("tree", async () => {
 		type ChildNode = {
 			is: Node,
@@ -745,21 +735,6 @@ await suite("dom/model", async () => {
 		const window = new Window();
 		strictEqual(window.window, window);
 		strictEqual(window.document instanceof Document, true);
-	});
-
-	await test("resolveNamespaceURI", () => {
-		throws(() => resolveNamespaceURI(""));
-		throws(() => resolveNamespaceURI("https://example.com"));
-		strictEqual(resolveNamespaceURI(HTML), XMLNS_HTML);
-		strictEqual(resolveNamespaceURI(SVG), XMLNS_SVG);
-		strictEqual(resolveNamespaceURI(MATHML), XMLNS_MATHML);
-	});
-
-	await test("isVoidTag", () => {
-		strictEqual(isVoidTag(XMLNS_HTML, "br"), true);
-		strictEqual(isVoidTag(XMLNS_SVG, "br"), false);
-		strictEqual(isVoidTag(XMLNS_MATHML, "br"), false);
-		strictEqual(isVoidTag(XMLNS_HTML, "div"), false);
 	});
 
 	await suite("element", async () => {

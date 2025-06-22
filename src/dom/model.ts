@@ -1,6 +1,8 @@
 import { Context } from "../core/context.js";
-import { HTML, MATHML, SVG } from "../core/element-common.js";
-import { WINDOW_MARKER } from "./internals.js";
+import { HTML } from "../core/element-common.js";
+import { isVoidTag, resolveNamespaceURI, XMLNS, XMLNS_HTML } from "./internals/element-info.js";
+import { htmlEscapeAppendTo } from "./internals/html-escape.js";
+import { WINDOW_MARKER } from "./internals/window-marker.js";
 
 const NODE_LENGTH = Symbol("length");
 const NODE_APPEND_HTML_TO = Symbol("appendHtmlTo");
@@ -50,50 +52,6 @@ export class NodeList {
 	values(): Iterator<Node> {
 		return new NodeListIterator(this.#node);
 	}
-}
-
-const HTML_ESCAPE_REGEX = /["'<>&]/;
-
-export function htmlEscapeAppendTo(html: string, data: string) {
-	const firstMatch = HTML_ESCAPE_REGEX.exec(data);
-	if (firstMatch === null) {
-		return html + data;
-	}
-	let last = 0;
-	let index = firstMatch.index;
-	let escape: string;
-	chars: while (index < data.length) {
-		switch (data.charCodeAt(index)) {
-			case 34:
-				escape = "&#34;";
-				break;
-			case 38:
-				escape = "&amp;";
-				break;
-			case 39:
-				escape = "&#39;";
-				break;
-			case 60:
-				escape = "&lt;";
-				break;
-			case 62:
-				escape = "&gt;";
-				break;
-			default:
-				index++;
-				continue chars;
-		}
-		if (index !== last) {
-			html += data.slice(last, index);
-		}
-		html += escape;
-		index++;
-		last = index;
-	}
-	if (index !== last) {
-		html += data.slice(last, index);
-	}
-	return html;
 }
 
 export class NoopEvent {}
@@ -534,46 +492,6 @@ export class Text extends Node {
 
 	[NODE_APPEND_HTML_TO](html: string): string {
 		return htmlEscapeAppendTo(html, this.#data);
-	}
-}
-
-export const XMLNS_HTML = 0;
-export const XMLNS_SVG = 1;
-export const XMLNS_MATHML = 2;
-
-export type XMLNS = typeof XMLNS_HTML | typeof XMLNS_SVG | typeof XMLNS_MATHML;
-
-export function resolveNamespaceURI(uri: string): XMLNS {
-	switch (uri) {
-		case HTML: return XMLNS_HTML;
-		case SVG: return XMLNS_SVG;
-		case MATHML: return XMLNS_MATHML;
-		default: throw new Error("unsupported namespace uri");
-	}
-}
-
-export function isVoidTag(xmlns: XMLNS, name: string): boolean {
-	if (xmlns !== XMLNS_HTML) {
-		return false;
-	}
-	switch (name) {
-		case "area":
-		case "base":
-		case "br":
-		case "col":
-		case "embed":
-		case "hr":
-		case "img":
-		case "input":
-		case "link":
-		case "meta":
-		case "param":
-		case "source":
-		case "track":
-		case "wbr":
-			return true;
-		default:
-			return false;
 	}
 }
 

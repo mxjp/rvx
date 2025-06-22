@@ -1,5 +1,5 @@
 import { ENV } from "../core/env.js";
-import { WINDOW_MARKER } from "./internals.js";
+import { WINDOW_MARKER } from "./internals/window-marker.js";
 
 /**
  * Check if rvx dom is used in the current context.
