@@ -18,7 +18,7 @@ ENV.current.document.createElement("div");
 ## Rvx DOM
 The `"rvx/dom"` module provides a fast minimal DOM implementation with the single purpose of rendering HTML strings on the server or during a build process.
 
-The `renderToString` utility can be used to synchronously render a [component](../core/components.md) to HTML:
+The `renderToString` utility can be used to synchronously render a [component](./core/components.md) to HTML:
 ```jsx
 import { renderToString } from "rvx/dom";
 
@@ -29,7 +29,7 @@ const html = renderToString(() => {
 console.log(html); // "<h1>Hello World!</h1>"
 ```
 
-To wait for [`<Async>`](../async-utilities/async.md) parts to complete, use `renderToStringAsync`:
+To wait for [`<Async>`](./async-utilities/async.md) parts to complete, use `renderToStringAsync`:
 ```jsx
 import { renderToStringAsync } from "rvx/dom";
 
@@ -42,7 +42,7 @@ const html = await renderToStringAsync(() => {
 console.log(html); // "<h1>Hello World!</h1>"
 ```
 
-The [lifecycle](../core/lifecycle.md) of rendered components is disposed immediately after rendering the HTML string.
+The [lifecycle](./core/lifecycle.md) of rendered components is disposed immediately after rendering the HTML string.
 
 !!! warning
 	This module is **not** in any way optimized for code size and probably should not be used in a real browser.
@@ -86,7 +86,7 @@ Rvx does not directly support hydration. Instead, you can render content off scr
 	document.body.replaceChildren(app.detach());
 	```
 
-If needed, you can wait for [`<Async>`](../async-utilities/async.md) parts to complete before replacing any elements:
+If needed, you can wait for [`<Async>`](./async-utilities/async.md) parts to complete before replacing any elements:
 
 === "JSX"
 	```jsx

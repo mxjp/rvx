@@ -37,7 +37,7 @@ In addition to being the entry point of your application, the `mount` function a
 !!! warning
 	Avoid directly mounting content into other places rendered by rvx.
 
-	If you need to, you can provide a slot that other code can render into using [`<Nest> / nest`](./nest.md) or read about [external mutations](../../advanced-topics/external-mutations.md).
+	If you need to, you can provide a slot that other code can render into using [`<Nest> / nest`](./nest.md) or read about [external mutations](../../external-mutations.md).
 
 === "JSX"
 	```jsx
