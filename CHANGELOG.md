@@ -2,8 +2,10 @@
 
 ## 22.2
 + Add optionally visible comments in `rvx/dom`.
-+ Rename `NoopComment` to `Comment`.
-+ **Deprecated:** `NoopComment` export will be removed in the next major version.
++ Rename & **deprecate** old exports:
+	+ `NoopComment => Comment`.
+	+ `NoopEvent => Event`.
+	+ `NoopEventTarget => EventTarget`.
 
 ## 22.1
 + Add `separated` conversion utility.

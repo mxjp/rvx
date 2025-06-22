@@ -54,9 +54,14 @@ export class NodeList {
 	}
 }
 
-export class NoopEvent {}
+export class Event {}
 
-export class NoopEventTarget {
+/**
+ * @deprecated Use {@link Event} instead.
+ */
+export const NoopEvent = Event;
+
+export class EventTarget {
 	addEventListener(): void {
 		// noop
 	}
@@ -70,7 +75,12 @@ export class NoopEventTarget {
 	}
 }
 
-export class Document extends NoopEventTarget {
+/**
+ * @deprecated Use {@link EventTarget} instead.
+ */
+export const NoopEventTarget = EventTarget;
+
+export class Document extends EventTarget {
 	get body(): Element | null {
 		// noop
 		return null;
@@ -102,7 +112,7 @@ export class Document extends NoopEventTarget {
 	}
 }
 
-export class Node extends NoopEventTarget {
+export class Node extends EventTarget {
 	#parent: Node | null = null;
 	#first: Node | null = null;
 	#last: Node | null = null;
@@ -948,15 +958,15 @@ export class RawHTML extends Node {
 	}
 }
 
-export class Window extends NoopEventTarget {
+export class Window extends EventTarget {
 	static {
 		this.prototype[WINDOW_MARKER] = true;
 		this.prototype.Comment = Comment;
-		this.prototype.CustomEvent = NoopEvent;
+		this.prototype.CustomEvent = Event;
 		this.prototype.Document = Document;
 		this.prototype.DocumentFragment = DocumentFragment;
 		this.prototype.Element = Element;
-		this.prototype.Event = NoopEvent;
+		this.prototype.Event = Event;
 		this.prototype.Node = Node;
 		this.prototype.Text = Text;
 	}
@@ -968,11 +978,11 @@ export class Window extends NoopEventTarget {
 export interface Window {
 	[WINDOW_MARKER]: boolean;
 	Comment: typeof Comment;
-	CustomEvent: typeof NoopEvent;
+	CustomEvent: typeof Event;
 	Document: typeof Document;
 	DocumentFragment: typeof DocumentFragment;
 	Element: typeof Element;
-	Event: typeof NoopEvent;
+	Event: typeof Event;
 	Node: typeof Node;
 	Text: typeof Text;
 }
