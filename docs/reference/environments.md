@@ -18,6 +18,9 @@ ENV.current.document.createElement("div");
 ## Rvx DOM
 The `"rvx/dom"` module provides a fast minimal DOM implementation with the single purpose of rendering HTML strings on the server or during a build process.
 
+!!! tip
+	A minimal project template for static site generation using rvx dom and vite can be found [here](https://github.com/mxjp/rvx/tree/main/templates/vite-ssg).
+
 The `renderToString` utility can be used to synchronously render a [component](./core/components.md) to HTML:
 ```jsx
 import { renderToString } from "rvx/dom";
