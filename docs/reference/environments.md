@@ -134,6 +134,23 @@ If needed, you can wait for [`<Async>`](./async-utilities/async.md) parts to com
 	document.body.replaceChildren(app.detach());
 	```
 
+### Detecting Rvx DOM
+The `isRvxDom` function can be used to detect if rvx dom is enabled in the current context. When using a bundler with tree shaking, this will not include the rvx dom implementation.
+
+=== "JSX"
+	```jsx
+	import { isRvxDom } from "rvx/dom";
+
+	console.log(isRvxDom());
+	```
+
+=== "No Build"
+	```jsx
+	import { isRvxDom } from "./rvx.dom.js";
+
+	console.log(isRvxDom());
+	```
+
 ## JSDOM
 The [JSDOM](https://www.npmjs.com/package/jsdom) library can emulate a subset of browser APIs in NodeJS and is fully supported as an environment for rvx. This can be used for testing without using a real browser.
 ```jsx
