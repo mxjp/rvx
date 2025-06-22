@@ -789,6 +789,11 @@ export class Element extends Node {
 		return this.#namespaceURI;
 	}
 
+	/**
+	 * Get or set inner HTML of this element.
+	 *
+	 * When set to a non-empty string, all children are replaced with a {@link RawHTML} node.
+	 */
 	get innerHTML(): string {
 		let html = "";
 		let child = this.firstChild;
@@ -800,7 +805,11 @@ export class Element extends Node {
 	}
 
 	set innerHTML(html: string) {
-		this.replaceChildren(new RawHTML(html));
+		if (html === "") {
+			this.replaceChildren();
+		} else {
+			this.replaceChildren(new RawHTML(html));
+		}
 	}
 
 	get classList(): ElementClassList {
@@ -946,6 +955,11 @@ export class Element extends Node {
 }
 
 export class RawHTML extends Node {
+	static {
+		this.prototype.nodeType = 0;
+		this.prototype.nodeName = "#rvx-dom-raw-html";
+	}
+
 	#html: string;
 
 	constructor(html: string) {

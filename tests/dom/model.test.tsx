@@ -769,6 +769,10 @@ await suite("dom/model", async () => {
 			strictEqual(elem.lastChild, raw);
 			strictEqual(raw instanceof RawHTML, true);
 			strictEqual((raw as RawHTML).outerHTML, "<input><!--test-->");
+
+			elem.innerHTML = "";
+			strictEqual(elem.childNodes.length, 0);
+			strictEqual(elem.innerHTML, "");
 		});
 
 		await suite("attributes", async () => {
