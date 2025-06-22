@@ -35,7 +35,7 @@ hide:
 
 </div>
 
----
+<br>
 
 ## Extra Modules
 
@@ -60,3 +60,12 @@ hide:
 	Create deep reactive wrappers for arbitrary objects.
 
 </div>
+
+<br>
+
+## Advanced Topics
++ [Environments](./environments.md)
++ [Error Handling](./error-handling.md)
++ [Security](./security.md)
++ [Side Effect Isolation](./core/isolation.md)
++ [External mutations](./external-mutations.md)
