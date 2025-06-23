@@ -23,7 +23,7 @@ Testing rvx based applications is usually very simple because all of it's signal
 	assert(element.innerText === "Current count: 42");
 	```
 
-Note, that the `assert` function used on this page are not included in rvx.
+Note, that the `assert` function used on this page is not included in rvx.
 
 ## Synchronous Tests
 Rvx provides a lightweight wrapper for running small synchronous tests that takes care of calling [teardown hooks](./core/lifecycle.md) after the test.
