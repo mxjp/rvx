@@ -18,13 +18,10 @@ The `<Async>` component is meant for asynchronous rendering. E.g. loading page c
 
 === "No Build"
 	```jsx
-	import { Async } from "./rvx.async.js";
+	import { nestAsync } from "./rvx.async.js";
 
 	// main.js:
-	Async({
-		source: () => import("./page"),
-		children: page => page.content(),
-	})
+	nestAsync(() => import("./page"), page => page.content())
 
 	// page.js:
 	export function content() {
@@ -47,12 +44,12 @@ The `rejected` and `pending` properties can be used for rendering content when t
 
 === "No Build"
 	```jsx
-	Async({
-		source: () => import("./page"),
-		pending: () => "Loading...",
-		rejected: error => ["Error: ", error],
-		children: page => page.content(),
-	})
+	nestAsync(
+		() => import("./page"),
+		page => page.content(),
+		() => "Loading...",
+		error => ["Error: ", error],
+	)
 	```
 
 ## Tracking Completion
@@ -83,7 +80,7 @@ To wait for async parts in a specific context to complete, you can use `AsyncCon
 	const ctx = new AsyncContext();
 
 	ASYNC.inject(ctx, () => {
-		return Async({ ... });
+		return nestAsync(...);
 	})
 
 	// Wait for all "<Async>" parts to complete and re-throw unhandled errors:
@@ -120,19 +117,16 @@ When there are multiple async parts in the same place, tracking can be used to h
 === "No Build"
 	```jsx
 	import { $, movable } from "./rvx.js";
-	import { ASYNC, Async, AsyncContext } from "./rvx.async.js";
+	import { ASYNC, nestAsync, AsyncContext } from "./rvx.async.js";
 
 	const innerCtx = new AsyncContext();
 	const inner = movable(ASYNC.inject(innerCtx, () => [
-		Async({ ... }),
-		Async({ ... }),
-		Async({ ... }),
+		nestAsync(...),
+		nestAsync(...),
+		nestAsync(...),
 	]));
 
-	Async({
-		source: innerCtx.complete(),
-		children: () => inner.move(),
-	})
+	nestAsync(innerCtx.complete(), () => inner.move())
 	```
 
 ## Dynamic Sources
@@ -147,10 +141,7 @@ The `<Show>` or `<Nest>` components can be used to replace the `source` property
 
 === "No Build"
 	```jsx
-	Show({
-		when: someSignal,
-		children: source => Async({ source, ... })
-	})
+	when(someSignal, source => nestAsync(source, ...))
 	```
 
 The example below fetches a file and aborts pending requests when the file name is changed early:
@@ -170,11 +161,8 @@ The example below fetches a file and aborts pending requests when the file name 
 	```jsx
 	const name = $("example.txt");
 
-	Nest({
-		watch: name,
-		name => Async({
-			source: fetch(name, { signal: useAbortSignal() }).then(r => r.text()),
-			children: text => e("pre").append(text),
-		})
-	})
+	nest(name, name => nestAsync(
+		fetch(name, { signal: useAbortSignal() }).then(r => r.text()),
+		text => e("pre").append(text)
+	))
 	```
