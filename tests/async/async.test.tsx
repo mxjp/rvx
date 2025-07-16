@@ -1,10 +1,8 @@
-import { strictEqual } from "node:assert";
+import { strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-
-import { Inject, uncapture } from "rvx";
+import { capture, Inject, teardown, uncapture, watch } from "rvx";
 import { ASYNC, Async, AsyncContext } from "rvx/async";
-
-import { assertEvents, future, text } from "../common.js";
+import { assertEvents, future, isIsolated, text, withMsg } from "../common.js";
 
 await suite("async/async", async () => {
 	await test("tracking", async () => {
@@ -73,5 +71,15 @@ await suite("async/async", async () => {
 		reject(42);
 		await Promise.resolve();
 		strictEqual(text(root), "rejected: 42");
+	});
+
+	await test("isolation", async () => {
+		capture(() => {
+			strictEqual(isIsolated(), false);
+			<Async source={() => {
+				strictEqual(isIsolated(), true);
+				return Promise.resolve();
+			}}></Async>
+		});
 	});
 });

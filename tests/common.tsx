@@ -1,6 +1,6 @@
 import { deepStrictEqual } from "node:assert";
-
 import { ENV, teardown, View, ViewBoundaryOwner, viewNodes } from "rvx";
+import { ACCESS_STACK, LEAK, TEARDOWN_STACK, TRACKING_STACK } from "../dist/es/core/internals/stacks.js";
 
 export function assertEvents(events: unknown[], expected: unknown[]): void {
 	deepStrictEqual(events, expected);
@@ -90,4 +90,10 @@ export function withMsg(message: string): (error: unknown) => boolean {
 	return error => {
 		return (error instanceof Error) && error.message === message;
 	};
+}
+
+export function isIsolated(): boolean {
+	return TEARDOWN_STACK[TEARDOWN_STACK.length - 1] === LEAK
+		&& ACCESS_STACK[ACCESS_STACK.length - 1] === undefined
+		&& TRACKING_STACK[TRACKING_STACK.length - 1];
 }

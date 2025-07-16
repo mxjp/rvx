@@ -1,3 +1,4 @@
+import { isolate } from "../core/isolate.js";
 import { $ } from "../core/signals.js";
 import type { Component } from "../core/types.js";
 import { nest, View } from "../core/view.js";
@@ -9,13 +10,24 @@ import { ASYNC } from "./async-context.js";
  * See {@link Async `<Async>`} when using JSX or when named properties are preferred.
  *
  * This task is tracked using the current {@link ASYNC async context} if any. It is guaranteed, that the view is updated before the tracked task completes.
+ *
+ * @param source The async function or promise.
+ * + If this is a function, it runs {@link isolate isolated}.
+ * @param component A component to render content when resolved.
+ * + The resolved value is passed as the first argument.
+ * + Nothing is rendered by default.
+ * @param pending A component to render while pending.
+ * + Nothing is rendered by default.
+ * @param rejected A component to render content when rejected.
+ * + The rejected error is passed as the first argument.
+ * + Nothing is rendered by default.
  */
 export function nestAsync<T>(source: (() => Promise<T>) | Promise<T>, component?: Component<T>, pending?: Component, rejected?: Component<unknown>): View {
 	const state = $({ type: 0, value: undefined as unknown });
 
 	let promise: Promise<T>;
 	if (typeof source === "function") {
-		promise = (async () => source())();
+		promise = isolate(source);
 	} else {
 		promise = source;
 	}
@@ -50,29 +62,33 @@ export function nestAsync<T>(source: (() => Promise<T>) | Promise<T>, component?
 export function Async<T>(props: {
 	/**
 	 * The async function or promise.
+	 *
+	 * If this is a function, it runs {@link isolate isolated}.
 	 */
 	source: (() => Promise<T>) | Promise<T>;
 
 	/**
-	 * A function render content while pending.
+	 * A component to render content when resolved.
 	 *
-	 * By default, nothing is rendered.
+	 * + The resolved value is passed as the first argument.
+	 * + Nothing is rendered by default.
 	 */
-	pending?: () => unknown;
+	children?: Component<T>;
 
 	/**
-	 * A function to render content when resolved.
+	 * A component render content while pending.
 	 *
-	 * By default, nothing is rendered.
+	 * + Nothing is rendered by default.
 	 */
-	children?: (value: T) => unknown;
+	pending?: Component;
 
 	/**
-	 * A function to render content when rejected.
+	 * A component to render content when rejected.
 	 *
-	 * By default, nothing is rendered.
+	 * + The rejected error is passed as the first argument.
+	 * + Nothing is rendered by default.
 	 */
-	rejected?: (value: unknown) => unknown;
+	rejected?: Component<unknown>;
 }): View {
 	return nestAsync(props.source, props.children, props.pending, props.rejected);
 }
