@@ -1,9 +1,9 @@
-import { strictEqual } from "node:assert";
+import { strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { capture, Context, ENV, mount, uncapture, watch } from "rvx";
+import { capture, Context, ENV, mount, teardown, uncapture, watch } from "rvx";
 import { isPending, isSelfPending, TASKS, Tasks, waitFor } from "rvx/async";
 import { isRvxDom } from "rvx/dom";
-import { assertEvents, future } from "../common.js";
+import { assertEvents, future, isIsolated, withMsg } from "../common.js";
 
 await suite("async/tasks", async () => {
 	for (const fn of [false, true]) {
@@ -31,7 +31,17 @@ await suite("async/tasks", async () => {
 		});
 	}
 
-	await test("setPending", async () => {
+	await test("waitFor isolation", async () => {
+		const tasks = uncapture(() => new Tasks());
+		capture(() => {
+			strictEqual(isIsolated(), false);
+			tasks.waitFor(() => {
+				strictEqual(isIsolated(), true);
+			});
+		});
+	});
+
+	await test("setPending", () => {
 		const tasks = uncapture(() => new Tasks());
 		strictEqual(tasks.pending, false);
 		const dispose = capture(() => tasks.setPending());

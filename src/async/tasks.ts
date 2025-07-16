@@ -1,5 +1,6 @@
 import { Context } from "../core/context.js";
 import { ENV } from "../core/env.js";
+import { isolate } from "../core/isolate.js";
 import { teardown } from "../core/lifecycle.js";
 import { $, watch } from "../core/signals.js";
 
@@ -111,13 +112,14 @@ export class Tasks {
 	 * Wait for an async function or a promise.
 	 *
 	 * @param source The async function or promise to wait for.
+	 * + If this is a function, it runs {@link isolate isolated}.
 	 */
 	waitFor(source: TaskSource): void {
 		if (typeof source === "function") {
 			this.#setPending();
 			void (async () => {
 				try {
-					return await source();
+					return await isolate(source);
 				} catch (error) {
 					void Promise.reject(error);
 				} finally {
@@ -160,7 +162,7 @@ export function isSelfPending(): boolean {
 }
 
 /**
- * Check if there are any pending tasks in the current tasks instance or any of it's parents.
+ * Check if there are any {@link Tasks.prototype.pending pending} tasks in the current tasks instance or any of it's parents.
  *
  * This can be used in conjunction with {@link waitFor} to disable inputs and buttons while there are any pending tasks.
  *
@@ -176,7 +178,7 @@ export function isPending(): boolean {
 }
 
 /**
- * Pretend, that there is a pending task in the current tasks instance until the current lifecycle is disposed.
+ * Pretend, that there is a {@link Tasks.prototype.setPending pending} task in the current tasks instance until the current lifecycle is disposed.
  *
  * This is meant to be used for preventing concurrent user interaction in a specific context.
  *
@@ -198,11 +200,12 @@ export function setPending(): void {
 }
 
 /**
- * Use the current tasks instance to wait for an async function or promise.
+ * Use the current tasks instance to {@link Tasks.prototype.waitFor wait for} an async function or promise.
  *
  * This is meant to be used for preventing concurrent user interaction in a specific context.
  *
  * @param source The async function or promise to wait for.
+ * + If this is a function, it runs {@link isolate isolated}.
  */
 export function waitFor(source: TaskSource): void {
 	TASKS.current?.waitFor(source);
