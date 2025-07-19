@@ -157,7 +157,7 @@ export interface ComponentRoute<P = unknown> extends Route {
  *
  * A {@link ChildRouter} is injected as a replacement for the current router when rendering route content.
  */
-export function routes(routes: Expression<Iterable<ComponentRoute<unknown>>>): View {
+export function routes(routes: Expression<Iterable<ComponentRoute<any>>>): View {
 	const router = ROUTER.current;
 	if (!router) {
 		// Router is not available in the current context:
@@ -182,7 +182,7 @@ export function Routes(props: {
 	/**
 	 * The routes to match.
 	 */
-	routes: Expression<Iterable<ComponentRoute<unknown>>>;
+	routes: Expression<Iterable<ComponentRoute<any>>>;
 }): View {
 	return routes(props.routes);
 }
