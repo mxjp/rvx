@@ -6,8 +6,8 @@
 		"build": "vite build"
 	},
 	"devDependencies": {
-		"typescript": "^5.8.3",
-		"vite": "^6.3.5"
+		"typescript": "^5.9.2",
+		"vite": "^7.1.2"
 	},
 	"dependencies": {
 		"rvx": "^22.0.0"

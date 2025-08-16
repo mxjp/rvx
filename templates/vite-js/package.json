@@ -6,7 +6,7 @@
 		"build": "vite build"
 	},
 	"devDependencies": {
-		"vite": "^6.3.5"
+		"vite": "^7.1.2"
 	},
 	"dependencies": {
 		"rvx": "^22.0.0"
