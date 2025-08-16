@@ -1,6 +1,7 @@
 import terser from "@rollup/plugin-terser";
 import { readFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { brotliCompressSync, gzipSync } from "node:zlib";
 import { rollup } from "rollup";
 import { dts } from "rollup-plugin-dts";
 import { bundleName, dist, moduleNames, root, tscOut } from "./common.js";
@@ -75,7 +76,7 @@ for (const moduleName of moduleNames) {
 		],
 	});
 
-	await esBundle.write({
+	logOutputStats(await esBundle.write({
 		format: "es",
 		file: join(dist, bundleName(moduleName) + ".js"),
 		paths: id => {
@@ -87,9 +88,9 @@ for (const moduleName of moduleNames) {
 			bannerPlugin,
 			formatPlugin,
 		],
-	});
+	}));
 
-	await esBundle.write({
+	logOutputStats(await esBundle.write({
 		format: "es",
 		file: join(dist, bundleName(moduleName) + ".min.js"),
 		paths: id => {
@@ -100,7 +101,7 @@ for (const moduleName of moduleNames) {
 		plugins: [
 			terser(),
 		],
-	});
+	}));
 
 	const typesBundle = await rollup({
 		logLevel: "silent",
@@ -130,4 +131,19 @@ for (const moduleName of moduleNames) {
 	});
 
 	console.groupEnd();
+}
+
+function logOutputStats({ output }) {
+	function kb(bytes) {
+		return (bytes / 1000).toFixed(1) + "kb";
+	}
+
+	for (const entry of output) {
+		console.group(`${entry.fileName}: ${kb(entry.code.length)}`);
+		if (entry.fileName.endsWith(".min.js")) {
+			console.log("  gzip:", kb(gzipSync(entry.code).length));
+			console.log("brotli:", kb(brotliCompressSync(entry.code).length));
+		}
+		console.groupEnd();
+	}
 }
