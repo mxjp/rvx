@@ -2,7 +2,6 @@
 	"type": "module",
 	"dependencies": {
 		"express": "^5.1.0",
-		"playwright": "^1.54.2",
-		"yargs-parser": "^22.0.0"
+		"playwright": "^1.54.2"
 	}
 }

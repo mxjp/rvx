@@ -4,20 +4,37 @@ import { mkdir, readdir } from "node:fs/promises";
 import { createServer } from "node:http";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseArgs } from "node:util";
 import { chromium, firefox } from "playwright";
-import yargsParser from "yargs-parser";
 
 const ctx = dirname(fileURLToPath(import.meta.url));
-const args = yargsParser(process.argv.slice(2), {
-	boolean: ["headless", "trace", "trace-all"],
-	default: {
-		headless: true,
+const args = parseArgs({
+	allowNegative: true,
+	options: {
+		headless: {
+			type: "boolean",
+			default: true,
+		},
+		trace: {
+			type: "boolean",
+			default: false,
+		},
+		"trace-all": {
+			type: "boolean",
+			default: false,
+		},
+		only: {
+			type: "string",
+		},
+		snapshot: {
+			type: "string",
+		},
 	},
-	string: ["only", "snapshot"],
-});
-const headless = args.headless ?? false;
-const traceAll = args["trace-all"] ?? false;
-const trace = traceAll ? false : (args.trace ?? false);
+}).values;
+
+const headless = args.headless;
+const traceAll = args["trace-all"];
+const trace = traceAll ? false : args.trace;
 
 const traces = join(ctx, "traces");
 if (trace || traceAll) {

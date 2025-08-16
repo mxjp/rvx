@@ -3,18 +3,26 @@ import { spawn } from "node:child_process";
 import { access, mkdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseArgs } from "node:util";
 import { rollup } from "rollup";
-import yargsParser from "yargs-parser";
 import { tscOut } from "../scripts/common.js";
 
 const ctx = dirname(fileURLToPath(import.meta.url));
 const repo = join(ctx, "..");
 const snapshots = join(ctx, "src/snapshots");
 
-const args = yargsParser(process.argv.slice(2), {
-	boolean: ["build"],
-	string: ["name"],
-});
+const args = parseArgs({
+	allowNegative: true,
+	options: {
+		build: {
+			type: "boolean",
+			default: true,
+		},
+		name: {
+			type: "string",
+		},
+	},
+}).values;
 
 await mkdir(snapshots, { recursive: true });
 const baseExists = await access(join(snapshots, "base.js")).then(() => true, () => false);
@@ -23,7 +31,7 @@ if (typeof name !== "string" || !/^[a-z0-9\-]+$/.test(name)) {
 	throw new Error("invalid name");
 }
 
-if (args.build ?? true) {
+if (args.build) {
 	await exec(repo, "npm run build:es");
 }
 
