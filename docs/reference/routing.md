@@ -151,6 +151,55 @@ Functions can return an object with the normalized matched path and optional par
 	]
 	```
 
+## Redirects
+Redirects can be built by immediately calling `push` or `replace` on a router:
+
+=== "JSX"
+	```jsx
+	import { ROUTER } from "rvx/router";
+
+	{
+		// Redirect ".../foo" to ".../foo/bar":
+		match: "/foo",
+		content: () => ROUTER.current!.replace("/bar"),
+	}
+
+	{
+		// Redirect ".../foo" to ".../bar":
+		match: "/foo",
+		content: () => ROUTER.current!.parent!.replace("/bar"),
+	}
+
+	{
+		// Redirect ".../foo" to "/bar":
+		match: "/foo",
+		content: () => ROUTER.current!.root.replace("/bar"),
+	}
+	```
+
+=== "No Build"
+	```jsx
+	import { ROUTER } from "./rvx.router.js";
+
+	{
+		// Redirect ".../foo" to ".../foo/bar":
+		match: "/foo",
+		content: () => ROUTER.current.replace("/bar"),
+	}
+
+	{
+		// Redirect ".../foo" to ".../bar":
+		match: "/foo",
+		content: () => ROUTER.current.parent.replace("/bar"),
+	}
+
+	{
+		// Redirect ".../foo" to "/bar":
+		match: "/foo",
+		content: () => ROUTER.current.root.replace("/bar"),
+	}
+	```
+
 ## Path Normalization
 Paths are normalized, so that non-empty paths always start with a slash and the root path is represented as an empty string.
 
