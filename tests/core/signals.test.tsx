@@ -1260,6 +1260,40 @@ await suite("signals", async () => {
 			});
 			assertEvents(events, ["b", 77]);
 		});
+
+		await test("dispatch error handling", () => {
+			const events: unknown[] = [];
+			const a = $(0);
+			const b = $(0);
+
+			uncapture(() => watchUpdates(a, value => {
+				events.push("a", value);
+				throw new Error("test");
+			}));
+
+			uncapture(() => watchUpdates(b, value => {
+				events.push("b", value);
+			}));
+
+			assertEvents(events, []);
+			throws(() => {
+				batch(() => {
+					a.value++;
+					b.value++;
+					events.push("end1");
+				});
+			}, withMsg("test"));
+			assertEvents(events, ["end1", "a", 1, "b", 1]);
+
+			throws(() => {
+				batch(() => {
+					a.value++;
+					b.value++;
+					events.push("end2");
+				});
+			}, withMsg("test"));
+			assertEvents(events, ["end2", "a", 2, "b", 2]);
+		});
 	});
 
 	await test("mapper", () => {

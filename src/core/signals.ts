@@ -429,6 +429,23 @@ export function watchUpdates<T>(expr: Expression<T>, effect: (value: T) => void)
 	return first!;
 }
 
+function dispatch(batch: Set<NotifyHook>): void {
+	while (batch.size > 0) {
+		try {
+			batch.forEach(notify => {
+				/*
+					Notify hooks are deleted individually to ensure the correct behavior if calling
+					the hooks adds itself to the batch again due to an immediate side effect.
+				*/
+				batch.delete(notify);
+				notify();
+			});
+		} finally {
+			dispatch(batch);
+		}
+	}
+}
+
 /**
  * Defer signal updates until a function finishes.
  *
@@ -463,16 +480,7 @@ export function batch<T>(fn: () => T): T {
 		try {
 			BATCH = batch;
 			value = fn();
-			while (batch.size > 0) {
-				batch.forEach(notify => {
-					/*
-						Notify hooks are deleted individually to ensure the correct behavior if calling
-						the hooks adds itself to the batch again due to an immediate side effect.
-					*/
-					batch.delete(notify);
-					notify();
-				});
-			}
+			dispatch(batch);
 		} finally {
 			BATCH = undefined;
 		}
