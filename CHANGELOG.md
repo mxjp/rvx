@@ -1,5 +1,8 @@
 # Changelog
 
+## 22.3
++ Fix: Errors thrown while notifying observers in a `batch` no longer cause batch dispatching to abort and potentially leave other signal/observer relations in a broken state.
+
 ## 22.2
 + Add optionally visible comments in `rvx/dom`.
 + Rename & **deprecate** old exports:
