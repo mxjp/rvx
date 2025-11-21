@@ -1,4 +1,5 @@
 import { NODE, NodeTarget } from "../element-common.js";
+import { Content } from "../types.js";
 import { View } from "../view.js";
 import { createText } from "./create-text.js";
 
@@ -8,7 +9,7 @@ import { createText } from "./create-text.js";
  * @param node The node.
  * @param content The content to append.
  */
-export function appendContent(node: Node, content: unknown, env: typeof globalThis): void {
+export function appendContent(node: Node, content: Content, env: typeof globalThis): void {
 	if (content === null || content === undefined) {
 		return;
 	}

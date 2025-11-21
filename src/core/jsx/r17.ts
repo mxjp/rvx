@@ -1,5 +1,6 @@
 import type { Attributes, TagNameMap } from "../element-common.js";
 import { createElement } from "../internals/create-element.js";
+import { Content } from "../types.js";
 
 export { Fragment } from "./fragment.js";
 
@@ -20,7 +21,7 @@ export namespace JSX {
 	export type ElementClass = never;
 }
 
-export function jsx(type: any, props: any, key: any): unknown {
+export function jsx(type: any, props: any, key: any): Content {
 	if (key !== undefined) {
 		props.key = key;
 	}

@@ -1,4 +1,5 @@
 import { $, Expression, get, watch } from "../core/signals.js";
+import { Component } from "../core/types.js";
 import { nest, View } from "../core/view.js";
 import { ChildRouter } from "./child-router.js";
 import { normalize } from "./path.js";
@@ -149,7 +150,7 @@ export interface RouteProps<P = unknown> {
  * A route where the content is a component to render.
  */
 export interface ComponentRoute<P = unknown> extends Route {
-	content: (props: RouteProps<P>) => unknown;
+	content: Component<RouteProps<P>>;
 }
 
 /**

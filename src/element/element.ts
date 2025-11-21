@@ -1,6 +1,7 @@
 import { ENV } from "../core/env.js";
 import { capture, TeardownHook, uncapture } from "../core/lifecycle.js";
 import { $, Signal, watchUpdates } from "../core/signals.js";
+import { Content } from "../core/types.js";
 import { render } from "../core/view.js";
 
 export type StartTrigger = "on-connect" | "manual";
@@ -59,7 +60,7 @@ export abstract class RvxElement extends moduleEnv.HTMLElement {
 	 *
 	 * @returns The content to attach to this element or the shadow root if it exists.
 	 */
-	abstract render(): unknown;
+	abstract render(): Content;
 
 	/**
 	 * Get a signal that reflects an attribute value.

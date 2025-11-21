@@ -5,8 +5,13 @@
 export type Falsy = null | undefined | false | 0 | 0n | "";
 
 /**
+ * Type alias for `unknown` to indicate rendered content.
+ */
+export type Content = unknown;
+
+/**
  * Common interface for components.
  */
-export interface Component<Props = void, Content = unknown> {
-	(props: Props): Content;
+export interface Component<TProps = void, TContent = Content> {
+	(props: TProps): TContent;
 }

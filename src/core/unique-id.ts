@@ -1,4 +1,4 @@
-import type { Component } from "../core/types.js";
+import type { Component, Content } from "../core/types.js";
 import { NEXT_ID } from "./internals/next-unique-id.js";
 
 /**
@@ -31,7 +31,7 @@ export function uniqueId(): string {
  * ])
  * ```
  */
-export function useUniqueId<T = unknown>(component: Component<string, T>): T {
+export function useUniqueId<T = Content>(component: Component<string, T>): T {
 	return component(uniqueId());
 }
 
@@ -52,9 +52,9 @@ export function useUniqueId<T = unknown>(component: Component<string, T>): T {
  * </UseUniqueId>
  * ```
  */
-export function UseUniqueId(props: {
-	children: Component<string>;
-}): unknown {
+export function UseUniqueId<T = Content>(props: {
+	children: Component<string, T>;
+}): T {
 	return props.children(uniqueId());
 }
 

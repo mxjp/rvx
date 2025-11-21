@@ -7,6 +7,7 @@ import { setClass } from "./internals/set-class.js";
 import { setStyle } from "./internals/set-style.js";
 import { isolate } from "./isolate.js";
 import { Expression, watch } from "./signals.js";
+import { Content } from "./types.js";
 
 export class ElementBuilder<E extends Element> implements NodeTarget {
 	#env = ENV.current;
@@ -157,7 +158,7 @@ export class ElementBuilder<E extends Element> implements NodeTarget {
 	 * ])
 	 * ```
 	 */
-	append(...content: unknown[]): this {
+	append(...content: Content[]): this {
 		appendContent(this.elem, content, this.#env);
 		return this;
 	}

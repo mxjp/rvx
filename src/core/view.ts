@@ -5,7 +5,7 @@ import { NOOP } from "./internals/noop.js";
 import { isolate } from "./isolate.js";
 import { capture, teardown, TeardownHook } from "./lifecycle.js";
 import { $, Expression, ExpressionResult, get, memo, Signal, watch } from "./signals.js";
-import type { Component, Falsy } from "./types.js";
+import type { Component, Content, Falsy } from "./types.js";
 
 /**
  * Internal utility to create placeholder comments.
@@ -84,14 +84,14 @@ function use(setBoundary: ViewSetBoundaryFn, node: Node, env: typeof globalThis)
  * render($(42));
  * ```
  */
-export function render(content: unknown): View {
+export function render(content: Content): View {
 	if (content instanceof View) {
 		return content;
 	}
 	return new View(setBoundary => {
 		const env = ENV.current;
 		if (Array.isArray(content)) {
-			const flat = content.flat(Infinity) as unknown[];
+			const flat = content.flat(Infinity) as Content[];
 			if (flat.length > 1) {
 				const parent = createParent(env);
 				for (let i = 0; i < flat.length; i++) {
@@ -173,9 +173,9 @@ export function render(content: unknown): View {
  * Since the content is removed when the current lifecycle is disposed, this can also be used to temporarily append
  * content to different elements while some component is rendered:
  * ```tsx
- * import { mount } from "rvx";
+ * import { mount, Content } from "rvx";
  *
- * function Popover(props: { text: unknown, children: unknown }) {
+ * function Popover(props: { text: Content, children: Content }) {
  *   const visible = $(false);
  *
  *   mount(
@@ -198,7 +198,7 @@ export function render(content: unknown): View {
  * );
  * ```
  */
-export function mount(parent: Node, content: unknown): View {
+export function mount(parent: Node, content: Content): View {
 	const view = render(content);
 	view.appendTo(parent);
 	teardown(() => view.detach());
@@ -596,7 +596,7 @@ export interface ForContentFn<T> {
 	 * @param index An expression to get the current index.
 	 * @returns The content.
 	 */
-	(value: T, index: () => number): unknown;
+	(value: T, index: () => number): Content;
 }
 
 /**
@@ -768,7 +768,7 @@ export interface IndexContentFn<T> {
 	 * @param index The index.
 	 * @returns The content.
 	 */
-	(value: T, index: number): unknown;
+	(value: T, index: number): Content;
 }
 
 /**
@@ -936,7 +936,7 @@ export class MovableView {
 /**
  * Render and wrap arbitrary content so that it can be moved and reused.
  */
-export function movable(content: unknown): MovableView {
+export function movable(content: Content): MovableView {
 	return new MovableView(render(content));
 }
 
@@ -959,7 +959,7 @@ export function movable(content: unknown): MovableView {
  * attachWhen(showMessage, e("h1").append("Hello World!"))
  * ```
  */
-export function attachWhen(condition: Expression<boolean>, content: unknown): View {
+export function attachWhen(condition: Expression<boolean>, content: Content): View {
 	return nest(condition, value => value ? content : undefined);
 }
 
@@ -990,7 +990,7 @@ export function Attach(props: {
 	/**
 	 * The content to attach when the condition result is truthy.
 	 */
-	children?: unknown;
+	children?: Content;
 }): View {
 	return attachWhen(props.when, props.children);
 }

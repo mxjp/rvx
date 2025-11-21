@@ -1,5 +1,6 @@
 import type { Attributes, TagNameMap } from "../element-common.js";
 import { createElement } from "../internals/create-element.js";
+import { Content } from "../types.js";
 
 export { Fragment } from "./fragment.js";
 
@@ -22,7 +23,7 @@ declare global {
 	}
 }
 
-export function jsx(type: any, props: any, ...children: any[]): unknown {
+export function jsx(type: any, props: any, ...children: any[]): Content {
 	props ??= {};
 	if (children.length > 0) {
 		props.children ??= children;
