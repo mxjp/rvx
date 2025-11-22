@@ -421,11 +421,12 @@ export class View {
 export function * viewNodes(view: View): IterableIterator<Node> {
 	let node = view.first;
 	for (;;) {
+		const next = node.nextSibling!;
 		yield node;
 		if (node === view.last) {
 			break;
 		}
-		node = node.nextSibling!;
+		node = next;
 	}
 }
 
