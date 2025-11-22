@@ -2,6 +2,7 @@ import { deepStrictEqual, notStrictEqual, strictEqual, throws } from "node:asser
 import test, { suite } from "node:test";
 import { $, Attach, capture, Component, ENV, For, Index, memo, mount, movable, Nest, render, Show, teardown, uncapture, View, watch, watchUpdates } from "rvx";
 import { wrap } from "rvx/store";
+import { assertViewState } from "rvx/test";
 import { assertEvents, boundaryEvents, lifecycleEvent, TestView, testView, text, viewText, withMsg } from "../common.js";
 
 await suite("view", async () => {
@@ -16,9 +17,11 @@ await suite("view", async () => {
 	});
 
 	await test("init single node", () => {
-		const view = new View(setBoundary => {
+		const view = new View((setBoundary, self) => {
 			const node = <div>test</div> as HTMLElement;
+			throws(() => assertViewState(self));
 			setBoundary(node, node);
+			assertViewState(self);
 		});
 
 		strictEqual(view.parent, undefined);
@@ -111,13 +114,15 @@ await suite("view", async () => {
 		await test("single node", () => {
 			let node!: Node;
 			let parent!: Node;
-			const view = new View(setBoundary => {
+			const view = new View((setBoundary, self) => {
 				node = <div>test</div> as HTMLElement;
 				parent = <div>{node}</div> as HTMLElement;
 				setBoundary(node, node);
+				assertViewState(self);
 			});
 			strictEqual(node.parentNode, parent);
 			view.detach();
+			assertViewState(view);
 			strictEqual(node.parentNode, null);
 		});
 
@@ -125,6 +130,7 @@ await suite("view", async () => {
 			const { view } = testView();
 			const parent = view.parent;
 			view.detach();
+			assertViewState(view);
 			strictEqual(view.first.parentNode instanceof ENV.current.DocumentFragment, true);
 			strictEqual(view.first.parentNode, view.last.parentNode);
 			notStrictEqual(view.first.parentNode, parent);
@@ -138,14 +144,17 @@ await suite("view", async () => {
 		const signal = $(1);
 		const dispose = capture(() => {
 			view = mount(root, () => `test${signal.value}`);
+			assertViewState(view);
 		});
 		strictEqual(text(root), "test1");
 		signal.value = 2;
+		assertViewState(view);
 		strictEqual(text(root), "test2");
 		dispose();
 		strictEqual(text(root), "");
 		strictEqual(viewText(view), "test2");
 		signal.value = 3;
+		assertViewState(view);
 		strictEqual(viewText(view), "test2");
 	});
 
@@ -168,20 +177,24 @@ await suite("view", async () => {
 						return <div>{value}</div> as HTMLElement;
 					}}
 				</Nest> as View;
+				assertViewState(view);
 			});
 
 			strictEqual(viewText(view), "");
 			assertEvents(events, []);
 
 			signal.value = 1;
+			assertViewState(view);
 			strictEqual(viewText(view), "1");
 			assertEvents(events, ["+1"]);
 
 			signal.value = 2;
+			assertViewState(view);
 			strictEqual(viewText(view), "2");
 			assertEvents(events, ["-1", "+2"]);
 
 			dispose();
+			assertViewState(view);
 			assertEvents(events, ["-2"]);
 		});
 
@@ -195,28 +208,35 @@ await suite("view", async () => {
 				view = <Nest watch={inner}>
 					{inner => inner?.view}
 				</Nest> as View;
+				assertViewState(view);
 				view.setBoundaryOwner(boundaryEvents(events));
+				assertViewState(view);
 			});
 
 			strictEqual(viewText(view), "");
 
 			inner.value = testView("a");
+			assertViewState(view);
 			strictEqual(viewText(view), "afl");
 			assertEvents(events, ["afl"]);
 
 			inner.value.nextFirst();
+			assertViewState(view);
 			strictEqual(viewText(view), "af0l");
 			assertEvents(events, ["af0l"]);
 
 			inner.value.nextLast();
+			assertViewState(view);
 			strictEqual(viewText(view), "af0l1");
 			assertEvents(events, ["af0l1"]);
 
 			inner.value = testView("b");
+			assertViewState(view);
 			strictEqual(viewText(view), "bfl");
 			assertEvents(events, ["bfl"]);
 
 			inner.value = undefined;
+			assertViewState(view);
 			strictEqual(viewText(view), "");
 			assertEvents(events, [""]);
 		});
@@ -235,6 +255,7 @@ await suite("view", async () => {
 						return value;
 					}}
 				</Nest> as View;
+				assertViewState(view);
 			});
 			strictEqual(viewText(view), "3");
 			assertEvents(events, ["s:0", "e:0", "s:1", "e:1", "s:2", "e:2", "s:3"]);
@@ -249,7 +270,9 @@ await suite("view", async () => {
 							signal.access();
 							throw new Error("test");
 						}}>
-							{() => {}}
+							{() => {
+								throw new Error();
+							}}
 						</Nest> as View;
 					});
 				}, withMsg("test"));
@@ -269,19 +292,23 @@ await suite("view", async () => {
 					}}>
 						{value => value}
 					</Nest> as View;
+					assertViewState(view);
 				});
 				strictEqual(viewText(view), "42");
 
 				throws(() => {
 					signal.value = 77;
 				}, withMsg("test"));
+				assertViewState(view);
 				strictEqual(viewText(view), "42");
 
 				signal.value = 123;
+				assertViewState(view);
 				strictEqual(viewText(view), "123");
 
 				dispose();
 				signal.value = 11;
+				assertViewState(view);
 				strictEqual(viewText(view), "123");
 			});
 
@@ -311,19 +338,23 @@ await suite("view", async () => {
 							return value;
 						}}
 					</Nest> as View;
+					assertViewState(view);
 				});
 				strictEqual(viewText(view), "42");
 
 				throws(() => {
 					signal.value = 77;
 				}, withMsg("test"));
+				assertViewState(view);
 				strictEqual(viewText(view), "42");
 
 				signal.value = 123;
+				assertViewState(view);
 				strictEqual(viewText(view), "123");
 
 				dispose();
 				signal.value = 11;
+				assertViewState(view);
 				strictEqual(viewText(view), "123");
 			});
 		});
@@ -348,18 +379,22 @@ await suite("view", async () => {
 				</Nest> as View;
 			});
 
+			assertViewState(view);
 			assertEvents(events, ["s:a"]);
 			strictEqual(viewText(view), "a0");
 
 			signal.value = 1;
+			assertViewState(view);
 			assertEvents(events, []);
 			strictEqual(viewText(view), "a1");
 
 			signal.value = 2;
+			assertViewState(view);
 			assertEvents(events, ["e:a", "s:b"]);
 			strictEqual(viewText(view), "b2");
 
 			signal.value = 3;
+			assertViewState(view);
 			assertEvents(events, []);
 			strictEqual(viewText(view), "b3");
 		});
@@ -379,18 +414,22 @@ await suite("view", async () => {
 				</Nest> as View;
 			});
 
+			assertViewState(view);
 			assertEvents(events, ["s:v0"]);
 			strictEqual(viewText(view), "v0:0");
 
 			count.value++;
+			assertViewState(view);
 			assertEvents(events, []);
 			strictEqual(viewText(view), "v0:1");
 
 			signal.notify();
+			assertViewState(view);
 			assertEvents(events, ["e:v0", "s:v1"]);
 			strictEqual(viewText(view), "v1:1");
 
 			count.value++;
+			assertViewState(view);
 			assertEvents(events, []);
 			strictEqual(viewText(view), "v1:2");
 		});
@@ -400,6 +439,7 @@ await suite("view", async () => {
 			const comp = $<Component | undefined>(undefined);
 			const view = uncapture(() => <Nest watch={comp}>{c => c?.()}</Nest> as View);
 
+			assertViewState(view);
 			assertEvents(events, []);
 			strictEqual(viewText(view), "");
 
@@ -407,6 +447,7 @@ await suite("view", async () => {
 				lifecycleEvent(events, "a");
 				return "a";
 			};
+			assertViewState(view);
 			assertEvents(events, ["s:a"]);
 			strictEqual(viewText(view), "a");
 
@@ -414,10 +455,12 @@ await suite("view", async () => {
 				lifecycleEvent(events, "b");
 				return "b";
 			};
+			assertViewState(view);
 			assertEvents(events, ["e:a", "s:b"]);
 			strictEqual(viewText(view), "b");
 
 			comp.notify();
+			assertViewState(view);
 			assertEvents(events, ["e:b", "s:b"]);
 			strictEqual(viewText(view), "b");
 		});
@@ -427,6 +470,7 @@ await suite("view", async () => {
 			const comp = $<Component | undefined | null>(undefined);
 			const view = uncapture(() => <Nest watch={comp} /> as View);
 
+			assertViewState(view);
 			assertEvents(events, []);
 			strictEqual(viewText(view), "");
 
@@ -434,6 +478,7 @@ await suite("view", async () => {
 				lifecycleEvent(events, "a");
 				return "a";
 			};
+			assertViewState(view);
 			assertEvents(events, ["s:a"]);
 			strictEqual(viewText(view), "a");
 
@@ -441,14 +486,17 @@ await suite("view", async () => {
 				lifecycleEvent(events, "b");
 				return "b";
 			};
+			assertViewState(view);
 			assertEvents(events, ["e:a", "s:b"]);
 			strictEqual(viewText(view), "b");
 
 			comp.notify();
+			assertViewState(view);
 			assertEvents(events, ["e:b", "s:b"]);
 			strictEqual(viewText(view), "b");
 
 			comp.value = null;
+			assertViewState(view);
 			assertEvents(events, ["e:b"]);
 			strictEqual(viewText(view), "");
 		});
@@ -457,54 +505,74 @@ await suite("view", async () => {
 			await test("leading view, detached", () => {
 				const signal = $();
 				const inner = render(<>{0}{1}</>);
+				assertViewState(inner);
 				const outer = uncapture(() => {
 					return <Nest watch={signal}>
 						{() => <>{inner}x</>}
 					</Nest> as View;
 				});
+				assertViewState(inner);
+				assertViewState(outer);
 				strictEqual(viewText(outer), "01x");
 				signal.notify();
+				assertViewState(inner);
+				assertViewState(outer);
 				strictEqual(viewText(outer), "01x");
 			});
 
 			await test("trailing view, detached", () => {
 				const signal = $();
 				const inner = render(<>{0}{1}</>);
+				assertViewState(inner);
 				const outer = uncapture(() => {
 					return <Nest watch={signal}>
 						{() => <>x{inner}</>}
 					</Nest> as View;
 				});
+				assertViewState(inner);
+				assertViewState(outer);
 				strictEqual(viewText(outer), "x01");
 				signal.notify();
+				assertViewState(inner);
+				assertViewState(outer);
 				strictEqual(viewText(outer), "x01");
 			});
 
 			await test("leading view, attached", () => {
 				const signal = $();
 				const inner = render(<>{0}{1}</>);
+				assertViewState(inner);
 				const outer = uncapture(() => {
 					return <Nest watch={signal}>
 						{() => <>{inner}x</>}
 					</Nest> as View;
 				});
+				assertViewState(inner);
+				assertViewState(outer);
 				const parent = render(<>a{outer}b</>);
 				strictEqual(viewText(parent), "a01xb");
 				signal.notify();
+				assertViewState(inner);
+				assertViewState(outer);
 				strictEqual(viewText(parent), "a01xb");
 			});
 
 			await test("trailing view, attached", () => {
 				const signal = $();
 				const inner = render(<>{0}{1}</>);
+				assertViewState(inner);
 				const outer = uncapture(() => {
 					return <Nest watch={signal}>
 						{() => <>x{inner}</>}
 					</Nest> as View;
 				});
+				assertViewState(inner);
+				assertViewState(outer);
 				const parent = render(<>a{outer}b</>);
 				strictEqual(viewText(parent), "ax01b");
 				signal.notify();
+				assertViewState(inner);
+				assertViewState(outer);
 				strictEqual(viewText(parent), "ax01b");
 			});
 		});
@@ -512,7 +580,6 @@ await suite("view", async () => {
 
 	await test("Show", () => {
 		const events: unknown[] = [];
-
 		const signal = $(0);
 
 		const view = uncapture(() => {
@@ -533,10 +600,12 @@ await suite("view", async () => {
 			</Show> as View;
 		});
 
+		assertViewState(view);
 		strictEqual(viewText(view), "f");
 		assertEvents(events, ["+f"]);
 
 		signal.value = 1;
+		assertViewState(view);
 		strictEqual(viewText(view), "1");
 		assertEvents(events, ["-f", "+1"]);
 
@@ -545,18 +614,22 @@ await suite("view", async () => {
 			assertEvents(events, ["e1"]);
 
 			signal.value = 2;
+			assertViewState(view);
 			strictEqual(viewText(view), "2");
 			assertEvents(events, ["-1", "+2", "e2"]);
 
 			signal.value = 2;
+			assertViewState(view);
 			assertEvents(events, []);
 
 			signal.notify();
+			assertViewState(view);
 			strictEqual(viewText(view), "2");
 			assertEvents(events, ["e2"]);
 		})();
 
 		signal.value = 0;
+		assertViewState(view);
 		strictEqual(viewText(view), "f");
 		assertEvents(events, ["-2", "+f"]);
 
@@ -565,9 +638,11 @@ await suite("view", async () => {
 			assertEvents(events, ["e0"]);
 
 			signal.value = 0;
+			assertViewState(view);
 			assertEvents(events, []);
 
 			signal.notify();
+			assertViewState(view);
 			strictEqual(viewText(view), "f");
 			assertEvents(events, ["e0"]);
 		})();
@@ -633,6 +708,7 @@ await suite("view", async () => {
 				assertEvents(events.sort(), expectedEvents.sort());
 			}
 
+			assertViewState(view);
 			assertItems(sequence[0], -1, true);
 			for (let i = 1; i < sequence.length; i++) {
 				const values = sequence[i];
@@ -644,11 +720,13 @@ await suite("view", async () => {
 				} else {
 					signal.value = sequence[i];
 				}
+				assertViewState(view);
 				assertItems(sequence[i], errorIndex, true);
 			}
 
 			const lastContent = viewText(view);
 			dispose();
+			assertViewState(view);
 			assertItems([], -1, false);
 			strictEqual(viewText(view), lastContent);
 		}
@@ -777,9 +855,11 @@ await suite("view", async () => {
 					}}
 				</For> as View;
 			});
+			assertViewState(view);
 			assertEvents(events, ["s:1"]);
 			strictEqual(viewText(view), "1");
 			signal.value = [2, 3, 4];
+			assertViewState(view);
 			deepStrictEqual(signal.value, [5]);
 			assertEvents(events, ["s:2", "s:3", "s:4", "e:1", "s:5", "e:2", "e:3", "e:4"]);
 			strictEqual(viewText(view), "5");
@@ -792,8 +872,9 @@ await suite("view", async () => {
 			const events: unknown[] = [];
 			const signal = $<unknown[]>([]);
 
+			let view!: View;
 			const dispose = capture(() => {
-				<For each={signal}>
+				view = <For each={signal}>
 					{(value, index) => {
 						events.push(["create", value, index()]);
 						watchUpdates(index, index => {
@@ -803,16 +884,19 @@ await suite("view", async () => {
 							events.push(["dispose", value, index()]);
 						});
 					}}
-				</For>;
+				</For> as View;
 			});
-
+			assertViewState(view);
 			assertEvents(events, []);
+
 			for (const [values, ...expectedEvents] of options.sequence) {
 				signal.value = values;
+				assertViewState(view);
 				assertEvents(events, expectedEvents);
 			}
 
 			dispose();
+			assertViewState(view);
 			assertEvents(events, options.disposeEvents);
 		}
 
@@ -886,8 +970,10 @@ await suite("view", async () => {
 			const view = uncapture(() => {
 				return <For each={proxy}>{v => v}</For> as View;
 			});
+			assertViewState(view);
 			strictEqual(viewText(view), "ab");
 			proxy.splice(1, 0, "c");
+			assertViewState(view);
 			strictEqual(viewText(view), "acb");
 		});
 
@@ -903,12 +989,15 @@ await suite("view", async () => {
 					{value => value + signal.value}
 				</For> as View;
 			});
+			assertViewState(view);
 			strictEqual(viewText(view), "3");
 			assertEvents(events, ["iter"]);
 			signal.value = 4;
+			assertViewState(view);
 			strictEqual(viewText(view), "3");
 			assertEvents(events, []);
 			values.value = [5];
+			assertViewState(view);
 			strictEqual(viewText(view), "9");
 			assertEvents(events, ["iter"]);
 		});
@@ -926,10 +1015,12 @@ await suite("view", async () => {
 						lifecycleEvent(events, value);
 						return value;
 					}}
-				</For>;
+				</For> as View;
 			});
+			assertViewState(view);
 			assertEvents(events, ["s:a", "s:0", "s:b"]);
 			signal.value++;
+			assertViewState(view);
 			assertEvents(events, ["e:b", "e:a", "s:a", "s:1", "s:b", "e:0"]);
 		});
 	});
@@ -990,6 +1081,7 @@ await suite("view", async () => {
 				lastValues = values;
 			}
 
+			assertViewState(view);
 			assertItems(sequence[0], -1, true);
 			for (let i = 1; i < sequence.length; i++) {
 				const values = sequence[i];
@@ -1001,11 +1093,14 @@ await suite("view", async () => {
 				} else {
 					signal.value = values;
 				}
+				assertViewState(view);
 				assertItems(values, errorIndex, true);
 			}
 
 			const lastContent = text(view!.detach());
+			assertViewState(view);
 			dispose();
+			assertViewState(view);
 			assertItems([], -1, false);
 			strictEqual(viewText(view), lastContent);
 		}
@@ -1107,9 +1202,11 @@ await suite("view", async () => {
 					}}
 				</Index> as View;
 			});
+			assertViewState(view);
 			assertEvents(events, ["s:1"]);
 			strictEqual(viewText(view), "1");
 			signal.value = [2, 3, 4];
+			assertViewState(view);
 			deepStrictEqual(signal.value, [5]);
 			assertEvents(events, ["e:1", "s:2", "s:3", "s:4", "e:2", "s:5", "e:3", "e:4"]);
 			strictEqual(viewText(view), "5");
@@ -1122,8 +1219,9 @@ await suite("view", async () => {
 			const events: unknown[] = [];
 			const signal = $<unknown[]>([]);
 
+			let view!: View;
 			const dispose = capture(() => {
-				<Index each={signal}>
+				view = <Index each={signal}>
 					{(value, index) => {
 						events.push(["create", value, index]);
 						watchUpdates(index, index => {
@@ -1133,16 +1231,19 @@ await suite("view", async () => {
 							events.push(["dispose", value, index]);
 						});
 					}}
-				</Index>;
+				</Index> as View;
 			});
 
+			assertViewState(view);
 			assertEvents(events, []);
 			for (const [values, ...expectedEvents] of options.sequence) {
 				signal.value = values;
+				assertViewState(view);
 				assertEvents(events, expectedEvents);
 			}
 
 			dispose();
+			assertViewState(view);
 			assertEvents(events, options.disposeEvents);
 		}
 
@@ -1217,8 +1318,10 @@ await suite("view", async () => {
 			const view = uncapture(() => {
 				return <Index each={proxy}>{v => v}</Index> as View;
 			});
+			assertViewState(view);
 			strictEqual(viewText(view), "ab");
 			proxy.splice(1, 0, "c");
+			assertViewState(view);
 			strictEqual(viewText(view), "acb");
 		});
 
@@ -1234,12 +1337,15 @@ await suite("view", async () => {
 					{value => value + signal.value}
 				</Index> as View;
 			});
+			assertViewState(view);
 			strictEqual(viewText(view), "3");
 			assertEvents(events, ["iter"]);
 			signal.value = 4;
+			assertViewState(view);
 			strictEqual(viewText(view), "3");
 			assertEvents(events, []);
 			values.value = [5];
+			assertViewState(view);
 			strictEqual(viewText(view), "9");
 			assertEvents(events, ["iter"]);
 		});
@@ -1257,10 +1363,12 @@ await suite("view", async () => {
 						lifecycleEvent(events, value);
 						return value;
 					}}
-				</Index>;
+				</Index> as View;
 			});
+			assertViewState(view);
 			assertEvents(events, ["s:a", "s:0", "s:b"]);
 			signal.value++;
+			assertViewState(view);
 			assertEvents(events, ["e:b", "e:a", "s:a", "e:0", "s:1", "s:b"]);
 		});
 	});
@@ -1273,25 +1381,37 @@ await suite("view", async () => {
 			</>));
 
 			const a = uncapture(view.move);
+			assertViewState(a);
 			strictEqual(viewText(a), "inner:1");
 
 			const b = uncapture(view.move);
+			assertViewState(a);
+			assertViewState(b);
 			strictEqual(viewText(a), "");
 			strictEqual(a.first instanceof ENV.current.Comment, true);
 			strictEqual(a.first, a.last);
 			strictEqual(viewText(b), "inner:1");
 			inner.value = 2;
+			assertViewState(a);
+			assertViewState(b);
 			strictEqual(viewText(b), "inner:2");
-
 			view.detach();
+			assertViewState(a);
+			assertViewState(b);
 			inner.value = 3;
+			assertViewState(a);
+			assertViewState(b);
 			strictEqual(text(b.detach()), "");
 			strictEqual(b.first instanceof ENV.current.Comment, true);
 			strictEqual(b.first, b.last);
 			notStrictEqual(a.first, b.first);
 
 			const c = uncapture(view.move);
+			assertViewState(a);
+			assertViewState(b);
+			assertViewState(c);
 			strictEqual(text(c.detach()), "inner:3");
+			assertViewState(c);
 		});
 
 		await test("lifecycle", () => {
@@ -1319,20 +1439,28 @@ await suite("view", async () => {
 				inner:{inner}
 			</Attach> as View;
 		});
+		assertViewState(view);
 
 		inner.value = 2;
+		assertViewState(view);
 		strictEqual(viewText(view), "");
 		signal.value = true;
+		assertViewState(view);
 		strictEqual(viewText(view), "inner:2");
 		inner.value = 3;
+		assertViewState(view);
 		strictEqual(viewText(view), "inner:3");
 		signal.value = false;
+		assertViewState(view);
 		strictEqual(viewText(view), "");
 		inner.value = 4;
+		assertViewState(view);
 		strictEqual(viewText(view), "");
 		signal.value = true;
+		assertViewState(view);
 		strictEqual(viewText(view), "inner:4");
 		signal.notify();
+		assertViewState(view);
 		strictEqual(viewText(view), "inner:4");
 	});
 });

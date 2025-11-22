@@ -1,5 +1,6 @@
 import { deepStrictEqual } from "node:assert";
 import { ENV, teardown, View, ViewBoundaryOwner, viewNodes } from "rvx";
+import { assertViewState } from "rvx/test";
 import { ACCESS_STACK, LEAK, TEARDOWN_STACK, TRACKING_STACK } from "../dist/es/core/internals/stacks.js";
 
 export function assertEvents(events: unknown[], expected: unknown[]): void {
@@ -33,12 +34,14 @@ export function testView(prefix = "") {
 		const frag = ENV.current.document.createDocumentFragment();
 		frag.append(first, last);
 		setBoundary(first, last);
+		assertViewState(self);
 
 		nextFirst = () => {
 			const next = <div>{prefix}f{i++}</div> as HTMLElement;
 			self.parent!.insertBefore(next, self.last!);
 			self.parent!.removeChild(self.first!);
 			setBoundary(next, undefined);
+			assertViewState(self);
 			return next;
 		};
 
@@ -47,6 +50,7 @@ export function testView(prefix = "") {
 			self.parent!.insertBefore(next, self.last!);
 			self.parent!.removeChild(self.last!);
 			setBoundary(undefined, next);
+			assertViewState(self);
 			return next;
 		};
 	});

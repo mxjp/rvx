@@ -2,6 +2,7 @@
 
 ## 22.4
 + Add `Content` type alias.
++ Add `assertViewState` test utility.
 
 ## 22.3
 + Fix: Errors thrown while notifying observers in a `batch` no longer cause batch dispatching to abort and potentially leave other signal/observer relations in a broken state.
