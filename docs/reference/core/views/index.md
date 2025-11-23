@@ -16,11 +16,27 @@ Rvx provides the following views for common use cases:
 
 ## View API
 
-!!! warning
+!!! danger
 	As a direct consumer of the view API, you need to guarantee that:
 
 	+ The sequence of nodes inside the view is not modified from the outside.
 	+ If there are multiple nodes, all nodes must have a common parent node at all time.
+
+	You can use `assertViewState` in development to validate the current view state:
+
+	=== "JSX"
+		```jsx
+		import { assertViewState } from "rvx/test";
+
+		assertViewState(someView);
+		```
+
+	=== "No Build"
+		```jsx
+		import { assertViewState } from "./rvx.test.js";
+
+		assertViewState(someView);
+		```
 
 The current boundary can be access via the `first` and `last` properties.
 ```jsx
@@ -51,7 +67,7 @@ view.detach();
 !!! tip
 	Before implementing your own view, consider using one of the [already existing](#creating-views) views. Custom views are usually only needed for very special (often performance critical) use cases involving a large number of elements to render.
 
-!!! warning
+!!! danger
 	When implementing your own view, you need to guarantee the following:
 
 	+ The view doesn't break when the parent node is replaced or when a view consisting of only a single node is detached from it's parent.
@@ -61,6 +77,22 @@ view.detach();
 	+ If there are multiple nodes, the initial nodes must have a common parent.
 	+ When changing nodes, the view must remain in it's current position.
 	+ When the [lifecycle](../lifecycle.md) the view was created in is disposed, it's content is no longer updated in any way and no nodes are removed.
+
+	You can use `assertViewState` in development to validate the current view state:
+
+	=== "JSX"
+		```jsx
+		import { assertViewState } from "rvx/test";
+
+		assertViewState(someView);
+		```
+
+	=== "No Build"
+		```jsx
+		import { assertViewState } from "./rvx.test.js";
+
+		assertViewState(someView);
+		```
 
 A view is created using the `View` constructor. The example below creates a view that consists of a single text node:
 
@@ -94,7 +126,7 @@ A view is created using the `View` constructor. The example below creates a view
 	});
 	```
 
-!!! warning
+!!! danger
 	The `self` parameter is the view that is currently being created.
 
 	Before the boundary is initialized, `first`, `last` and `parent` may return `undefined` and using anything else will result in undefined behavior.
