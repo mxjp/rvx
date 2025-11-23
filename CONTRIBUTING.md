@@ -78,6 +78,9 @@ npm run build --prefix examples
 
 # Build the documentation:
 mkdocs build --site-dir docs_out
+
+# Or view live:
+mkdocs serve --livereload
 ```
 
 ## Running benchmarks
