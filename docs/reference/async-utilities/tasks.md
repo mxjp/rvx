@@ -4,7 +4,7 @@ The task system keeps track of pending tasks in a specific context. This is mean
 === "JSX"
 	```jsx
 	import { Inject } from "rvx";
-	import { TASKS, Tasks, isPending, waitFor } from "rvx/async";
+	import { TASKS, Tasks, isPending } from "rvx/async";
 
 	<Inject context={TASKS} value={new Tasks()}>
 		{() => <>
@@ -13,7 +13,7 @@ The task system keeps track of pending tasks in a specific context. This is mean
 				disabled={isPending}
 				on:click={() => {
 					// Block user interactions while some operation is running:
-					waitFor(new Promise(resolve => {
+					TAKS.current!.waitFor(new Promise(resolve => {
 						setTimeout(resolve, 1000);
 					}));
 				}}
@@ -24,7 +24,7 @@ The task system keeps track of pending tasks in a specific context. This is mean
 
 === "No Build"
 	```jsx
-	import { TASKS, Tasks, isPending, waitFor } from "./rvx.async.js";
+	import { TASKS, Tasks, isPending } from "./rvx.async.js";
 
 	TASKS.inject(new Tasks(), () => [
 		e("button")
@@ -32,7 +32,7 @@ The task system keeps track of pending tasks in a specific context. This is mean
 			.set("disabled", isPending)
 			.on("click", () => {
 				// Block user interactions while some operation is running:
-				waitFor(new Promise(resolve => {
+				TASKS.current.waitFor(new Promise(resolve => {
 					setTimeout(resolve, 1000);
 				}));
 			})

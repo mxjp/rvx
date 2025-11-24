@@ -1,6 +1,7 @@
 # Changelog
 
 ## 22.4
++ **Deprecated:** `setPending` & `waitFor`. Use `TASKS.current.setPending/waitFor` instead.
 + Add `Content` type alias.
 + Add `assertViewState` test utility.
 + `viewNodes` now supports updating already yielded nodes during iteration.
