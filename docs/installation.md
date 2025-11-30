@@ -1,9 +1,17 @@
 # Installation
 
-## Npm Package
+## Npm
 Rvx is available as an [npm package](https://www.npmjs.com/package/rvx).
 ```bash
 npm i rvx
+```
+
+### Conflicting Dependencies
+Using multiple rvx instances at the same time will result in undefined behavior.
+
+You can check with `npm ls` that only one instance is installed:
+```bash
+npm ls rvx
 ```
 
 ## Buildless Options
