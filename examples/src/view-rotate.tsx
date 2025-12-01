@@ -82,20 +82,17 @@ function RotateOrder(props: {
 
 		// Handle rotation events:
 		props.on(() => {
-			const parent = self.parent;
-			if (parent) {
-				// Rotate the order in the view array and DOM nodes:
-				const view = views.pop()!;
-				view.insertBefore(parent, views[0].first);
-				views.unshift(view);
+			// The parent always exists in this case, because
+			// this view always contains at least two nodes:
+			const parent = self.parent!;
 
-				// Notify the custom view that our boundary has changed:
-				setBoundary(view.first, views[views.length - 1].last);
-			}
+			// Rotate the order in the view array and DOM nodes:
+			const view = views.pop()!;
+			view.insertBefore(parent, views[0].first);
+			views.unshift(view);
 
-			// If the parent doesn't exist, we can assume that there
-			// is at most one node. Rotating the child nodes can be
-			// skipped in this case.
+			// Notify the custom view that our boundary has changed:
+			setBoundary(view.first, views[views.length - 1].last);
 		});
 	});
 }
