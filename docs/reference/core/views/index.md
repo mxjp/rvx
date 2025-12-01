@@ -3,7 +3,6 @@ Views are an abstraction for sequences of DOM nodes that may change over time. T
 
 Views can be used as [element content](../elements.md#content) or can be returned from [component functions](../components.md).
 
-## Creating Views
 Rvx provides the following views for common use cases:
 
 + [`render` & `mount`](./render.md) - Create a view from arbitrary content.
