@@ -101,3 +101,35 @@ export function isIsolated(): boolean {
 		&& ACCESS_STACK[ACCESS_STACK.length - 1] === undefined
 		&& TRACKING_STACK[TRACKING_STACK.length - 1];
 }
+
+export async function handleFinallyRejections(fn: () => Promise<void>): Promise<unknown[]> {
+	const errors: unknown[] = [];
+	const originalFinally = Promise.prototype.finally;
+	Promise.prototype.finally = function (...args) {
+		const result = originalFinally.apply(this, args);
+		result.catch(error => errors.push(error));
+		return result;
+	};
+	try {
+		await fn();
+	} finally {
+		Promise.prototype.finally = originalFinally;
+	}
+	return errors;
+}
+
+export async function handleExplicitRejections(fn: () => Promise<void>): Promise<unknown[]> {
+	const errors: unknown[] = [];
+	const originalReject = Promise.reject;
+	Promise.reject = function (...args): any {
+		const result = originalReject.apply(this, args);
+		result.catch(error => errors.push(error));
+		return result;
+	};
+	try {
+		await fn();
+	} finally {
+		Promise.reject = originalReject;
+	}
+	return errors;
+}

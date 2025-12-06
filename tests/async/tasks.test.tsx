@@ -1,9 +1,9 @@
-import { strictEqual, throws } from "node:assert";
+import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { capture, Context, ENV, mount, teardown, uncapture, watch } from "rvx";
+import { capture, Context, ENV, mount, uncapture, watch } from "rvx";
 import { isPending, isSelfPending, TASKS, Tasks, waitFor } from "rvx/async";
 import { isRvxDom } from "rvx/dom";
-import { assertEvents, future, isIsolated, withMsg } from "../common.js";
+import { assertEvents, future, handleExplicitRejections, handleFinallyRejections, isIsolated } from "../common.js";
 
 await suite("async/tasks", async () => {
 	for (const fn of [false, true]) {
@@ -68,16 +68,36 @@ await suite("async/tasks", async () => {
 		strictEqual(tasks.selfPending, false);
 	});
 
-	await test("error handling", async () => {
-		const tasks = uncapture(() => new Tasks());
-		const [a,, rejectA] = future();
-		tasks.waitFor(a);
-		strictEqual(tasks.pending, true);
-		strictEqual(tasks.selfPending, true);
-		rejectA(undefined);
-		await Promise.resolve();
-		strictEqual(tasks.pending, false);
-		strictEqual(tasks.selfPending, false);
+	await test("promise source error handling", async () => {
+		const errors = await handleFinallyRejections(async () => {
+			const tasks = uncapture(() => new Tasks());
+			const [a,, rejectA] = future();
+			tasks.waitFor(a);
+			strictEqual(tasks.pending, true);
+			strictEqual(tasks.selfPending, true);
+			rejectA(42);
+			await Promise.resolve();
+			strictEqual(tasks.pending, false);
+			strictEqual(tasks.selfPending, false);
+			await Promise.resolve();
+		});
+		deepStrictEqual(errors, [42]);
+	});
+
+	await test("function source error handling", async () => {
+		const errors = await handleExplicitRejections(async () => {
+			const tasks = uncapture(() => new Tasks());
+			const [a,, rejectA] = future();
+			tasks.waitFor(() => a);
+			strictEqual(tasks.pending, true);
+			strictEqual(tasks.selfPending, true);
+			rejectA(42);
+			await Promise.resolve();
+			strictEqual(tasks.pending, false);
+			strictEqual(tasks.selfPending, false);
+			await Promise.resolve();
+		});
+		deepStrictEqual(errors, [42]);
 	});
 
 	await test("tracking", async () => {
