@@ -4,6 +4,7 @@
 		"rootDir": "src",
 		"outDir": "dist/es",
 		"declaration": true,
+		"declarationMap": true,
 		"emitDeclarationOnly": true
 	},
 	"include": [
