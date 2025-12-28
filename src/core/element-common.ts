@@ -36,9 +36,9 @@ type HyphenCase<T> = T extends `${infer A}${infer B}`
  * An object with css property expressions used in {@link StyleValue}.
  */
 export type StyleMap = {
-	[K in keyof CSSStyleDeclaration as HyphenCase<K>]?: Expression<undefined | null | string>;
+	[K in keyof CSSStyleDeclaration as HyphenCase<K>]?: Expression<null | string>;
 } & {
-	[K in string]?: Expression<undefined | null | string>;
+	[K in string]?: Expression<null | string>;
 };
 
 /**
