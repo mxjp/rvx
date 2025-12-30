@@ -1,5 +1,8 @@
 # Changelog
 
+## 22.5
++ Add optional memory router parent.
+
 ## 22.4
 + **Deprecated:** `setPending` & `waitFor`. Use `TASKS.current.setPending/waitFor` instead.
 + Add `Content` type alias.

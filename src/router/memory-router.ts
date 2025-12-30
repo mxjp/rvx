@@ -13,26 +13,30 @@ export interface MemoryRouterOptions {
 	 * The initial query.
 	 */
 	query?: QueryInit;
+
+	parent?: Router;
 }
 
 /**
  * A router that keeps it's state in memory instead of the actual browser location.
  */
 export class MemoryRouter implements Router {
+	#parent: Router | undefined;
 	#path = $<string>(undefined!);
 	#query = $<Query | undefined>(undefined);
 
 	constructor(options?: MemoryRouterOptions) {
+		this.#parent = options?.parent;
 		this.#path.value = normalize(options?.path ?? "");
 		this.#query.value = Query.from(options?.query);
 	}
 
 	get root(): Router {
-		return this;
+		return this.#parent?.root ?? this;
 	}
 
 	get parent(): Router | undefined {
-		return undefined;
+		return this.#parent;
 	}
 
 	get path(): string {
