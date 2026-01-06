@@ -2,6 +2,7 @@
 
 ## 23.0
 + **Breaking:** Remove JSX component wrappers from core bundle.
++ Export JSX internal: `applyElement`.
 
 ## 22.5
 + Add optional memory router parent.

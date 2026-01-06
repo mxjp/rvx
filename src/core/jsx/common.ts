@@ -28,7 +28,7 @@ export function createElement<E extends Element>(tagName: string, attrs: Attribu
 export function createElement(tagName: string, attrs: Attributes<TagNameMap[keyof TagNameMap]>): Element {
 	const env = ENV.current;
 	const elem = env.document.createElementNS(XMLNS.current, tagName);
-	setAttrs(elem, attrs);
+	applyElement(elem, attrs);
 	return elem;
 }
 
@@ -38,7 +38,7 @@ export function createElement(tagName: string, attrs: Attributes<TagNameMap[keyo
  * @param elem The element.
  * @param attrs The attributes to set.
  */
-export function setAttrs(elem: Element, attrs: Attributes<TagNameMap[keyof TagNameMap]>): void {
+export function applyElement(elem: Element, attrs: Attributes<TagNameMap[keyof TagNameMap]>): void {
 	const env = ENV.current;
 	for (const name in attrs) {
 		const value = attrs[name];
