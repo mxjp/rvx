@@ -66,7 +66,7 @@ for (const moduleName of moduleNames) {
 	}
 
 	const esBundle = await rollup({
-		input: join(tscOut, moduleName, "index.js"),
+		input: join(tscOut, moduleName, moduleName === "core" ? "core.js" : "index.js"),
 		onwarn,
 		external: id => {
 			return id.startsWith("rvx-module:");
