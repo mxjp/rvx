@@ -1,18 +1,26 @@
 import { Context } from "../context.js";
 import { Attributes, ClassValue, EventArgs, EventListener, RefFn, StyleValue, TagNameMap, XMLNS } from "../element-common.js";
 import { ENV } from "../env.js";
+import { appendContent } from "../internals/append-content.js";
+import { setAttr } from "../internals/set-attr.js";
+import { setClass } from "../internals/set-class.js";
+import { setStyle } from "../internals/set-style.js";
 import { isolate } from "../isolate.js";
 import { watch } from "../signals.js";
-import { appendContent } from "./append-content.js";
-import { setAttr } from "./set-attr.js";
-import { setClass } from "./set-class.js";
-import { setStyle } from "./set-style.js";
+import { Content } from "../types.js";
 
 /**
- * Internal function to create a jsx element.
+ * The jsx fragment component that returns it's children as is.
+ */
+export function Fragment(props: { children?: Content }): Content {
+	return props.children;
+}
+
+/**
+ * Create an rvx jsx element.
  *
  * @param tagName The tag name.
- * @param attrs The attributes to set with optional children.
+ * @param attrs The attributes to set.
  * @returns The element.
  */
 export function createElement<K extends keyof TagNameMap>(tagName: K, attrs: Attributes<TagNameMap[K]>): TagNameMap[K];
@@ -20,6 +28,18 @@ export function createElement<E extends Element>(tagName: string, attrs: Attribu
 export function createElement(tagName: string, attrs: Attributes<TagNameMap[keyof TagNameMap]>): Element {
 	const env = ENV.current;
 	const elem = env.document.createElementNS(XMLNS.current, tagName);
+	setAttrs(elem, attrs);
+	return elem;
+}
+
+/**
+ * Set rvx jsx attributes.
+ *
+ * @param elem The element.
+ * @param attrs The attributes to set.
+ */
+export function setAttrs(elem: Element, attrs: Attributes<TagNameMap[keyof TagNameMap]>): void {
+	const env = ENV.current;
 	for (const name in attrs) {
 		const value = attrs[name];
 		if (value !== undefined) {
@@ -57,5 +77,4 @@ export function createElement(tagName: string, attrs: Attributes<TagNameMap[keyo
 			}
 		}
 	}
-	return elem;
 }
