@@ -1,5 +1,8 @@
 # Changelog
 
+## 23.1
++ Add context support to `useMicrotask`, `useTimeout`, `useInterval` and `useAnimation`.
+
 ## 23.0
 + **Breaking:** Remove JSX component wrappers from core bundle.
 + **Breaking:** Remove exports: `setPending`, `waitFor`, `NoopEvent`, `NoopEventTarget` and `NoopComment`.

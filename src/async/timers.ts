@@ -1,7 +1,8 @@
+import { Context } from "../core/context.js";
 import { capture, teardown, TeardownHook } from "../core/lifecycle.js";
 
 /**
- * The same as {@link queueMicrotask}, but with lifecycle support.
+ * The same as {@link queueMicrotask}, but with context & lifecycle support.
  *
  * + If the current lifecycle is disposed, the callback is never called.
  * + The lifecycle within the callback is treated as the current lifecycle.
@@ -10,6 +11,7 @@ import { capture, teardown, TeardownHook } from "../core/lifecycle.js";
  * @throws An error if teardown hooks are explicitly un-supported in this context.
  */
 export function useMicrotask(callback: () => void): void {
+	callback = Context.wrap(callback);
 	let active = true;
 	let dispose: TeardownHook | undefined;
 	teardown(() => {
@@ -27,7 +29,7 @@ export function useMicrotask(callback: () => void): void {
 }
 
 /**
- * The same as {@link setTimeout}, but with lifecycle support.
+ * The same as {@link setTimeout}, but with context & lifecycle support.
  *
  * + If the current lifecycle is disposed, the timeout is {@link clearTimeout cleared}.
  * + The lifecycle within the callback is treated as the current lifecycle.
@@ -37,6 +39,7 @@ export function useMicrotask(callback: () => void): void {
  * @throws An error if teardown hooks are explicitly un-supported in this context.
  */
 export function useTimeout(callback: () => void, timeout: number): void {
+	callback = Context.wrap(callback);
 	let active = true;
 	let dispose: TeardownHook | undefined;
 	let handle: undefined | number | NodeJS.Timeout;
@@ -54,7 +57,7 @@ export function useTimeout(callback: () => void, timeout: number): void {
 }
 
 /**
- * The same as {@link setInterval}, but with lifecycle support.
+ * The same as {@link setInterval}, but with context & lifecycle support.
  *
  * + If the current lifecycle is disposed, the interval is {@link clearInterval cleared}.
  * + The lifecycle within the callback is disposed when the interval is cleared and before each call.
@@ -64,6 +67,7 @@ export function useTimeout(callback: () => void, timeout: number): void {
  * @throws An error if teardown hooks are explicitly un-supported in this context.
  */
 export function useInterval(callback: () => void, interval: number): void {
+	callback = Context.wrap(callback);
 	let active = true;
 	let dispose: TeardownHook | undefined;
 	let handle: undefined | number | NodeJS.Timeout;
@@ -92,6 +96,7 @@ export function useInterval(callback: () => void, interval: number): void {
  * @throws An error if teardown hooks are explicitly un-supported in this context.
  */
 export function useAnimation(callback: (now: number) => void): void {
+	callback = Context.wrap(callback);
 	let active = true;
 	let dispose: TeardownHook | undefined;
 	let handle: number;
