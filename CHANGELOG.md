@@ -2,8 +2,9 @@
 
 ## 23.0
 + **Breaking:** Remove JSX component wrappers from core bundle.
++ **Breaking:** Remove exports: `setPending`, `waitFor`, `NoopEvent`, `NoopEventTarget` and `NoopComment`.
 + Export JSX internal: `applyElement`.
-+ Add `overwrite` and `<Overwrite>` utilities.
++ Add element overwrite utilities.
 
 ## 22.5
 + Add optional memory router parent.

@@ -56,11 +56,6 @@ export class NodeList {
 
 export class Event {}
 
-/**
- * @deprecated Use {@link Event} instead.
- */
-export const NoopEvent = Event;
-
 export class EventTarget {
 	addEventListener(): void {
 		// noop
@@ -74,11 +69,6 @@ export class EventTarget {
 		throw new Error("dispatching events is not supported");
 	}
 }
-
-/**
- * @deprecated Use {@link EventTarget} instead.
- */
-export const NoopEventTarget = EventTarget;
 
 export class Document extends EventTarget {
 	get body(): Element | null {
@@ -473,11 +463,6 @@ export class Comment extends Node {
 		}
 	}
 }
-
-/**
- * @deprecated Use {@link Comment} instead.
- */
-export const NoopComment = Comment;
 
 export class Text extends Node {
 	static {

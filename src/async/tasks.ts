@@ -176,17 +176,3 @@ export function isSelfPending(): boolean {
 export function isPending(): boolean {
 	return TASKS.current?.pending ?? false;
 }
-
-/**
- * @deprecated Use `TASKS.current.setPending()` instead. This silently fails if there is no `Tasks` instance in the current context.
- */
-export function setPending(): void {
-	TASKS.current?.setPending();
-}
-
-/**
- * @deprecated Use {@link Tasks.prototype.waitFor `TASKS.current.waitFor`} insead. This silently fails if there is no `Tasks` instance in the current context.
- */
-export function waitFor(source: TaskSource): void {
-	TASKS.current?.waitFor(source);
-}
