@@ -5,6 +5,7 @@
 + **Breaking:** Remove exports: `setPending`, `waitFor`, `NoopEvent`, `NoopEventTarget` and `NoopComment`.
 + Export JSX internal: `applyElement`.
 + Add element overwrite utilities.
++ Fix `StyleValue` types to disallow expressions may that return `undefined`.
 
 ## 22.5
 + Add optional memory router parent.
