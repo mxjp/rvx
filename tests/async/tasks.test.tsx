@@ -1,7 +1,7 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 import { capture, Context, ENV, mount, uncapture, watch } from "rvx";
-import { isPending, isSelfPending, TASKS, Tasks, waitFor } from "rvx/async";
+import { isPending, isSelfPending, TASKS, Tasks } from "rvx/async";
 import { isRvxDom } from "rvx/dom";
 import { assertEvents, future, handleExplicitRejections, handleFinallyRejections, isIsolated } from "../common.js";
 
@@ -135,7 +135,7 @@ await suite("async/tasks", async () => {
 			});
 
 			const [a, resolveA] = future();
-			waitFor(a);
+			TASKS.current!.waitFor(a);
 
 			strictEqual(isPending(), true);
 			strictEqual(isSelfPending(), true);
