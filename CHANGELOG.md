@@ -3,6 +3,7 @@
 ## 23.0
 + **Breaking:** Remove JSX component wrappers from core bundle.
 + Export JSX internal: `applyElement`.
++ Add `overwrite` and `<Overwrite>` utilities.
 
 ## 22.5
 + Add optional memory router parent.

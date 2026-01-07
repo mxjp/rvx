@@ -9,7 +9,7 @@ import { isolate } from "./isolate.js";
 import { Expression, watch } from "./signals.js";
 import { Content } from "./types.js";
 
-export class ElementBuilder<E extends Element> implements NodeTarget {
+export class ElementBuilder<E extends Element> implements NodeTarget<E> {
 	#env = ENV.current;
 
 	/**
@@ -17,7 +17,7 @@ export class ElementBuilder<E extends Element> implements NodeTarget {
 	 */
 	elem: E;
 
-	get [NODE](): Node {
+	get [NODE](): E {
 		return this.elem;
 	}
 

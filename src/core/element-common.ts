@@ -1,5 +1,6 @@
 import { Context } from "./context.js";
 import { Expression } from "./signals.js";
+import { Content } from "./types.js";
 
 /**
  * Namespace URI for HTML elements.
@@ -58,8 +59,8 @@ export const NODE = Symbol.for("rvx:node");
 /**
  * If an object used as content has a {@link NODE} property, this node is inserted as content instead.
  */
-export interface NodeTarget {
-	[NODE]: Node;
+export interface NodeTarget<T extends Node = Node> {
+	[NODE]: T;
 }
 
 /**
@@ -76,6 +77,7 @@ export type RefValue<T> = (RefFn<T>) | RefFn<T>[];
  * Represents an object with jsx element attributes.
  */
 export type Attributes<T extends Element> = {
+	children?: Content;
 	class?: ClassValue;
 	style?: StyleValue;
 	ref?: RefValue<T>;
