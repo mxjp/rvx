@@ -75,7 +75,7 @@ function use(setBoundary: ViewSetBoundaryFn, node: Node, env: typeof globalThis)
  * // Views:
  * render(render("Hello World!"));
  * render(when(true, () => "Hello World!"));
- * render(<When value={true}>{() => "Hello World!"}</When>);
+ * render(<Show when={true}>{() => "Hello World!"}</Show>);
  *
  * // Text:
  * render("Hello World!");
