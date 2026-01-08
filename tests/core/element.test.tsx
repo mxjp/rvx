@@ -355,7 +355,7 @@ await suite("element", async () => {
 
 			await test("style attribute", () => {
 				const a = $<StyleMap>({ color: "blue" });
-				const b = $("red");
+				const b = $<unknown>("red");
 				const c = $<StyleMap>({ width: "42px" });
 				const elem = uncapture(() => {
 					return jsx
