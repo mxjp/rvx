@@ -6,6 +6,7 @@ import { capture, teardown, TeardownHook } from "../core/lifecycle.js";
  *
  * + If the current lifecycle is disposed, the callback is never called.
  * + The lifecycle within the callback is treated as the current lifecycle.
+ * + The current context is available inside the callback.
  *
  * @param callback The callback to run as a microtask.
  * @throws An error if teardown hooks are explicitly un-supported in this context.
@@ -33,6 +34,7 @@ export function useMicrotask(callback: () => void): void {
  *
  * + If the current lifecycle is disposed, the timeout is {@link clearTimeout cleared}.
  * + The lifecycle within the callback is treated as the current lifecycle.
+ * + The current context is available inside the callback.
  *
  * @param callback The callback to run.
  * @param timeout The timeout in milliseconds. See {@link setTimeout} for details.
@@ -61,6 +63,7 @@ export function useTimeout(callback: () => void, timeout: number): void {
  *
  * + If the current lifecycle is disposed, the interval is {@link clearInterval cleared}.
  * + The lifecycle within the callback is disposed when the interval is cleared and before each call.
+ * + The current context is available inside the callback.
  *
  * @param callback The callback to run.
  * @param interval The interval in milliseconds. See {@link setInterval} for details.
@@ -91,6 +94,7 @@ export function useInterval(callback: () => void, interval: number): void {
  *
  * + If the current lifecycle is disposed, the latest request is cancelled.
  * + The lifecycle within the callback is disposed before each call and when the current lifecycle is disposed.
+ * + The current context is available inside the callback.
  *
  * @param callback The callback to run with a {@link performance.now high resolution timestamp}.
  * @throws An error if teardown hooks are explicitly un-supported in this context.
