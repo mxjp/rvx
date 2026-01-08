@@ -6,6 +6,8 @@ import { WINDOW_MARKER } from "./internals/window-marker.js";
 
 const NODE_LENGTH = Symbol("length");
 const NODE_APPEND_HTML_TO = Symbol("appendHtmlTo");
+const NODE_CLONE_CHILDREN = Symbol("cloneChildren");
+const INIT_CLONED_FROM = Symbol("clone");
 
 class NodeListIterator implements Iterator<Node> {
 	#current: Node | null;
@@ -153,12 +155,37 @@ export class Node extends EventTarget {
 	 * @returns The concatenated HTML string.
 	 */
 	[NODE_APPEND_HTML_TO](html: string): string {
-		let child = this.firstChild;
+		let child = this.#first;
 		while (child !== null) {
 			html = child[NODE_APPEND_HTML_TO](html);
-			child = child.nextSibling;
+			child = child.#next;
 		}
 		return html;
+	}
+
+	/**
+	 * Deeply clone and append all children of this node to the specified target.
+	 */
+	[NODE_CLONE_CHILDREN](target: Node): void {
+		let child = this.#first;
+		while (child !== null) {
+			const clone = child.cloneNode(true);
+			const prev = target.#last;
+			if (prev === null) {
+				target.#first = clone;
+			} else {
+				prev.#next = clone;
+			}
+			clone.#prev = prev;
+			clone.#parent = target;
+			target.#last = clone;
+			target.#length++;
+			child = child.#next;
+		}
+	}
+
+	cloneNode(_deep: boolean): Node {
+		throw new Error("not supported");
 	}
 
 	contains(node: Node | null) {
@@ -417,6 +444,14 @@ export class DocumentFragment extends Node {
 		this.prototype.nodeType = 11;
 		this.prototype.nodeName = "#document-fragment";
 	}
+
+	cloneNode(deep: boolean): Node {
+		const clone = new DocumentFragment();
+		if (deep) {
+			this[NODE_CLONE_CHILDREN](clone);
+		}
+		return clone;
+	}
 }
 
 /**
@@ -455,6 +490,12 @@ export class Comment extends Node {
 		this.#data = String(data);
 	}
 
+	cloneNode(_deep: boolean): Node {
+		const clone = new Comment(this.#data);
+		clone.#visible = this.#visible;
+		return clone;
+	}
+
 	[NODE_APPEND_HTML_TO](html: string): string {
 		if (this.#visible) {
 			return html + "<!--" + this.#data + "-->";
@@ -485,6 +526,10 @@ export class Text extends Node {
 		this.#data = String(data);
 	}
 
+	cloneNode(_deep: boolean): Node {
+		return new Text(this.#data);
+	}
+
 	[NODE_APPEND_HTML_TO](html: string): string {
 		return htmlEscapeAppendTo(html, this.#data);
 	}
@@ -505,6 +550,15 @@ export class ElementClassList {
 
 	constructor(attrs: Attribute[]) {
 		this.#attrs = attrs;
+	}
+
+	[INIT_CLONED_FROM](from: ElementClassList) {
+		if (from.#attr !== null) {
+			this.#attr = this.#attrs.find(a => a.name === "class")!;
+		}
+		if (from.#tokens !== null) {
+			this.#tokens = Array.from(from.#tokens);
+		}
 	}
 
 	get length(): number {
@@ -645,6 +699,22 @@ export class ElementStyles {
 	constructor(attrs: Attribute[]) {
 		this.#attrs = attrs;
 	}
+
+	[INIT_CLONED_FROM](from: ElementStyles) {
+		if (from.#attr !== null) {
+			this.#attr = this.#attrs.find(a => a.name === "style")!;
+		}
+		if (from.#props !== null) {
+			this.#props = from.#props.map(prop => {
+				return {
+					name: prop.name,
+					value: prop.value,
+					important: prop.important,
+				};
+			});
+		}
+	}
+
 
 	get cssText(): string {
 		const attr = this.#attr;
@@ -811,6 +881,27 @@ export class Element extends Node {
 		return this.#styles;
 	}
 
+	cloneNode(deep: boolean): Node {
+		const clone = new Element(this.#namespaceURI, this.#tagName);
+		clone.#void = this.#void;
+		const attrs = this.#attrs;
+		const cloneAttrs = clone.#attrs;
+		for (let i = 0; i < attrs.length; i++) {
+			const attr = attrs[i];
+			cloneAttrs.push({
+				name: attr.name,
+				value: attr.value,
+				stale: attr.stale,
+			});
+		}
+		clone.#classList[INIT_CLONED_FROM](this.#classList);
+		clone.#styles[INIT_CLONED_FROM](this.#styles);
+		if (deep) {
+			this[NODE_CLONE_CHILDREN](clone);
+		}
+		return clone;
+	}
+
 	focus(): void {
 		// noop
 	}
@@ -950,6 +1041,10 @@ export class RawHTML extends Node {
 	constructor(html: string) {
 		super();
 		this.#html = html;
+	}
+
+	cloneNode(_deep: boolean): Node {
+		return new RawHTML(this.#html);
 	}
 
 	[NODE_APPEND_HTML_TO](html: string): string {

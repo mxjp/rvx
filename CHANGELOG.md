@@ -1,5 +1,8 @@
 # Changelog
 
+## 23.2
++ Add `cloneNode` support in `rvx/dom`.
+
 ## 23.1
 + Add context support to `useMicrotask`, `useTimeout`, `useInterval` and `useAnimation`.
 

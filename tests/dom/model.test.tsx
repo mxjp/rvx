@@ -1,68 +1,68 @@
-import { deepStrictEqual, strictEqual, throws } from "node:assert";
+import assert, { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
 import { HTML, MATHML, SVG } from "rvx";
-import { Comment, Document, DocumentFragment, Element, Node, RawHTML, Text, VISIBLE_COMMENTS, Window } from "rvx/dom";
+import { Comment, Document, DocumentFragment, Element, Node, RawHTML, Text, VISIBLE_COMMENTS, WINDOW, Window } from "rvx/dom";
 
 await suite("dom/model", async () => {
+	type ChildNode = {
+		is: Node,
+		children?: ChildNode[],
+	};
+
+	function assertTree(node: Node, children: ChildNode[]) {
+		let index = 0;
+		let child = node.firstChild;
+		while (child !== null) {
+			strictEqual(child.parentNode, node);
+			strictEqual(child, children[index].is);
+			if (index === 0) {
+				strictEqual(child.previousSibling, null);
+				strictEqual(node.firstChild, child);
+			} else {
+				strictEqual(child.previousSibling?.nextSibling, child);
+			}
+			if (index === children.length - 1) {
+				strictEqual(child.nextSibling, null);
+				strictEqual(node.lastChild, child);
+			} else {
+				strictEqual(child.nextSibling?.previousSibling, child);
+			}
+			assertTree(child, children[index].children ?? []);
+			child = child.nextSibling;
+			index++;
+		}
+		strictEqual(index, children.length);
+		if (children.length === 0) {
+			strictEqual(node.firstChild, null);
+			strictEqual(node.lastChild, null);
+		}
+
+		strictEqual(node.hasChildNodes(), children.length > 0);
+		strictEqual(node.childNodes.length, children.length);
+
+		const thisArg = {};
+		const forEachNodes: Node[] = [];
+		node.childNodes.forEach(function (this: unknown, child, index, childNodes) {
+			strictEqual(childNodes, node.childNodes);
+			strictEqual(this, thisArg);
+			strictEqual(forEachNodes.length, index);
+			forEachNodes.push(child);
+		}, thisArg);
+
+		const iteratorNodes = Array.from(node.childNodes);
+		deepStrictEqual(iteratorNodes, children.map(c => c.is));
+	}
+
+	function assertRoot(node: Node, children?: ChildNode[]) {
+		strictEqual(node.parentNode, null);
+		strictEqual(node.previousSibling, null);
+		strictEqual(node.nextSibling, null);
+		if (children) {
+			assertTree(node, children);
+		}
+	}
+
 	await suite("tree", async () => {
-		type ChildNode = {
-			is: Node,
-			children?: ChildNode[],
-		};
-
-		function assertTree(node: Node, children: ChildNode[]) {
-			let index = 0;
-			let child = node.firstChild;
-			while (child !== null) {
-				strictEqual(child.parentNode, node);
-				strictEqual(child, children[index].is);
-				if (index === 0) {
-					strictEqual(child.previousSibling, null);
-					strictEqual(node.firstChild, child);
-				} else {
-					strictEqual(child.previousSibling?.nextSibling, child);
-				}
-				if (index === children.length - 1) {
-					strictEqual(child.nextSibling, null);
-					strictEqual(node.lastChild, child);
-				} else {
-					strictEqual(child.nextSibling?.previousSibling, child);
-				}
-				assertTree(child, children[index].children ?? []);
-				child = child.nextSibling;
-				index++;
-			}
-			strictEqual(index, children.length);
-			if (children.length === 0) {
-				strictEqual(node.firstChild, null);
-				strictEqual(node.lastChild, null);
-			}
-
-			strictEqual(node.hasChildNodes(), children.length > 0);
-			strictEqual(node.childNodes.length, children.length);
-
-			const thisArg = {};
-			const forEachNodes: Node[] = [];
-			node.childNodes.forEach(function (this: unknown, child, index, childNodes) {
-				strictEqual(childNodes, node.childNodes);
-				strictEqual(this, thisArg);
-				strictEqual(forEachNodes.length, index);
-				forEachNodes.push(child);
-			}, thisArg);
-
-			const iteratorNodes = Array.from(node.childNodes);
-			deepStrictEqual(iteratorNodes, children.map(c => c.is));
-		}
-
-		function assertRoot(node: Node, children?: ChildNode[]) {
-			strictEqual(node.parentNode, null);
-			strictEqual(node.previousSibling, null);
-			strictEqual(node.nextSibling, null);
-			if (children) {
-				assertTree(node, children);
-			}
-		}
-
 		await test("empty node", () => {
 			const node = new Node();
 			assertRoot(node, []);
@@ -619,6 +619,126 @@ await suite("dom/model", async () => {
 				{ is: a },
 				{ is: d },
 			]);
+		});
+	});
+
+	await suite("cloneNode", async () => {
+		function assertDisjoint(a: Node, b: Node) {
+			const nodes = new Set();
+			(function traverse(node: Node) {
+				nodes.add(node);
+				node.childNodes.forEach(traverse);
+			})(a);
+			(function traverse(node: Node) {
+				assert(!nodes.has(node));
+				node.childNodes.forEach(traverse);
+			})(b);
+		}
+
+		await test("tree", () => {
+			const root = new DocumentFragment();
+			VISIBLE_COMMENTS.inject(true, () => {
+				root.appendChild(new Comment("a"));
+			});
+			VISIBLE_COMMENTS.inject(false, () => {
+				root.appendChild(new Comment("b"));
+			});
+			root.appendChild(new Text("c"));
+			root.appendChild(WINDOW.document.createElement("br"));
+			{
+				const e = WINDOW.document.createElement("t-e");
+				e.appendChild(new Text("x"));
+				e.setAttribute("y", "z");
+				root.appendChild(e);
+			}
+
+			const deep = root.cloneNode(true);
+			assertDisjoint(root, deep);
+			strictEqual(deep.outerHTML, `<!--a-->c<br><t-e y="z">x</t-e>`);
+
+			const [a, b, c, d, e] = Array.from(deep.childNodes);
+			assert(a instanceof Comment);
+			assert(b instanceof Comment);
+			assert(c instanceof Text);
+			assert(d instanceof Element);
+			assert(e instanceof Element);
+
+			assertRoot(deep, [
+				{ is: a },
+				{ is: b },
+				{ is: c },
+				{ is: d },
+				{ is: e, children: [
+					{ is: e.firstChild! },
+				] },
+			]);
+
+			const shallow = root.cloneNode(false);
+			assertDisjoint(root, shallow);
+			strictEqual(shallow.outerHTML, ``);
+		});
+
+		await test("raw element attributes", () => {
+			const node = WINDOW.document.createElement("input");
+			node.setAttribute("a", "b");
+			node.setAttribute("class", "c");
+			node.setAttribute("style", "d");
+
+			const clone = node.cloneNode(true);
+			strictEqual(clone.outerHTML, `<input a="b" class="c" style="d">`);
+		});
+
+		await test("class attribute state", () => {
+			const node = WINDOW.document.createElement("input");
+			node.classList.add("x", "y");
+
+			const clone1 = node.cloneNode(true) as Element;
+			strictEqual(clone1.outerHTML, `<input class="x y">`);
+			clone1.classList.add("test");
+			strictEqual(clone1.outerHTML, `<input class="x y test">`);
+			strictEqual(node.outerHTML, `<input class="x y">`);
+
+			node.setAttribute("class", "z");
+			strictEqual(clone1.outerHTML, `<input class="x y test">`);
+			strictEqual(node.outerHTML, `<input class="z">`);
+
+			const clone2 = node.cloneNode(true) as Element;
+			strictEqual(clone2.outerHTML, `<input class="z">`);
+			clone2.classList.add("test");
+			strictEqual(clone1.outerHTML, `<input class="x y test">`);
+			strictEqual(clone2.outerHTML, `<input class="z test">`);
+			strictEqual(node.outerHTML, `<input class="z">`);
+		});
+
+		await test("style attribute state", () => {
+			const node = WINDOW.document.createElement("input");
+			node.style.setProperty("a", "1");
+
+			const clone1 = node.cloneNode(true) as Element;
+			strictEqual(clone1.outerHTML, `<input style="a: 1">`);
+			clone1.style.setProperty("b", "2");
+			strictEqual(clone1.outerHTML, `<input style="a: 1; b: 2">`);
+			strictEqual(node.outerHTML, `<input style="a: 1">`);
+
+			node.setAttribute("style", "foo");
+			strictEqual(clone1.outerHTML, `<input style="a: 1; b: 2">`);
+			strictEqual(node.outerHTML, `<input style="foo">`);
+
+			const clone2 = node.cloneNode(true) as Element;
+			strictEqual(clone2.outerHTML, `<input style="foo">`);
+			throws(() => clone2.style.setProperty("a", "b"));
+			strictEqual(clone2.outerHTML, `<input style="foo">`);
+			clone2.setAttribute("style", "bar");
+			strictEqual(clone1.outerHTML, `<input style="a: 1; b: 2">`);
+			strictEqual(clone2.outerHTML, `<input style="bar">`);
+			strictEqual(node.outerHTML, `<input style="foo">`);
+		});
+
+		await test("raw html & shallow element", () => {
+			const node = WINDOW.document.createElement("div");
+			node.innerHTML = "Hello World!";
+			strictEqual(node.cloneNode(true).outerHTML, `<div>Hello World!</div>`);
+			strictEqual(node.cloneNode(false).outerHTML, `<div></div>`);
 		});
 	});
 
