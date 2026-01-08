@@ -1064,6 +1064,23 @@ await suite("dom/model", async () => {
 				strictEqual(elem.getAttribute("style"), "foo: bar; bar: baz");
 			});
 
+			await test("new value types", () => {
+				const elem = new Element(HTML, "div");
+				elem.style.setProperty("a", 42);
+				strictEqual(elem.style.getPropertyValue("a"), "42");
+				elem.style.setProperty("b", null);
+				strictEqual(elem.style.getPropertyValue("b"), "");
+			});
+
+			await test("existing value types", () => {
+				const elem = new Element(HTML, "div");
+				elem.style.setProperty("test", "test");
+				elem.style.setProperty("test", 42);
+				strictEqual(elem.style.getPropertyValue("test"), "42");
+				elem.style.setProperty("test", null);
+				strictEqual(elem.style.getPropertyValue("test"), "");
+			});
+
 			await test("init from missing attribute", () => {
 				const elem = new Element(HTML, "div");
 				elem.style.setProperty("foo", "bar");

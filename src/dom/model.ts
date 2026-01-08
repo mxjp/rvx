@@ -768,12 +768,12 @@ export class ElementStyles {
 		this.#props = null;
 	}
 
-	setProperty(name: string, value: string, priority?: "" | "important"): void {
+	setProperty(name: string, value: unknown, priority?: "" | "important"): void {
 		const props = this.#parse();
 		for (let i = 0; i < props.length; i++) {
 			const prop = props[i];
 			if (prop.name === name) {
-				prop.value = String(value);
+				prop.value = value === null ? "" : String(value);
 				prop.important = priority === "important";
 				this.#setAttrStale();
 				return;
@@ -781,7 +781,7 @@ export class ElementStyles {
 		}
 		props.push({
 			name,
-			value: String(value),
+			value: value === null ? "" : String(value),
 			important: priority === "important",
 		});
 		this.#setAttrStale();
