@@ -1,153 +1,86 @@
 /*
 
 # Stopwatch
-A proper stopwatch that doesn't drift over time.
+A stopwatch that doesn't drift over time.
 
 This example also demonstrates how state and logic can be separated from it's representation if needed.
 
 */
 
-import { $, Expression, Index, Show, get, memo, teardown } from "rvx";
+import { $, batch, Expression, get, Index, Nest, Overwrite, Show, watchUpdates } from "rvx";
+import { useAnimation } from "rvx/async";
 
 export function Example() {
-	// Create a reactive timer instance:
-	const timer = createTimer();
+	const stopwatch = new Stopwatch();
 
-	// Render the timer UI:
 	return <div class="column">
-		<div style={{ "font-size": "2rem" }}>
-			<Time value={timer.elapsed} />
-		</div>
+		<Overwrite style={{ "font-size": "2rem" }}>
+			<Time value={stopwatch.time} />
+		</Overwrite>
 		<div class="row">
-			<Show when={timer.running} else={() => <>
-					<button on:click={timer.start}>Start</button>
-					<button on:click={timer.reset}>Reset</button>
-			</>}>
-				{() => <>
-					<button on:click={timer.stop}>Stop</button>
-					<button on:click={timer.lap}>Lap</button>
-				</>}
-			</Show>
+			<Nest watch={stopwatch.running}>
+				{running => running
+					? <button on:click={stopwatch.stop}>Stop</button>
+					: <button on:click={stopwatch.start}>Start</button>
+				}
+			</Nest>
+			<button on:click={stopwatch.lap} disabled={() => !stopwatch.running()}>Lap</button>
+			<button on:click={stopwatch.reset}>Reset</button>
 		</div>
 		<ul>
-			<Index each={timer.laps}>
-				{(lap, index) => <li>
-					Lap {index + 1}: <Time value={lap.lap} />
-				</li>}
+			<Index each={stopwatch.laps}>
+				{(lap, i) => <li><Time value={lap - (stopwatch.laps()[i - 1] ?? 0)} /></li>}
 			</Index>
 		</ul>
 	</div>;
 }
 
-// A small component for displaying a time in milliseconds:
-function Time(props: {
-	value: Expression<number>;
-}) {
-	return <>
-		<Show when={() => {
-			const hours = Math.floor(get(props.value) / 1000 / 60 / 60);
-			if (hours > 0) {
-				return String(hours);
-			}
-		}}>
-			{hours => <>{hours}:</>}
-		</Show>
-		{() => String(Math.floor(get(props.value) / 1000 / 60) % 60)}
-		:
-		{() => String(Math.floor(get(props.value) / 1000) % 60).padStart(2, "0")}
-		.
-		{() => String(Math.floor(get(props.value)) % 1000).padStart(3, "0")}
-	</>;
-}
+class Stopwatch {
+	#runningSince = 0;
+	#running = $(false);
+	#time = $(0);
+	#laps = $<number[]>([]);
 
-function createTimer() {
-	type State = {
-		type: "paused",
-		elapsed: number,
-		lastLap: number,
-	} | {
-		type: "running",
-		started: number,
-		lastLap: number,
-	};
-
-	// Create a signal that is updated with the current time every frame:
-	const now = $(performance.now());
-	let nextFrame = requestAnimationFrame(function update() {
-		nextFrame = requestAnimationFrame(update);
-		now.value = performance.now();
-	});
-	// Stop updating the timer when this lifecycle is disposed:
-	teardown(() => cancelAnimationFrame(nextFrame));
-
-	const laps = $<Lap[]>([]);
-	const state = $<State>({
-		type: "paused",
-		elapsed: 0,
-		lastLap: 0,
-	});
-
-	// Compute the elapsed time on demand from
-	// the current time and state signals:
-	const elapsed = memo(() => {
-		switch (state.value.type) {
-			case "paused": return state.value.elapsed;
-			case "running": return now.value - state.value.started;
-		}
-	});
-
-	// Return an object with reactive accessors for the
-	// current state and some functions to control this timer:
-	return {
-		running: () => state.value.type === "running",
-		laps: () => laps.value,
-		elapsed,
-
-		start: () => {
-			if (state.value.type === "paused") {
-				state.value = {
-					type: "running",
-					started: now.value - state.value.elapsed,
-					lastLap: state.value.lastLap,
-				};
-			}
-		},
-
-		stop: () => {
-			if (state.value.type === "running") {
-				state.value = {
-					type: "paused",
-					elapsed: elapsed(),
-					lastLap: state.value.lastLap,
-				};
-			}
-		},
-
-		lap: () => {
-			const lap = elapsed() - state.value.lastLap;
-			if (lap > 0) {
-				state.value.lastLap = elapsed();
-				laps.update(laps => {
-					laps.push({
-						lap,
-						elapsed: elapsed(),
-					});
+	constructor() {
+		watchUpdates(this.#running, running => {
+			if (running) {
+				this.#runningSince = performance.now() - this.#time.value;
+				useAnimation(() => {
+					this.#time.value = performance.now() - this.#runningSince;
 				});
 			}
-		},
+		});
+	}
 
-		reset: () => {
-			laps.value = [];
-			state.value = {
-				type: "paused",
-				elapsed: 0,
-				lastLap: 0,
-			};
-		},
+	time = () => this.#time.value;
+	running = () => this.#running.value;
+	laps = () => this.#laps.value;
+
+	start = () => { this.#running.value = true };
+	stop = () => { this.#running.value = false };
+
+	reset = () => batch(() => {
+		this.#running.value = false;
+		this.#time.value = 0;
+		this.#laps.value = [];
+	});
+
+	lap = () => {
+		this.#laps.update(laps => {
+			laps.push(this.#time.value);
+		});
 	};
 }
 
-interface Lap {
-	lap: number;
-	elapsed: number;
+function Time(props: { value: Expression<number> }) {
+	return <code>
+		<Show when={() => Math.floor(get(props.value) / 1000 / 60 / 60)}>
+			{hours => <>{hours}:</>}
+		</Show>
+		{() => Math.floor(get(props.value) / 1000 / 60) % 60}
+		:
+		{() => (Math.floor(get(props.value) / 1000) % 60).toFixed(0).padStart(2, "0")}
+		.
+		{() => (Math.floor(get(props.value)) % 1000).toFixed(0).padStart(3, "0")}
+	</code>;
 }
