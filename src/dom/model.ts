@@ -715,7 +715,6 @@ export class ElementStyles {
 		}
 	}
 
-
 	get cssText(): string {
 		const attr = this.#attr;
 		if (attr === null || attr.stale) {
