@@ -351,6 +351,38 @@ In case of the `class` and `style` attributes, you can use an array as value to 
 	}
 	```
 
+### Overwriting properties
+For components that always return a top level element, you can overwrite properties that are not explicitly supported by that component.
+
+!!! warning
+	Note, that styles, classes, attributes and properties that are already set by the component may cause conflicts.
+
+=== "JSX"
+	```jsx
+	import { Overwrite } from "rvx";
+
+	<Overwrite class="extra-class" on:keydown={...}>
+		<SomeComponent />
+	</Overwrite>
+
+	function SomeComponent() {
+		return <input ... />;
+	}
+	```
+
+=== "No Build"
+	```jsx
+	import { e, overwrite } from "./rvx.js";
+
+	overwrite(
+		SomeComponent()
+	).class("extra-class").on("keydown", ...)
+
+	function SomeComponent() {
+		return e("input")...;
+	}
+	```
+
 ## Lifecycle Hooks
 [Lifecycle hooks](./lifecycle.md) are supported in components:
 
