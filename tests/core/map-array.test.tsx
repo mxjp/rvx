@@ -192,8 +192,71 @@ await suite("mapArray", async () => {
 		await test("uncapture", errorHandlingTest(uncapture));
 	});
 
-	// TODO: Sequential side effects.
-	// TODO: Iterator internal updates.
-	// TODO: Iterator lifecycle.
-	// TODO: Callback access isolation.
+	await test("sequential side effect", () => {
+		const events: unknown[] = [];
+		const signal = $([1]);
+		const output = uncapture(() => {
+			return mapArray(signal, value => {
+				if (value === 3) {
+					signal.value = [5];
+				}
+				events.push(`+${value}`);
+				teardown(() => {
+					events.push(`-${value}`);
+				});
+				return -value;
+			});
+		});
+		deepStrictEqual(output(), [-1]);
+		assertEvents(events, ["+1"]);
+		signal.value = [2, 3, 4];
+		deepStrictEqual(signal.value, [5]);
+		deepStrictEqual(output(), [-5]);
+		assertEvents(events, ["+2", "+3", "+4", "-1", "+5", "-2", "-3", "-4"].sort(byRemoveEventOrder));
+	});
+
+	await test("iterator internal updates & lifecycle", () => {
+		const events: unknown[] = [];
+		const signal = $(2);
+		const output = uncapture(() => {
+			return mapArray(function * () {
+				yield 1;
+				yield signal.value;
+				events.push("start");
+				teardown(() => {
+					events.push("end");
+				});
+				yield 3;
+			}, value => {
+				events.push(`+${value}`);
+				teardown(() => {
+					events.push(`-${value}`);
+				});
+				return -value;
+			});
+		});
+		deepStrictEqual(output(), [-1, -2, -3]);
+		assertEvents(events, ["+1", "+2", "start", "+3"]);
+		signal.value = 4;
+		deepStrictEqual(output(), [-1, -4, -3]);
+		assertEvents(events, ["end", "+4", "start", "-2"]);
+	});
+
+	await test("callback isolation", () => {
+		const expr = $([1]);
+		const isolated = $("a");
+		const output = uncapture(() => {
+			return mapArray(expr, value => {
+				return isolated.value + value;
+			});
+		});
+		deepStrictEqual(output(), ["a1"]);
+		isolated.value = "b";
+		deepStrictEqual(output(), ["a1"]);
+		// input value identity is the same:
+		expr.notify();
+		deepStrictEqual(output(), ["a1"]);
+		expr.value = [2];
+		deepStrictEqual(output(), ["b2"]);
+	});
 });
