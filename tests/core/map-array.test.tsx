@@ -13,10 +13,10 @@ await suite("mapArray", async () => {
 		let output!: () => number[];
 		const dispose = capture(() => {
 			output = mapArray(signal, (value, index, partialOutput) => {
-				// TODO: Assert partial output state.
 				events.push(`+${value}`);
 				watch(index, index => {
 					events.push(`i${value}:${index}`);
+					deepStrictEqual(signal.value.slice(0, index).map(v => -v), partialOutput.slice(0, index));
 				});
 				teardown(() => {
 					events.push(`-${value}`);
