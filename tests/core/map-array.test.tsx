@@ -64,6 +64,10 @@ await suite("mapArray", async () => {
 			assertEvents(events.sort(byRemoveEventOrder), expectedEvents.sort(byRemoveEventOrder));
 			previous = current;
 		}
+
+		dispose();
+		deepStrictEqual(output(), previous.map(v => -v));
+		assertEvents(events.sort(byRemoveEventOrder), previous.map(value => `-${value}`).sort(byRemoveEventOrder));
 	}
 
 	function byRemoveEventOrder(a: unknown, b: unknown): number {
