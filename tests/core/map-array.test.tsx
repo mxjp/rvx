@@ -7,25 +7,20 @@ await suite("mapArray", async () => {
 	function sequenceTest(sequence: number[][]) {
 		sequence.push(...sequence.toReversed(), ...sequence);
 
-		const updates: unknown[] = [];
-		const removals: unknown[] = [];
+		const events: unknown[] = [];
 		const signal = $(sequence[0]);
 
 		let output!: () => number[];
 		const dispose = capture(() => {
 			output = mapArray(signal, (value, index, partialOutput) => {
 				// TODO: Assert partial output state.
-
-				updates.push(`s${value}`);
-
+				events.push(`s${value}`);
 				watch(index, index => {
-					updates.push(`${value}:${index}`);
+					events.push(`i${value}:${index}`);
 				});
-
 				teardown(() => {
-					removals.push(`e${value}`);
+					events.push(`e${value}`);
 				});
-
 				return -value;
 			});
 		});
@@ -37,33 +32,36 @@ await suite("mapArray", async () => {
 
 			deepStrictEqual(output(), current.map(v => -v));
 
-			const expectedUpdates: unknown[] = [];
+			const expectedEvents: unknown[] = [];
 			const consumed = previous.map(() => false);
 			for (let i = 0; i < current.length; i++) {
 				const value = current[i];
 				const previousIndex = previous.findIndex((v, i) => (v === value && !consumed[i]));
 				if (previousIndex < 0) {
-					expectedUpdates.push(`s${value}`, `${value}:${i}`);
+					expectedEvents.push(`s${value}`, `i${value}:${i}`);
 				} else {
 					consumed[previousIndex] = true;
 					if (i !== previousIndex) {
-						expectedUpdates.push(`${value}:${i}`);
+						expectedEvents.push(`i${value}:${i}`);
 					}
 				}
 			}
-			const expectedRemovals: unknown[] = [];
 			for (let i = 0; i < consumed.length; i++) {
 				if (!consumed[i]) {
-					expectedRemovals.push(`e${previous[i]}`);
+					expectedEvents.push(`e${previous[i]}`);
 				}
 			}
 
-			assertEvents(updates, expectedUpdates);
-			assertEvents(removals.sort(), expectedRemovals.sort());
-
-			updates.length = 0;
+			assertEvents(events.sort(byRemoveEventOrder), expectedEvents.sort(byRemoveEventOrder));
 			previous = current;
 		}
+	}
+
+	function byRemoveEventOrder(a: unknown, b: unknown): number {
+		if (typeof a === "string" && typeof b === "string" && a.startsWith("e") && b.startsWith("e")) {
+			return a > b ? 1 : (a < b ? -1 : 0);
+		}
+		return 0;
 	}
 
 	await test("fixed sequence", () => {
