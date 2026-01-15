@@ -1,7 +1,7 @@
-import { deepStrictEqual } from "node:assert";
+import { deepStrictEqual, throws } from "node:assert";
 import test, { suite, TestContext } from "node:test";
 import { $, capture, mapArray, teardown, uncapture, watch } from "rvx";
-import { assertEvents } from "../common.js";
+import { assertEvents, withMsg } from "../common.js";
 
 await suite("mapArray", async () => {
 	function sequenceTest(sequence: number[][]) {
@@ -14,12 +14,12 @@ await suite("mapArray", async () => {
 		const dispose = capture(() => {
 			output = mapArray(signal, (value, index, partialOutput) => {
 				// TODO: Assert partial output state.
-				events.push(`s${value}`);
+				events.push(`+${value}`);
 				watch(index, index => {
 					events.push(`i${value}:${index}`);
 				});
 				teardown(() => {
-					events.push(`e${value}`);
+					events.push(`-${value}`);
 				});
 				return -value;
 			});
@@ -46,7 +46,7 @@ await suite("mapArray", async () => {
 				const value = current[i];
 				const previousIndex = previous.findIndex((v, i) => (v === value && !consumed[i]));
 				if (previousIndex < 0) {
-					expectedEvents.push(`s${value}`, `i${value}:${i}`);
+					expectedEvents.push(`+${value}`, `i${value}:${i}`);
 				} else {
 					consumed[previousIndex] = true;
 					if (i !== previousIndex) {
@@ -56,7 +56,7 @@ await suite("mapArray", async () => {
 			}
 			for (let i = 0; i < consumed.length; i++) {
 				if (!consumed[i]) {
-					expectedEvents.push(`e${previous[i]}`);
+					expectedEvents.push(`-${previous[i]}`);
 				}
 			}
 
@@ -67,7 +67,7 @@ await suite("mapArray", async () => {
 	}
 
 	function byRemoveEventOrder(a: unknown, b: unknown): number {
-		if (typeof a === "string" && typeof b === "string" && a.startsWith("e") && b.startsWith("e")) {
+		if (typeof a === "string" && typeof b === "string" && a.startsWith("-") && b.startsWith("-")) {
 			return a > b ? 1 : (a < b ? -1 : 0);
 		}
 		return 0;
@@ -130,4 +130,66 @@ await suite("mapArray", async () => {
 		await test(randomSequenceTest(100, 20, 3));
 		await test(randomSequenceTest(100, 20, 100));
 	});
+
+	await suite("initial iteration error handling", async () => {
+		function errorHandlingTest(context: typeof capture | typeof uncapture) {
+			return () => {
+				const events: unknown[] = [];
+				throws(() => {
+					context(() => {
+						mapArray(function * () {
+							yield 1;
+							yield 2;
+							events.push("error");
+							throw new Error("test");
+						}, value => {
+							events.push(`+${value}`);
+							teardown(() => {
+								events.push(`-${value}`);
+							});
+							return -value;
+						});
+					});
+				}, withMsg("test"));
+				assertEvents(events.sort(byRemoveEventOrder), context === capture
+					? ["+1", "+2", "error", "-1", "-2"]
+					: ["+1", "+2", "error"]);
+			};
+		}
+		await test("capture", errorHandlingTest(capture));
+		await test("uncapture", errorHandlingTest(uncapture));
+	});
+
+	await suite("initial map error handling", async () => {
+		function errorHandlingTest(context: typeof capture | typeof uncapture) {
+			return () => {
+				const events: unknown[] = [];
+				throws(() => {
+					context(() => {
+						mapArray([1, 2, 3], value => {
+							events.push(`+${value}`);
+							teardown(() => {
+								events.push(`-${value}`);
+							});
+							if (value === 2) {
+								events.push("error");
+								throw new Error("test");
+							}
+							return -value;
+						});
+					});
+				}, withMsg("test"));
+				assertEvents(events.sort(byRemoveEventOrder), context === capture
+					? ["+1", "+2", "error", "-1", "-2"]
+					: ["+1", "+2", "error", "-2"]);
+			};
+		}
+		await test("capture", errorHandlingTest(capture));
+		await test("uncapture", errorHandlingTest(uncapture));
+	});
+
+	// TODO: Sequential side effects.
+	// TODO: Iterator internal updates.
+	// TODO: Iterator lifecycle.
+	// TODO: Callback access isolation.
 });
