@@ -1,11 +1,11 @@
 import { deepStrictEqual } from "node:assert";
-import test, { suite } from "node:test";
-import { $, capture, mapArray, teardown, watch } from "rvx";
+import test, { suite, TestContext } from "node:test";
+import { $, capture, mapArray, teardown, uncapture, watch } from "rvx";
 import { assertEvents } from "../common.js";
 
 await suite("mapArray", async () => {
 	function sequenceTest(sequence: number[][]) {
-		sequence.push(...sequence.toReversed(), ...sequence);
+		sequence.push(...sequence.toReversed().slice(1), ...sequence.slice(1));
 
 		const events: unknown[] = [];
 		const signal = $(sequence[0]);
@@ -25,10 +25,18 @@ await suite("mapArray", async () => {
 			});
 		});
 
+		uncapture(() => {
+			watch(output, () => {
+				events.push("signal");
+			})
+		});
+
 		let previous: number[] = [];
 		for (let s = 0; s < sequence.length; s++) {
 			const current = sequence[s];
-			signal.value = current;
+			if (s > 0) {
+				signal.value = current;
+			}
 
 			deepStrictEqual(output(), current.map(v => -v));
 
@@ -52,6 +60,7 @@ await suite("mapArray", async () => {
 				}
 			}
 
+			expectedEvents.push("signal");
 			assertEvents(events.sort(byRemoveEventOrder), expectedEvents.sort(byRemoveEventOrder));
 			previous = current;
 		}
@@ -87,6 +96,38 @@ await suite("mapArray", async () => {
 			[2, 5, 1, 3, 2, 2],
 			[2, 5, 1, 2, 5, 3, 2, 2],
 			[2, 5, 1, 2, 5, 3, 2, 2, 5, 3],
+			[1, 2, 3, 4, 5, 6, 7],
+			[1, 2, 3, 4, 5, 6, 7],
+			[2, 9, 10, 7, 8, 1, 5],
+			[2, 9, 10, 7, 8, 1, 5],
+			[2, 2, 1, 1, 5, 5],
+			[2, 2, 1, 1, 5, 5],
 		]);
+	});
+
+	await suite("random sequences", async () => {
+		function randomSequenceTest(size: number, maxCount: number, maxRange: number) {
+			return (ctx: TestContext) => {
+				const sequence: number[][] = [];
+				for (let s = 0; s < size; s++) {
+					const count = Math.floor(Math.random() * maxCount);
+					const values: number[] = [];
+					for (let i = 0; i < count; i++) {
+						values.push(Math.floor(Math.random() * maxRange));
+					}
+					sequence.push(values);
+				}
+				try {
+					sequenceTest(sequence);
+				} catch (error) {
+					ctx.diagnostic(`Broken sequence: ${JSON.stringify(sequence)}`);
+					throw error;
+				}
+			};
+		}
+
+		await test(randomSequenceTest(100, 20, 10));
+		await test(randomSequenceTest(100, 20, 3));
+		await test(randomSequenceTest(100, 20, 100));
 	});
 });
