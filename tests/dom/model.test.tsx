@@ -202,6 +202,36 @@ await suite("dom/model", async () => {
 			]);
 		});
 
+		await suite("insert node before itself", async () => {
+			await test("single node", () => {
+				const parent = new Node();
+				const ref = new Node();
+				strictEqual(parent.appendChild(ref), ref);
+				strictEqual(parent.insertBefore(ref, ref), ref);
+				assertRoot(parent, [
+					{ is: ref },
+				]);
+			});
+
+			await test("many nodes", () => {
+				const parent = new Node();
+				const a = new Node();
+				const b = new Node();
+				const c = new Node();
+				strictEqual(parent.appendChild(a), a);
+				strictEqual(parent.appendChild(b), b);
+				strictEqual(parent.appendChild(c), c);
+				strictEqual(parent.insertBefore(a, a), a);
+				strictEqual(parent.insertBefore(b, b), b);
+				strictEqual(parent.insertBefore(c, c), c);
+				assertRoot(parent, [
+					{ is: a },
+					{ is: b },
+					{ is: c },
+				]);
+			});
+		});
+
 		await test("insert from other parent", () => {
 			const parentA = new Node();
 			const parentB = new Node();

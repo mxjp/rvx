@@ -271,6 +271,9 @@ export class Node extends EventTarget {
 		if (ref.#parent !== this) {
 			throw new Error("ref must be a child of this node");
 		}
+		if (node === ref) {
+			return node;
+		}
 		if (node.nodeType === 11) {
 			if (node.#length === 0) {
 				return node;
