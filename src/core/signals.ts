@@ -515,11 +515,11 @@ export function memo<T>(expr: Expression<T>): () => T {
 }
 
 /**
- * Run a function while not tracking signal accesses.
+ * {@link get Evaluate an expression} without tracking signal accesses.
  *
  * This is the opposite of {@link track}.
  *
- * @param fn The function to run.
+ * @param expr The expression to evaluate.
  * @returns The function's return value.
  *
  * @example
@@ -529,28 +529,29 @@ export function memo<T>(expr: Expression<T>): () => T {
  * const a = $(2);
  * const b = $(3);
  *
- * watch(() => a.value + untrack(() => b.value), sum => {
+ * watch(() => a.value + untrack(b), sum => {
  *   console.log("Sum:", sum);
  * });
  *
+ * // This causes an update:
  * a.value = 4;
+ *
+ * // This has no effect:
  * b.value = 5;
  * ```
  */
-export function untrack<T>(fn: () => T): T {
-	return useStack(TRACKING_STACK, false, fn);
+export function untrack<T>(expr: Expression<T>): T {
+	return useStack(TRACKING_STACK, false, () => get(expr));
 }
 
 /**
- * Run a function while tracking signal accesses. This is the default behavior.
- *
  * This is the opposite of {@link untrack}.
  *
- * @param fn The function to run.
+ * @param expr The expression to evaluate.
  * @returns The function's return value.
  */
-export function track<T>(fn: () => T): T {
-	return useStack(TRACKING_STACK, true, fn);
+export function track<T>(expr: Expression<T>): T {
+	return useStack(TRACKING_STACK, true, () => get(expr));
 }
 
 /**
