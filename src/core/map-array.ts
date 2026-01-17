@@ -6,7 +6,11 @@ export interface MapArrayFn<I, O> {
 	(value: I, index: () => number, partialOutput: O[]): O;
 }
 
-export function mapArray<I, O>(input: Expression<Iterable<I>>, fn: MapArrayFn<I, O>): () => O[] {
+export interface MapArrayHooks<O> {
+	finally?(output: O[]): void;
+}
+
+export function mapArray<I, O>(input: Expression<Iterable<I>>, fn: MapArrayFn<I, O>, hooks?: MapArrayHooks<O>): () => O[] {
 	let cycle = 0;
 	const signal = $();
 	const instances: Instance<I, O>[] = [];
@@ -20,8 +24,8 @@ export function mapArray<I, O>(input: Expression<Iterable<I>>, fn: MapArrayFn<I,
 	});
 
 	watch(() => {
+		let index = 0;
 		try {
-			let index = 0;
 			for (const inputValue of get(input)) { // TODO: Check error behvaior.
 				let instance: Instance<I, O> | undefined = instances[index];
 				if (instance && instance.cycle !== cycle && Object.is(inputValue, instance.inputValue)) {
@@ -71,6 +75,7 @@ export function mapArray<I, O>(input: Expression<Iterable<I>>, fn: MapArrayFn<I,
 				}
 				index++;
 			}
+		} finally {
 			if (instances.length > index) {
 				instances.length = index;
 				output.length = index;
@@ -80,10 +85,10 @@ export function mapArray<I, O>(input: Expression<Iterable<I>>, fn: MapArrayFn<I,
 					groups.delete(inputValue);
 				}
 			}
-			signal.notify();
-		} finally {
 			cycle = (cycle + 1) | 0;
+			hooks?.finally?.(output);
 		}
+		signal.notify();
 	});
 
 	return () => {

@@ -1,7 +1,7 @@
 import { deepStrictEqual, throws } from "node:assert";
 import test, { suite, TestContext } from "node:test";
 import { $, capture, mapArray, teardown, uncapture, watch } from "rvx";
-import { assertEvents, withMsg } from "../common.js";
+import { assertEvents, computeMapArrayEvents, trimMapArrayErrors, unorderedRemoveEvents, withMsg } from "../common.js";
 
 await suite("mapArray", async () => {
 	function sequenceTest(sequence: number[][]) {
@@ -13,6 +13,9 @@ await suite("mapArray", async () => {
 		let output!: () => number[];
 		const dispose = capture(() => {
 			output = mapArray(signal, (value, index, partialOutput) => {
+				if (value === 0) {
+					throw new Error("test");
+				}
 				events.push(`+${value}`);
 				watch(index, index => {
 					events.push(`i${value}:${index}`);
@@ -34,47 +37,26 @@ await suite("mapArray", async () => {
 		let previous: number[] = [];
 		for (let s = 0; s < sequence.length; s++) {
 			const current = sequence[s];
+			const errorIndex = current.indexOf(0);
 			if (s > 0) {
-				signal.value = current;
-			}
-
-			deepStrictEqual(output(), current.map(v => -v));
-
-			const expectedEvents: unknown[] = [];
-			const consumed = previous.map(() => false);
-			for (let i = 0; i < current.length; i++) {
-				const value = current[i];
-				const previousIndex = previous.findIndex((v, i) => (v === value && !consumed[i]));
-				if (previousIndex < 0) {
-					expectedEvents.push(`+${value}`, `i${value}:${i}`);
+				if (errorIndex < 0) {
+					signal.value = current;
 				} else {
-					consumed[previousIndex] = true;
-					if (i !== previousIndex) {
-						expectedEvents.push(`i${value}:${i}`);
-					}
+					throws(() => signal.value = current, withMsg("test"));
 				}
 			}
-			for (let i = 0; i < consumed.length; i++) {
-				if (!consumed[i]) {
-					expectedEvents.push(`-${previous[i]}`);
-				}
+			deepStrictEqual(output(), trimMapArrayErrors(current).map(v => -v));
+			const expectedEvents = computeMapArrayEvents(previous, current, true);
+			if (errorIndex < 0) {
+				expectedEvents.push("signal");
 			}
-
-			expectedEvents.push("signal");
-			assertEvents(events.sort(byRemoveEventOrder), expectedEvents.sort(byRemoveEventOrder));
+			assertEvents(events.sort(unorderedRemoveEvents), expectedEvents.sort(unorderedRemoveEvents));
 			previous = current;
 		}
 
 		dispose();
-		deepStrictEqual(output(), previous.map(v => -v));
-		assertEvents(events.sort(byRemoveEventOrder), previous.map(value => `-${value}`).sort(byRemoveEventOrder));
-	}
-
-	function byRemoveEventOrder(a: unknown, b: unknown): number {
-		if (typeof a === "string" && typeof b === "string" && a.startsWith("-") && b.startsWith("-")) {
-			return a > b ? 1 : (a < b ? -1 : 0);
-		}
-		return 0;
+		deepStrictEqual(output(), trimMapArrayErrors(previous).map(v => -v));
+		assertEvents(events.sort(unorderedRemoveEvents), trimMapArrayErrors(previous).map(value => `-${value}`).sort(unorderedRemoveEvents));
 	}
 
 	await test("fixed sequence", () => {
@@ -109,6 +91,38 @@ await suite("mapArray", async () => {
 		]);
 	});
 
+	await test("error recovery", () => {
+		sequenceTest([
+			[1, 2, 3, 4, 5],
+			[2, 4, 0],
+			[1, 4, 3, 2, 5],
+			[],
+			[1, 2, 3, 4, 5, 0],
+			[5, 3, 0, 1],
+			[2, 4],
+			[1, 2, 3, 0, 4, 5, 6, 7],
+			[2, 9, 10, 7, 8, 1, 5, 0],
+			[2, 2, 1, 1, 5, 5, 0],
+			[2, 1, 5, 3, 2, 1, 3, 5, 2, 5, 1, 0],
+			[3, 5, 1, 2],
+			[1, 1, 3, 2, 2, 5, 2, 5, 1, 2, 0],
+			[1, 2, 1, 5, 3, 2, 2, 1, 2, 5, 0],
+			[1, 2, 2, 5, 2, 0],
+			[2, 5, 3, 2, 2, 0],
+			[2, 5, 2, 5, 3, 2, 2, 0],
+			[2, 5, 2, 5, 3, 2, 2, 5, 3],
+			[2, 5, 1, 3, 2, 2, 0],
+			[2, 5, 1, 2, 5, 3, 2, 2, 0],
+			[2, 5, 1, 2, 5, 3, 2, 2, 5, 3, 0],
+			[1, 2, 3, 4, 5, 6, 7, 0],
+			[1, 2, 3, 4, 5, 6, 7],
+			[2, 9, 10, 7, 8, 1, 5, 0],
+			[2, 9, 10, 7, 8, 1, 5, 0],
+			[2, 2, 1, 1, 5, 5, 0],
+			[2, 2, 1, 1, 5, 5, 0],
+		]);
+	});
+
 	await suite("random sequences", async () => {
 		function randomSequenceTest(size: number, maxCount: number, maxRange: number) {
 			return (ctx: TestContext) => {
@@ -117,7 +131,7 @@ await suite("mapArray", async () => {
 					const count = Math.floor(Math.random() * maxCount);
 					const values: number[] = [];
 					for (let i = 0; i < count; i++) {
-						values.push(Math.floor(Math.random() * maxRange));
+						values.push(1 + Math.floor(Math.random() * maxRange));
 					}
 					sequence.push(values);
 				}
@@ -155,7 +169,7 @@ await suite("mapArray", async () => {
 						});
 					});
 				}, withMsg("test"));
-				assertEvents(events.sort(byRemoveEventOrder), context === capture
+				assertEvents(events.sort(unorderedRemoveEvents), context === capture
 					? ["+1", "+2", "error", "-1", "-2"]
 					: ["+1", "+2", "error"]);
 			};
@@ -183,7 +197,7 @@ await suite("mapArray", async () => {
 						});
 					});
 				}, withMsg("test"));
-				assertEvents(events.sort(byRemoveEventOrder), context === capture
+				assertEvents(events.sort(unorderedRemoveEvents), context === capture
 					? ["+1", "+2", "error", "-1", "-2"]
 					: ["+1", "+2", "error", "-2"]);
 			};
@@ -212,7 +226,7 @@ await suite("mapArray", async () => {
 		signal.value = [2, 3, 4];
 		deepStrictEqual(signal.value, [5]);
 		deepStrictEqual(output(), [-5]);
-		assertEvents(events, ["+2", "+3", "+4", "-1", "+5", "-2", "-3", "-4"].sort(byRemoveEventOrder));
+		assertEvents(events, ["+2", "+3", "+4", "-1", "+5", "-2", "-3", "-4"].sort(unorderedRemoveEvents));
 	});
 
 	await test("iterator internal updates & lifecycle", () => {

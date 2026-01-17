@@ -133,3 +133,42 @@ export async function handleExplicitRejections(fn: () => Promise<void>): Promise
 	}
 	return errors;
 }
+
+export function unorderedRemoveEvents(a: unknown, b: unknown): number {
+	if (typeof a === "string" && typeof b === "string" && a.startsWith("-") && b.startsWith("-")) {
+		return a > b ? 1 : (a < b ? -1 : 0);
+	}
+	return 0;
+}
+
+export function trimMapArrayErrors<T>(values: T[]) {
+	const index = values.indexOf(0 as T);
+	return index < 0 ? values : values.slice(0, index);
+}
+
+export function computeMapArrayEvents(previous: unknown[], next: unknown[], includeIndex: boolean) {
+	previous = trimMapArrayErrors(previous);
+	next = trimMapArrayErrors(next);
+
+	const events: unknown[] = [];
+	const consumed = previous.map(() => false);
+	for (let i = 0; i < next.length; i++) {
+		const value = next[i];
+		const previousIndex = previous.findIndex((v, i) => (v === value && !consumed[i]));
+		if (previousIndex < 0) {
+			events.push(`+${value}`);
+		} else {
+			consumed[previousIndex] = true;
+		}
+		if (includeIndex && i !== previousIndex) {
+			events.push(`i${value}:${i}`);
+		}
+	}
+	for (let i = 0; i < consumed.length; i++) {
+		if (!consumed[i]) {
+			events.push(`-${previous[i]}`);
+		}
+	}
+	events.sort(unorderedRemoveEvents);
+	return events;
+}
