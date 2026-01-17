@@ -142,7 +142,7 @@ export function unorderedRemoveEvents(a: unknown, b: unknown): number {
 }
 
 export function trimMapArrayErrors<T>(values: T[]) {
-	const index = values.indexOf(0 as T);
+	const index = values.findIndex(v => (v as any === 0 || v instanceof Error));
 	return index < 0 ? values : values.slice(0, index);
 }
 

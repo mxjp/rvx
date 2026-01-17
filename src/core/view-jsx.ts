@@ -88,7 +88,7 @@ export function Show<T>(props: {
 }
 
 /**
- * Render content for each unique value in an iterable.
+ * Render content for each value in an iterable cached by value.
  *
  * If an error is thrown while iterating or while rendering an item, the update is stopped as if the previous item was the last one and the error is re-thrown.
  *
@@ -112,7 +112,7 @@ export function For<T>(props: {
 	each: Expression<Iterable<T>>;
 
 	/**
-	 * The component to render for each unique value.
+	 * The component to render for each value.
 	 */
 	children: ForContentFn<T>;
 }): View {

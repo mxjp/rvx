@@ -120,5 +120,10 @@ This is thrown by the [`<Routes>`](./routing.md) component if no router has been
 
 [Leak detection](./testing.md#leak-detection) is meant for testing purposes. You need to ensure that `onLeak` is only called once per thread and before anything else is initialized.
 
+### `G5`
+**Inserting a view before itself should be avoided by the caller.**
+
+This is thrown when inserting a view before itself by calling `view.insertBefore(someParent, view.first)`.
+
 ### Reserved Error Codes
 The following error codes existed in previous versions: `G0`

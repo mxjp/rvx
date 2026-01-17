@@ -4,6 +4,7 @@ import { createText } from "./internals/create-text.js";
 import { NOOP } from "./internals/noop.js";
 import { isolate } from "./isolate.js";
 import { capture, teardown, TeardownHook } from "./lifecycle.js";
+import { mapArray } from "./map-array.js";
 import { $, Expression, get, memo, Signal, watch } from "./signals.js";
 import type { Component, Content, Falsy } from "./types.js";
 
@@ -367,6 +368,10 @@ export class View {
 			return this.appendTo(parent);
 		}
 		let node = this.#first;
+		if (node === ref) {
+			// Inserting a view before itself should be avoided by the caller.
+			throw new Error("G5");
+		}
 		const last = this.#last;
 		for (;;) {
 			const next = node.nextSibling;
@@ -516,14 +521,14 @@ export interface ForContentFn<T> {
 }
 
 /**
- * Render content for each unique value in an iterable.
+ * Render content for each value in an iterable cached by value.
  *
  * If an error is thrown while iterating or while rendering an item, the update is stopped as if the previous item was the last one and the error is re-thrown.
  *
  * See {@link For `<For>`} for use with JSX.
  *
  * @param each The expression to watch. Note, that signals accessed during iteration will also trigger updates.
- * @param component The component to render for each unique value.
+ * @param component The component to render for each value.
  *
  * @example
  * ```tsx
@@ -536,112 +541,40 @@ export interface ForContentFn<T> {
  */
 export function forEach<T>(each: Expression<Iterable<T>>, component: ForContentFn<T>): View {
 	return new View((setBoundary, self) => {
-		interface Instance {
-			/** value */
-			u: T;
-			/** cycle */
-			c: number;
-			/** index */
-			i: Signal<number>;
-			/** dispose */
-			d: TeardownHook;
-			/** view */
-			v: View;
-		}
-
-		function detach(instances: Instance[]) {
-			for (let i = 0; i < instances.length; i++) {
-				instances[i].v.detach();
-			}
-		}
-
+		let active = true;
 		const env = ENV.current;
-		let cycle = 0;
-
-		const instances: Instance[] = [];
-		const instanceMap = new Map<T, Instance>();
-
-		const first: Node = createPlaceholder(env);
+		const first = createPlaceholder(env);
 		setBoundary(first, first);
-
-		teardown(() => {
-			for (let i = 0; i < instances.length; i++) {
-				instances[i].d();
-			}
+		createParent(env).appendChild(first);
+		mapArray<T, View>(each, (value, index, views) => {
+			const view = render(component(value, index));
+			watch(index, index => {
+				let parent: Node | null = first.parentNode;
+				if (parent === null) {
+					parent = createParent(env);
+					parent.appendChild(first);
+				}
+				const ref = (index > 0 ? views[index - 1].last : first).nextSibling;
+				if (view.first !== ref) {
+					view.insertBefore(parent, (index > 0 ? views[index - 1].last : first).nextSibling);
+				}
+			});
+			teardown(() => {
+				if (active) {
+					view.detach();
+				}
+			});
+			return view;
+		}, {
+			finally(views) {
+				const last = views.length > 0 ? views[views.length - 1].last : first;
+				if (self.last !== last) {
+					setBoundary(undefined, last);
+				}
+			},
 		});
-
-		watch(() => {
-			let parent = self.parent;
-			if (!parent) {
-				parent = createParent(env);
-				parent.appendChild(first);
-			}
-			let index = 0;
-			let last = first;
-			try {
-				for (const value of get(each)) {
-					let instance: Instance | undefined = instances[index];
-					if (instance && Object.is(instance.u, value)) {
-						instance.c = cycle;
-						instance.i.value = index;
-						last = instance.v.last;
-						index++;
-					} else {
-						instance = instanceMap.get(value);
-						if (instance === undefined) {
-							const instance: Instance = {
-								u: value,
-								c: cycle,
-								i: $(index),
-								d: undefined!,
-								v: undefined!,
-							};
-
-							instance.d = isolate(capture, () => {
-								instance.v = render(component(value, () => instance.i.value));
-								instance.v.setBoundaryOwner((_, last) => {
-									if (instances[instances.length - 1] === instance && instance.c === cycle) {
-										setBoundary(undefined, last);
-									}
-								});
-							});
-
-							instance.v.insertBefore(parent, last.nextSibling);
-							instances.splice(index, 0, instance);
-							instanceMap.set(value, instance);
-							last = instance.v.last;
-							index++;
-						} else if (instance.c !== cycle) {
-							instance.i.value = index;
-							instance.c = cycle;
-
-							const currentIndex = instances.indexOf(instance, index);
-							if (currentIndex < 0) {
-								detach(instances.splice(index, instances.length - index, instance));
-								instance.v.insertBefore(parent, last.nextSibling);
-							} else {
-								detach(instances.splice(index, currentIndex - index));
-							}
-
-							last = instance.v.last;
-							index++;
-						}
-					}
-				}
-			} finally {
-				if (instances.length > index) {
-					detach(instances.splice(index));
-				}
-				for (const [value, instance] of instanceMap) {
-					if (instance.c !== cycle) {
-						instanceMap.delete(value);
-						instance.v.detach();
-						instance.d();
-					}
-				}
-				cycle = (cycle + 1) | 0;
-				setBoundary(undefined, last);
-			}
+		teardown(() => {
+			active = false;
 		});
 	});
 }
