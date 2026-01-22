@@ -1,5 +1,5 @@
 import { isolate } from "./isolate.js";
-import { capture, TeardownHook } from "./lifecycle.js";
+import { capture, teardown, TeardownHook } from "./lifecycle.js";
 import { $, Expression, get, Signal, watch } from "./signals.js";
 
 export type MapArrayFn<I, O> = (input: I, index: () => number) => O;
@@ -13,7 +13,13 @@ export function mapArray<I, O>(inputs: Expression<Iterable<I>>, fn: MapArrayFn<I
 	}
 
 	const state: Instance[] = [];
-	const output = $<O[]>(undefined!);
+	const output = $<O[]>([]);
+
+	teardown(() => {
+		for (let i = 0; i < state.length; i++) {
+			state[i].dispose();
+		}
+	});
 
 	watch(() => {
 		const raw = get(inputs);
@@ -94,6 +100,9 @@ export function mapArray<I, O>(inputs: Expression<Iterable<I>>, fn: MapArrayFn<I
 		for (let i = end; i < state.length; i++) {
 			state[i].index.value = i;
 		}
+
+		output.value.splice(start, stateEnd - start, ...nextState.map(s => s.output));
+		output.notify();
 	});
 
 	return () => output.value;

@@ -1,6 +1,6 @@
 import { deepStrictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { $, capture, mapArray, teardown } from "rvx";
+import { $, capture, mapArray, memo, teardown, uncapture } from "rvx";
 import { assertEvents } from "../common.js";
 
 await suite("mapArray", async () => {
@@ -20,12 +20,23 @@ await suite("mapArray", async () => {
 			});
 		});
 
+		const watchedOutput = uncapture(() => memo(output));
+
 		assertEvents(events, computeDiffEvents([], sequence[0]));
+		deepStrictEqual(output(), sequence[0].map(v => -v));
+		deepStrictEqual(watchedOutput(), sequence[0].map(v => -v));
 
 		for (let i = 1; i < sequence.length; i++) {
 			signal.value = sequence[i];
 			assertEvents(events, computeDiffEvents(sequence[i - 1], sequence[i]));
+			deepStrictEqual(output(), sequence[i].map(v => -v));
+			deepStrictEqual(watchedOutput(), sequence[i].map(v => -v));
 		}
+
+		dispose();
+		assertEvents(events, computeDiffEvents(sequence[sequence.length - 1], []));
+		deepStrictEqual(output(), sequence[sequence.length - 1].map(v => -v));
+		deepStrictEqual(watchedOutput(), sequence[sequence.length - 1].map(v => -v));
 	}
 
 	function computeDiffEvents(prev: number[], next: number[]) {
@@ -63,7 +74,6 @@ await suite("mapArray", async () => {
 		deepStrictEqual(allEvents.toSorted(), trimmedEvents.toSorted());
 		return trimmedEvents;
 	}
-
 
 	await test("fixed sequence", () => {
 		sequenceTest([
