@@ -1,3 +1,4 @@
+import { REACTIVE_ARRAY } from "../core/markers.js";
 import { $, batch, isTracking } from "../core/signals.js";
 import type { Barrier } from "./barrier.js";
 import { ProbeMap } from "./probes.js";
@@ -75,7 +76,11 @@ export function createReactiveArrayProxy<T>(target: T[], barrier: Barrier): T[] 
 	}) as T[];
 }
 
-const replacements = Object.create(null) as typeof Array.prototype;
+const replacements = Object.create(null) as typeof Array.prototype & {
+	[REACTIVE_ARRAY]: true;
+};
+
+replacements[REACTIVE_ARRAY] = true;
 
 for (const key of [
 	"copyWithin",

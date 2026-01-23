@@ -1,5 +1,6 @@
 import { isolate } from "../isolate.js";
 import { capture, teardown, TeardownHook } from "../lifecycle.js";
+import { REACTIVE_ARRAY } from "../markers.js";
 import { $, Expression, get, Signal } from "../signals.js";
 
 export type MapArrayFn<I, O> = (input: I, index: () => number) => O;
@@ -29,7 +30,10 @@ export interface MapArrayUpdate<I, O> {
 export function mapArrayInput<T>(input: Expression<Iterable<T>>): () => T[] {
 	return () => {
 		const raw = get(input);
-		return Array.isArray(raw) ? raw : Array.from(raw);
+		if (Array.isArray(raw) && !(raw as any)[REACTIVE_ARRAY]) {
+			return raw;
+		}
+		return Array.from(raw);
 	};
 }
 

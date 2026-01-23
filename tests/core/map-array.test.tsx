@@ -1,7 +1,7 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 import { $, capture, mapArray, memo, teardown, uncapture, watch } from "rvx";
-import { assertEvents } from "../common.js";
+import { assertEvents, computeMapArrayDiffEvents } from "../common.js";
 
 await suite("mapArray", async () => {
 	function sequenceTest(sequence: number[][]) {
@@ -33,60 +33,24 @@ await suite("mapArray", async () => {
 			strictEqual(new Set(identityByIndex.slice(0, output().length)).size, output().length);
 		}
 
-		assertEvents(events, computeDiffEvents([], sequence[0]));
+		assertEvents(events, computeMapArrayDiffEvents([], sequence[0]));
 		deepStrictEqual(output(), sequence[0].map(v => -v));
 		deepStrictEqual(watchedOutput(), sequence[0].map(v => -v));
 		assertIndexes();
 
 		for (let i = 1; i < sequence.length; i++) {
 			signal.value = sequence[i];
-			assertEvents(events, computeDiffEvents(sequence[i - 1], sequence[i]));
+			assertEvents(events, computeMapArrayDiffEvents(sequence[i - 1], sequence[i]));
 			deepStrictEqual(output(), sequence[i].map(v => -v));
 			deepStrictEqual(watchedOutput(), sequence[i].map(v => -v));
 			assertIndexes();
 		}
 
 		dispose();
-		assertEvents(events, computeDiffEvents(sequence[sequence.length - 1], []));
+		assertEvents(events, computeMapArrayDiffEvents(sequence[sequence.length - 1], []));
 		deepStrictEqual(output(), sequence[sequence.length - 1].map(v => -v));
 		deepStrictEqual(watchedOutput(), sequence[sequence.length - 1].map(v => -v));
 		assertIndexes();
-	}
-
-	function computeDiffEvents(prev: number[], next: number[]) {
-		function computeRaw(prev: number[], next: number[]) {
-			const events: unknown[] = [];
-			const consumed = prev.map(() => false);
-			for (const value of next) {
-				const prevIndex = prev.findIndex((v, i) => v === value && !consumed[i]);
-				if (prevIndex < 0) {
-					events.push(`+${value}`);
-				} else {
-					consumed[prevIndex] = true;
-				}
-			}
-			for (let i = prev.length - 1; i >= 0; i--) {
-				if (!consumed[i]) {
-					events.unshift(`-${prev[i]}`);
-				}
-			}
-			return events;
-		}
-
-		prev = Array.from(prev);
-		next = Array.from(next);
-		const allEvents = computeRaw(prev, next);
-		while (prev.length > 0 && next.length > 0 && prev[0] === next[0]) {
-			prev.shift();
-			next.shift();
-		}
-		while (prev.length > 0 && next.length > 0 && prev[prev.length - 1] === next[next.length - 1]) {
-			prev.pop();
-			next.pop();
-		}
-		const trimmedEvents = computeRaw(prev, next);
-		deepStrictEqual(allEvents.toSorted(), trimmedEvents.toSorted());
-		return trimmedEvents;
 	}
 
 	await test("fixed sequence", () => {

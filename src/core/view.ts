@@ -1,6 +1,7 @@
 import { NODE, NodeTarget } from "./element-common.js";
 import { ENV } from "./env.js";
 import { createText } from "./internals/create-text.js";
+import { createMapArrayState, MapArrayFn, mapArrayInput, mapArrayUpdate } from "./internals/map-array.js";
 import { NOOP } from "./internals/noop.js";
 import { isolate } from "./isolate.js";
 import { capture, teardown, TeardownHook } from "./lifecycle.js";
@@ -535,112 +536,33 @@ export interface ForContentFn<T> {
  * ```
  */
 export function forEach<T>(each: Expression<Iterable<T>>, component: ForContentFn<T>): View {
-	return new View((setBoundary, self) => {
-		interface Instance {
-			/** value */
-			u: T;
-			/** cycle */
-			c: number;
-			/** index */
-			i: Signal<number>;
-			/** dispose */
-			d: TeardownHook;
-			/** view */
-			v: View;
-		}
-
-		function detach(instances: Instance[]) {
-			for (let i = 0; i < instances.length; i++) {
-				instances[i].v.detach();
-			}
-		}
-
+	return new View(setBoundary => {
 		const env = ENV.current;
-		let cycle = 0;
-
-		const instances: Instance[] = [];
-		const instanceMap = new Map<T, Instance>();
-
-		const first: Node = createPlaceholder(env);
+		const first = createPlaceholder(env);
 		setBoundary(first, first);
-
-		teardown(() => {
-			for (let i = 0; i < instances.length; i++) {
-				instances[i].d();
-			}
-		});
-
-		watch(() => {
-			let parent = self.parent;
-			if (!parent) {
-				parent = createParent(env);
-				parent.appendChild(first);
-			}
-			let index = 0;
-			let last = first;
-			try {
-				for (const value of get(each)) {
-					let instance: Instance | undefined = instances[index];
-					if (instance && Object.is(instance.u, value)) {
-						instance.c = cycle;
-						instance.i.value = index;
-						last = instance.v.last;
-						index++;
-					} else {
-						instance = instanceMap.get(value);
-						if (instance === undefined) {
-							const instance: Instance = {
-								u: value,
-								c: cycle,
-								i: $(index),
-								d: undefined!,
-								v: undefined!,
-							};
-
-							instance.d = isolate(capture, () => {
-								instance.v = render(component(value, () => instance.i.value));
-								instance.v.setBoundaryOwner((_, last) => {
-									if (instances[instances.length - 1] === instance && instance.c === cycle) {
-										setBoundary(undefined, last);
-									}
-								});
-							});
-
-							instance.v.insertBefore(parent, last.nextSibling);
-							instances.splice(index, 0, instance);
-							instanceMap.set(value, instance);
-							last = instance.v.last;
-							index++;
-						} else if (instance.c !== cycle) {
-							instance.i.value = index;
-							instance.c = cycle;
-
-							const currentIndex = instances.indexOf(instance, index);
-							if (currentIndex < 0) {
-								detach(instances.splice(index, instances.length - index, instance));
-								instance.v.insertBefore(parent, last.nextSibling);
-							} else {
-								detach(instances.splice(index, currentIndex - index));
-							}
-
-							last = instance.v.last;
-							index++;
-						}
-					}
+		const mapFn: MapArrayFn<T, View> = (input, index) => render(component(input, index));
+		const state = createMapArrayState<T, View>();
+		watch(mapArrayInput(each), inputs => {
+			const update = mapArrayUpdate<T, View>(state, inputs, mapFn);
+			if (update !== null) {
+				let parent = first.parentNode as Node | null;
+				if (parent === null) {
+					parent = createParent(env);
+					parent.appendChild(first);
 				}
-			} finally {
-				if (instances.length > index) {
-					detach(instances.splice(index));
+				// TODO: Replace with connection preserving update:
+				for (let i = 0; i < update.p.length; i++) {
+					update.p[i].o.detach();
 				}
-				for (const [value, instance] of instanceMap) {
-					if (instance.c !== cycle) {
-						instanceMap.delete(value);
-						instance.v.detach();
-						instance.d();
-					}
+				let prev = update.s > 0 ? state[update.s - 1].o.last : first;
+				for (let i = 0; i < update.n.length; i++) {
+					const view = update.n[i].o;
+					view.insertBefore(parent, prev.nextSibling);
+					prev = view.last;
 				}
-				cycle = (cycle + 1) | 0;
-				setBoundary(undefined, last);
+				if (update.e === state.length) {
+					setBoundary(undefined, prev);
+				}
 			}
 		});
 	});

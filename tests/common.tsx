@@ -133,3 +133,39 @@ export async function handleExplicitRejections(fn: () => Promise<void>): Promise
 	}
 	return errors;
 }
+
+export function computeMapArrayDiffEvents(prev: number[], next: number[]) {
+	function computeRaw(prev: number[], next: number[]) {
+		const events: unknown[] = [];
+		const consumed = prev.map(() => false);
+		for (const value of next) {
+			const prevIndex = prev.findIndex((v, i) => v === value && !consumed[i]);
+			if (prevIndex < 0) {
+				events.push(`+${value}`);
+			} else {
+				consumed[prevIndex] = true;
+			}
+		}
+		for (let i = prev.length - 1; i >= 0; i--) {
+			if (!consumed[i]) {
+				events.unshift(`-${prev[i]}`);
+			}
+		}
+		return events;
+	}
+
+	prev = Array.from(prev);
+	next = Array.from(next);
+	const allEvents = computeRaw(prev, next);
+	while (prev.length > 0 && next.length > 0 && prev[0] === next[0]) {
+		prev.shift();
+		next.shift();
+	}
+	while (prev.length > 0 && next.length > 0 && prev[prev.length - 1] === next[next.length - 1]) {
+		prev.pop();
+		next.pop();
+	}
+	const trimmedEvents = computeRaw(prev, next);
+	deepStrictEqual(allEvents.toSorted(), trimmedEvents.toSorted());
+	return trimmedEvents;
+}

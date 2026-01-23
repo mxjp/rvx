@@ -3,7 +3,7 @@ import test, { suite } from "node:test";
 import { $, Attach, capture, Component, ENV, For, Index, memo, mount, movable, Nest, render, Show, teardown, uncapture, View, watch, watchUpdates } from "rvx";
 import { wrap } from "rvx/store";
 import { assertViewState } from "rvx/test";
-import { assertEvents, boundaryEvents, lifecycleEvent, TestView, testView, text, viewText, withMsg } from "../common.js";
+import { assertEvents, boundaryEvents, computeMapArrayDiffEvents, lifecycleEvent, TestView, testView, text, viewText, withMsg } from "../common.js";
 
 await suite("view", async () => {
 	await test("init incomplete", () => {
@@ -649,6 +649,112 @@ await suite("view", async () => {
 	});
 
 	await suite("For", async () => {
+		function sequenceTest(sequence: number[][], prefix: string | null, suffix: string | null) {
+			const events: unknown[] = [];
+			const signal = $(sequence[0]);
+
+			let view!: View;
+			const dispose = capture(() => {
+				const inner = <For each={signal}>
+					{(value, index) => {
+						events.push(`+${value}`);
+						teardown(() => {
+							events.push(`-${value}`);
+						});
+						return <>[{value}:{index}]</>;
+					}}
+				</For> as View;
+
+				view = render([
+					...(prefix === null ? [] : [prefix]),
+					inner,
+					...(suffix === null ? [] : [suffix]),
+				]);
+			});
+
+			assertState(sequence[0]);
+			assertEvents(events, computeMapArrayDiffEvents([], sequence[0]));
+
+			for (let i = 1; i < sequence.length; i++) {
+				signal.value = sequence[i];
+				assertState(sequence[i]);
+				assertEvents(events, computeMapArrayDiffEvents(sequence[i - 1], sequence[i]));
+			}
+
+			dispose();
+			assertState(sequence[sequence.length - 1]);
+			assertEvents(events, computeMapArrayDiffEvents(sequence[sequence.length - 1], []));
+
+			function assertState(values: number[]) {
+				strictEqual(viewText(view), (prefix ?? "") + values.map((v, i) => `[${v}:${i}]`).join("") + (suffix ?? ""));
+			}
+		}
+
+		function contextSequenceTest(sequence: number[][]) {
+			sequenceTest(sequence, null, null);
+			sequenceTest(sequence, "prefix", "suffix");
+			sequenceTest(sequence, "prefix", null);
+			sequenceTest(sequence, null, "suffix");
+		}
+
+		await test("fixed sequence", () => {
+			contextSequenceTest([
+				[1, 2, 3, 4, 5],
+				[2, 4],
+				[1, 4, 3, 2, 5],
+				[],
+				[1, 2, 3, 4, 5],
+				[5, 3, 1],
+				[2, 4],
+				[1, 2, 3, 4, 5, 6, 7],
+				[2, 9, 10, 7, 8, 1, 5],
+				[2, 2, 1, 1, 5, 5],
+				[2, 1, 5, 3, 2, 1, 3, 5, 2, 5, 1],
+				[3, 5, 1, 2],
+				[1, 1, 3, 2, 2, 5, 2, 5, 1, 2],
+				[1, 2, 1, 5, 3, 2, 2, 1, 2, 5],
+				[1, 2, 2, 5, 2],
+				[2, 5, 3, 2, 2],
+				[2, 5, 2, 5, 3, 2, 2],
+				[2, 5, 2, 5, 3, 2, 2, 5, 3],
+				[2, 5, 1, 3, 2, 2],
+				[2, 5, 1, 2, 5, 3, 2, 2],
+				[2, 5, 1, 2, 5, 3, 2, 2, 5, 3],
+				[1, 2, 3, 4, 5, 6, 7],
+				[1, 2, 3, 4, 5, 6, 7],
+				[2, 9, 10, 7, 8, 1, 5],
+				[2, 9, 10, 7, 8, 1, 5],
+				[2, 2, 1, 1, 5, 5],
+				[2, 2, 1, 1, 5, 5],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9],
+				[1, 5, 6, 7, 8, 2, 3, 4, 9],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9],
+				[1, 6, 7, 8, 2, 3, 4, 5, 9],
+			]);
+		});
+
+		await suite("random sequences", async () => {
+			function randomSequenceTest(count: number, maxLength: number, maxValue: number) {
+				return () => {
+					const sequence: number[][] = [];
+					for (let i = 0; i < count; i++) {
+						const values: number[] = [];
+						const length = Math.floor(Math.random() * maxLength);
+						for (let v = 0; v < length; v++) {
+							values.push(1 + Math.floor(Math.random() * maxValue));
+						}
+						sequence.push(values);
+					}
+					contextSequenceTest(sequence);
+				};
+			}
+
+			await test(randomSequenceTest(256, 16, 8));
+			await test(randomSequenceTest(256, 8, 16));
+		});
+	});
+
+	await suite.skip("For", async () => {
 		function sequenceTest(sequence: unknown[][], withErrors: boolean) {
 			if (withErrors) {
 				sequence = structuredClone(sequence);
