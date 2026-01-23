@@ -1,42 +1,56 @@
-import { deepStrictEqual } from "node:assert";
+import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { $, capture, mapArray, memo, teardown, uncapture } from "rvx";
+import { $, capture, mapArray, memo, teardown, uncapture, watch } from "rvx";
 import { assertEvents } from "../common.js";
 
 await suite("mapArray", async () => {
 	function sequenceTest(sequence: number[][]) {
 		const events: unknown[] = [];
 		const signal = $(sequence[0]);
+		const outputByIndex: (number | undefined)[] = [];
+		const identityByIndex: symbol[] = [];
 
 		let output!: () => number[];
 		const dispose = capture(() => {
-			output = mapArray(signal, v => {
-				events.push(`+${v}`);
+			output = mapArray(signal, (value, index) => {
+				const identity = Symbol();
+				events.push(`+${value}`);
 				teardown(() => {
-					events.push(`-${v}`);
+					events.push(`-${value}`);
 				});
-
-				return -v;
+				watch(index, index => {
+					outputByIndex[index] = -value;
+					identityByIndex[index] = identity;
+				});
+				return -value;
 			});
 		});
 
 		const watchedOutput = uncapture(() => memo(output));
 
+		function assertIndexes() {
+			deepStrictEqual(outputByIndex.slice(0, output().length), output());
+			strictEqual(new Set(identityByIndex.slice(0, output().length)).size, output().length);
+		}
+
 		assertEvents(events, computeDiffEvents([], sequence[0]));
 		deepStrictEqual(output(), sequence[0].map(v => -v));
 		deepStrictEqual(watchedOutput(), sequence[0].map(v => -v));
+		assertIndexes();
 
 		for (let i = 1; i < sequence.length; i++) {
 			signal.value = sequence[i];
 			assertEvents(events, computeDiffEvents(sequence[i - 1], sequence[i]));
 			deepStrictEqual(output(), sequence[i].map(v => -v));
 			deepStrictEqual(watchedOutput(), sequence[i].map(v => -v));
+			assertIndexes();
 		}
 
 		dispose();
 		assertEvents(events, computeDiffEvents(sequence[sequence.length - 1], []));
 		deepStrictEqual(output(), sequence[sequence.length - 1].map(v => -v));
 		deepStrictEqual(watchedOutput(), sequence[sequence.length - 1].map(v => -v));
+		assertIndexes();
 	}
 
 	function computeDiffEvents(prev: number[], next: number[]) {

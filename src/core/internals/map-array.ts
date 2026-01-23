@@ -1,6 +1,6 @@
 import { isolate } from "../isolate.js";
-import { capture, TeardownHook } from "../lifecycle.js";
-import { $, Signal } from "../signals.js";
+import { capture, teardown, TeardownHook } from "../lifecycle.js";
+import { $, Expression, get, Signal } from "../signals.js";
 
 export type MapArrayFn<I, O> = (input: I, index: () => number) => O;
 
@@ -24,6 +24,23 @@ export interface MapArrayUpdate<I, O> {
 	p: MapArrayStateEntry<I, O>[];
 	/** next chunk */
 	n: MapArrayStateEntry<I, O>[];
+}
+
+export function mapArrayInput<T>(input: Expression<Iterable<T>>): () => T[] {
+	return () => {
+		const raw = get(input);
+		return Array.isArray(raw) ? raw : Array.from(raw);
+	};
+}
+
+export function createMapArrayState<I, O>() {
+	const state: MapArrayStateEntry<I, O>[] = [];
+	teardown(() => {
+		for (let i = 0; i < state.length; i++) {
+			state[i].d();
+		}
+	});
+	return state;
 }
 
 export function mapArrayUpdate<I, O>(state: MapArrayStateEntry<I, O>[], inputs: I[], fn: MapArrayFn<I, O>): MapArrayUpdate<I, O> | null {
