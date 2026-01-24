@@ -550,14 +550,18 @@ export function forEach<T>(each: Expression<Iterable<T>>, component: ForContentF
 					parent = createParent(env);
 					parent.appendChild(first);
 				}
-				// TODO: Replace with connection preserving update:
 				for (let i = 0; i < update.p.length; i++) {
-					update.p[i].o.detach();
+					const entry = update.p[i];
+					if (entry.r) {
+						entry.o.detach();
+					}
 				}
 				let prev = update.s > 0 ? state[update.s - 1].o.last : first;
 				for (let i = 0; i < update.n.length; i++) {
 					const view = update.n[i].o;
-					view.insertBefore(parent, prev.nextSibling);
+					if (prev.nextSibling !== view.first) {
+						view.insertBefore(parent, prev.nextSibling);
+					}
 					prev = view.last;
 				}
 				if (update.e === state.length) {

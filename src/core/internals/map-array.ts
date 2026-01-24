@@ -14,6 +14,8 @@ export interface MapArrayStateEntry<I, O> {
 	s: Signal<number>,
 	/** dispose */
 	d: TeardownHook,
+	/** removed */
+	r: boolean,
 }
 
 export interface MapArrayUpdate<I, O> {
@@ -90,6 +92,7 @@ export function mapArrayUpdate<I, O>(state: MapArrayStateEntry<I, O>[], inputs: 
 		const index = indexByValue.get(instance.i);
 		if (index === undefined) {
 			instance.d();
+			instance.r = true;
 		} else {
 			nextState[index - start] = instance;
 			indexByValue.set(instance.i, nextIndexByIndex[index]);
@@ -114,6 +117,7 @@ export function mapArrayUpdate<I, O>(state: MapArrayStateEntry<I, O>[], inputs: 
 				o: output,
 				s: index,
 				d: dispose,
+				r: false,
 			};
 		}
 	}
