@@ -1,7 +1,7 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 import { $, capture, mapArray, memo, teardown, uncapture, watch } from "rvx";
-import { assertEvents, computeMapArrayDiffEvents } from "../common.js";
+import { assertEvents, computeMapArrayDiffEvents, lifecycleEvent } from "../common.js";
 
 await suite("mapArray", async () => {
 	function sequenceTest(sequence: number[][]) {
@@ -108,5 +108,53 @@ await suite("mapArray", async () => {
 		await test(randomSequenceTest(1024, 24, 8));
 		await test(randomSequenceTest(1024, 8, 24));
 		await test(randomSequenceTest(1024, 24, 24));
+	});
+
+	await test("sequential map side effects", () => {
+		const events: unknown[] = [];
+		const signal = $([1]);
+		const output = uncapture(() => mapArray(signal, value => {
+			if (value === 3) {
+				signal.value = [5];
+			}
+			lifecycleEvent(events, String(value));
+			return value;
+		}));
+		assertEvents(events, ["s:1"]);
+		deepStrictEqual(output(), [1]);
+		signal.value = [2, 3, 4];
+		assertEvents(events, ["e:1", "s:2", "s:3", "s:4", "e:2", "e:3", "e:4", "s:5"]);
+		deepStrictEqual(output(), [5]);
+	});
+
+	await test("sequential index side effects", () => {
+		const events: unknown[] = [];
+		const signal = $([1, 2]);
+		const output = uncapture(() => mapArray(signal, (value, index) => {
+			if (index() === 0) {
+				watch(index, index => {
+					if (index === 2) {
+						signal.value = [4];
+					}
+				});
+			}
+			lifecycleEvent(events, String(value));
+			return value;
+		}));
+		assertEvents(events, ["s:1", "s:2"]);
+		deepStrictEqual(output(), [1, 2]);
+		signal.value = [3, 2, 1];
+		assertEvents(events, ["s:3", "e:3", "e:2", "e:1", "s:4"]);
+		deepStrictEqual(output(), [4]);
+	});
+
+	await test("map isolation", () => {
+		const signal = $(0);
+		const output = uncapture(() => mapArray([1], value => {
+			return value + signal.value;
+		}));
+		deepStrictEqual(output(), [1]);
+		signal.value = 2;
+		deepStrictEqual(output(), [1]);
 	});
 });
