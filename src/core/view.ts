@@ -1,7 +1,7 @@
 import { NODE, NodeTarget } from "./element-common.js";
 import { ENV } from "./env.js";
 import { createText } from "./internals/create-text.js";
-import { createMapArrayState, MapArrayFn, mapArrayInput, mapArrayUpdate } from "./internals/map-array.js";
+import { createMapArrayState, MapArrayFn, mapArrayUpdate } from "./internals/map-array.js";
 import { NOOP } from "./internals/noop.js";
 import { isolate } from "./isolate.js";
 import { capture, teardown, TeardownHook } from "./lifecycle.js";
@@ -542,8 +542,8 @@ export function forEach<T>(each: Expression<Iterable<T>>, component: ForContentF
 		setBoundary(first, first);
 		const mapFn: MapArrayFn<T, View> = (input, index) => render(component(input, index));
 		const state = createMapArrayState<T, View>();
-		watch(mapArrayInput(each), inputs => {
-			const update = mapArrayUpdate<T, View>(state, inputs, mapFn);
+		watch(() => {
+			const update = mapArrayUpdate<T, View>(state, get(each), mapFn);
 			if (update !== null) {
 				let parent = first.parentNode as Node | null;
 				if (parent === null) {

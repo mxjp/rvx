@@ -1,7 +1,6 @@
 import { isolate } from "../isolate.js";
 import { capture, teardown, TeardownHook } from "../lifecycle.js";
-import { REACTIVE_ARRAY } from "../markers.js";
-import { $, Expression, get, Signal } from "../signals.js";
+import { $, Signal } from "../signals.js";
 
 export type MapArrayFn<I, O> = (input: I, index: () => number) => O;
 
@@ -10,7 +9,7 @@ export interface MapArrayStateEntry<I, O> {
 	i: I;
 	/** output */
 	o: O;
-	/** signal */
+	/** index */
 	s: Signal<number>,
 	/** dispose */
 	d: TeardownHook,
@@ -27,16 +26,6 @@ export interface MapArrayUpdate<I, O> {
 	p: MapArrayStateEntry<I, O>[];
 	/** next chunk */
 	n: MapArrayStateEntry<I, O>[];
-}
-
-export function mapArrayInput<T>(input: Expression<Iterable<T>>): () => T[] {
-	return () => {
-		const raw = get(input);
-		if (Array.isArray(raw) && !(raw as any)[REACTIVE_ARRAY]) {
-			return raw;
-		}
-		return Array.from(raw);
-	};
 }
 
 export function createMapArrayState<I, O>() {
@@ -64,7 +53,9 @@ function createEntry<I, O>(value: I, index: number, fn: MapArrayFn<I, O>): MapAr
 	};
 }
 
-export function mapArrayUpdate<I, O>(state: MapArrayStateEntry<I, O>[], inputs: I[], fn: MapArrayFn<I, O>): MapArrayUpdate<I, O> | null {
+export function mapArrayUpdate<I, O>(state: MapArrayStateEntry<I, O>[], rawInput: Iterable<I>, fn: MapArrayFn<I, O>): MapArrayUpdate<I, O> | null {
+	const inputs = Array.isArray(rawInput) ? rawInput : Array.from(rawInput);
+
 	let start = 0;
 	const maxStart = Math.min(state.length, inputs.length);
 	while (start < maxStart && Object.is(inputs[start], state[start].i)) {
