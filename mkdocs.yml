@@ -1,5 +1,6 @@
 site_name: rvx!
 site_url: https://mxjp.github.io/rvx
+dev_addr: localhost:8080
 theme:
   name: material
   logo: assets/logo.svg
