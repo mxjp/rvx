@@ -17,7 +17,7 @@
 		"web-components"
 	],
 	"license": "MIT",
-	"version": "23.2.0",
+	"version": "24.0.0-pre",
 	"type": "module",
 	"main": "./dist/es/core/index.js",
 	"sideEffects": false,
