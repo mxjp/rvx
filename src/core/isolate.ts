@@ -5,7 +5,7 @@ import type { untrack } from "./signals.js";
 /**
  * Run a function in isolation from the following side effect causing APIs:
  * + Teardown hooks are leaked. To isolate only teardown hooks, use {@link uncapture} instead.
- * + Signal accesses are not tracked and the default tracking behavior is restored. To only control the tracking behavior, use {@link track} or {@link untrack} instead.
+ * + Signal accesses are not tracked and the default tracking behavior is restored. To only isolate signal accesses, use {@link untrack} instead.
  *
  * Note, that batches and contexts are not isolated.
  *
