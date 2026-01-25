@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { For, uncapture, View, watch } from "rvx";
+import { For, Index, uncapture, View, watch } from "rvx";
 import { ReactiveMap, wrap } from "rvx/store";
 import { assertEvents, viewText } from "../common.js";
 import { WrapTest } from "./common.js";
@@ -135,18 +135,23 @@ await suite("store/reactive-map", async () => {
 		}
 	});
 
-	await test("view compat", async () => {
-		const proxy = wrap(new Map<string, number>([["foo", 0]]));
-		const view = uncapture(() => {
-			return <For each={proxy}>{v => `(${v[0]}:${v[1]})`}</For> as View;
-		});
-		strictEqual(viewText(view), "(foo:0)");
-		proxy.set("foo", 1);
-		strictEqual(viewText(view), "(foo:1)");
-		proxy.set("bar", 2);
-		strictEqual(viewText(view), "(foo:1)(bar:2)");
-		proxy.delete("foo");
-		strictEqual(viewText(view), "(bar:2)");
+	await suite("view compat", async () => {
+		function viewCompatTest(render: (proxy: Map<string, number>) => View) {
+			return () => {
+				const proxy = wrap(new Map<string, number>([["foo", 0]]));
+				const view = uncapture(() => render(proxy));
+				strictEqual(viewText(view), "(foo:0)");
+				proxy.set("foo", 1);
+				strictEqual(viewText(view), "(foo:1)");
+				proxy.set("bar", 2);
+				strictEqual(viewText(view), "(foo:1)(bar:2)");
+				proxy.delete("foo");
+				strictEqual(viewText(view), "(bar:2)");
+			};
+		}
+
+		await test("<For>", viewCompatTest(proxy => <For each={proxy}>{v => <>({v[0]}:{v[1]})</>}</For> as View));
+		await test("<Index>", viewCompatTest(proxy => <Index each={proxy}>{v => <>({() => v()[0]}:{() => v()[1]})</>}</Index> as View));
 	});
 
 	function assertEntries<K, V>(targets: Map<K, V>[], entries: [K, V][]) {

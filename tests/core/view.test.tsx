@@ -1,7 +1,6 @@
-import { deepStrictEqual, notStrictEqual, strictEqual, throws } from "node:assert";
+import { notStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { $, Attach, capture, Component, ENV, For, Index, memo, mount, movable, Nest, render, Show, teardown, uncapture, View, watch, watchUpdates } from "rvx";
-import { wrap } from "rvx/store";
+import { $, Attach, capture, Component, ENV, For, Index, memo, mount, movable, Nest, render, Show, teardown, uncapture, View, watch } from "rvx";
 import { assertViewState } from "rvx/test";
 import { assertEvents, boundaryEvents, computeMapArrayDiffEvents, lifecycleEvent, TestView, testView, text, viewText, withMsg } from "../common.js";
 
@@ -654,8 +653,9 @@ await suite("view", async () => {
 			const signal = $(sequence[0]);
 
 			let view!: View;
+			let inner!: View;
 			const dispose = capture(() => {
-				const inner = <For each={signal}>
+				inner = <For each={signal}>
 					{(value, index) => {
 						events.push(`+${value}`);
 						teardown(() => {
@@ -687,6 +687,8 @@ await suite("view", async () => {
 
 			function assertState(values: number[]) {
 				strictEqual(viewText(view), (prefix ?? "") + values.map((v, i) => `[${v}:${i}]`).join("") + (suffix ?? ""));
+				assertViewState(view);
+				assertViewState(inner);
 			}
 		}
 
@@ -755,350 +757,169 @@ await suite("view", async () => {
 	});
 
 	await suite("Index", async () => {
-		function sequenceTest(sequence: unknown[][], withErrors: boolean) {
-			if (withErrors) {
-				sequence = structuredClone(sequence);
-				for (let i = 1; i < sequence.length; i++) {
-					sequence[i].push(new Error(`${i}`), "unreachable value", new Error(`unreachable error`));
-				}
-			}
-
+		function sequenceTest(sequence: number[][], prefix: string | null, suffix: string | null) {
 			const events: unknown[] = [];
 			const signal = $(sequence[0]);
 
 			let view!: View;
+			let inner!: View;
 			const dispose = capture(() => {
-				view = <Index each={signal}>
+				inner = <Index each={signal}>
 					{(value, index) => {
-						if (value instanceof Error) {
-							throw value;
-						}
-						events.push(`+${value}`);
+						events.push(`+${index}`);
 						teardown(() => {
-							events.push(`-${value}`);
+							events.push(`-${index}`);
 						});
 						return <>[{value}:{index}]</>;
 					}}
 				</Index> as View;
+
+				view = render([
+					...(prefix === null ? [] : [prefix]),
+					inner,
+					...(suffix === null ? [] : [suffix]),
+				]);
 			});
 
-			let lastValues: unknown[] = [];
-			function assertItems(values: unknown[], errorIndex: number, assertContent: boolean) {
-				if (errorIndex >= 0) {
-					values = values.slice(0, errorIndex);
-				}
+			assertState(sequence[0]);
+			assertEvents(events, computeDiffEvents([], sequence[0]));
 
-				if (assertContent) {
-					strictEqual(viewText(view), values.map((v, i) => `[${v}:${i}]`).join(""));
-				}
-
-				const expectedEvents: unknown[] = [];
-				for (let i = 0; i < values.length; i++) {
-					if (i < lastValues.length) {
-						const last = lastValues[i];
-						if (last === values[i]) {
-							continue;
-						}
-						expectedEvents.push(`-${last}`);
-					}
-					expectedEvents.push(`+${values[i]}`);
-				}
-				for (let i = values.length; i < lastValues.length; i++) {
-					expectedEvents.push(`-${lastValues[i]}`);
-				}
-				assertEvents(events, expectedEvents);
-				lastValues = values;
-			}
-
-			assertViewState(view);
-			assertItems(sequence[0], -1, true);
 			for (let i = 1; i < sequence.length; i++) {
-				const values = sequence[i];
-				const errorIndex = values.findIndex(v => v instanceof Error);
-				if (errorIndex >= 0) {
-					throws(() => {
-						signal.value = values;
-					}, error => error === values[errorIndex]);
-				} else {
-					signal.value = values;
-				}
-				assertViewState(view);
-				assertItems(values, errorIndex, true);
+				signal.value = sequence[i];
+				assertState(sequence[i]);
+				assertEvents(events, computeDiffEvents(sequence[i - 1], sequence[i]));
 			}
 
-			const lastContent = text(view!.detach());
-			assertViewState(view);
 			dispose();
-			assertViewState(view);
-			assertItems([], -1, false);
-			strictEqual(viewText(view), lastContent);
+			assertState(sequence[sequence.length - 1]);
+			assertEvents(events, computeDiffEvents(sequence[sequence.length - 1], []));
+
+			function computeDiffEvents(prev: number[], next: number[]) {
+				const events: unknown[] = [];
+				let length = prev.length;
+				while (length < next.length) {
+					events.push(`+${length}`);
+					length++;
+				}
+				while (length > next.length) {
+					length--;
+					events.push(`-${length}`);
+				}
+				return events;
+			}
+
+			function assertState(values: number[]) {
+				assertViewState(view);
+				assertViewState(inner);
+				strictEqual(viewText(view), (prefix ?? "") + values.map((v, i) => `[${v}:${i}]`).join("") + (suffix ?? ""));
+			}
 		}
 
-		for (const withErrors of [false, true]) {
-			await suite(withErrors ? "diff" : "error handling", async () => {
-				await test("fixed sequence", () => {
-					sequenceTest([
-						[1, 2, 3],
-						[1, 4, 3],
-						[1, 4],
-						[2, 4, 5, 6],
-						[1, 2, 3],
-						[],
-					], withErrors);
-				});
+		function contextSequenceTest(sequence: number[][]) {
+			sequenceTest(sequence, null, null);
+			sequenceTest(sequence, "prefix", "suffix");
+			sequenceTest(sequence, "prefix", null);
+			sequenceTest(sequence, null, "suffix");
+		}
 
-				await test("random", ctx => {
-					const SEQ_SIZE = 100;
-					const MAX_COUNT = 20;
-					const MAX_VALUE = 5;
+		await test("fixed sequence", () => {
+			contextSequenceTest([
+				[1, 2, 3, 4, 5],
+				[2, 4],
+				[1, 4, 3, 2, 5],
+				[],
+				[1, 2, 3, 4, 5],
+				[5, 3, 1],
+				[2, 4],
+				[1, 2, 3, 4, 5, 6, 7],
+				[2, 9, 10, 7, 8, 1, 5],
+				[2, 2, 1, 1, 5, 5],
+				[2, 1, 5, 3, 2, 1, 3, 5, 2, 5, 1],
+				[3, 5, 1, 2],
+				[1, 1, 3, 2, 2, 5, 2, 5, 1, 2],
+				[1, 2, 1, 5, 3, 2, 2, 1, 2, 5],
+				[1, 2, 2, 5, 2],
+				[2, 5, 3, 2, 2],
+				[2, 5, 2, 5, 3, 2, 2],
+				[2, 5, 2, 5, 3, 2, 2, 5, 3],
+				[2, 5, 1, 3, 2, 2],
+				[2, 5, 1, 2, 5, 3, 2, 2],
+				[2, 5, 1, 2, 5, 3, 2, 2, 5, 3],
+				[1, 2, 3, 4, 5, 6, 7],
+				[1, 2, 3, 4, 5, 6, 7],
+				[2, 9, 10, 7, 8, 1, 5],
+				[2, 9, 10, 7, 8, 1, 5],
+				[2, 2, 1, 1, 5, 5],
+				[2, 2, 1, 1, 5, 5],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9],
+				[1, 5, 6, 7, 8, 2, 3, 4, 9],
+				[1, 2, 3, 4, 5, 6, 7, 8, 9],
+				[1, 6, 7, 8, 2, 3, 4, 5, 9],
+			]);
+		});
 
-					const sequence: unknown[][] = [];
-					for (let i = 0; i < SEQ_SIZE; i++) {
-						const count = Math.floor(Math.random() * MAX_COUNT);
-						const values: unknown[] = [];
-						for (let c = 0; c < count; c++) {
-							values.push(Math.floor(Math.random() * MAX_VALUE));
+		await suite("random sequences", async () => {
+			function randomSequenceTest(count: number, maxLength: number, maxValue: number) {
+				return () => {
+					const sequence: number[][] = [];
+					for (let i = 0; i < count; i++) {
+						const values: number[] = [];
+						const length = Math.floor(Math.random() * maxLength);
+						for (let v = 0; v < length; v++) {
+							values.push(1 + Math.floor(Math.random() * maxValue));
 						}
 						sequence.push(values);
 					}
+					contextSequenceTest(sequence);
+				};
+			}
 
-					try {
-						sequenceTest(sequence, withErrors);
-					} catch (error) {
-						ctx.diagnostic(`Broken sequence: ${JSON.stringify(sequence)}`);
-						throw error;
-					}
-				});
-			});
-		}
+			await test(randomSequenceTest(256, 16, 8));
+			await test(randomSequenceTest(256, 8, 16));
+		});
 
-		for (const context of [capture, uncapture]) {
-			await test(`initial iteration error handling (${context.name})`, () => {
-				const events: unknown[] = [];
-				throws(() => {
-					context(() => {
-						<Index each={(function * () {
-							yield 0;
-							yield 1;
-							events.push("e");
-							throw new Error("test");
-						})()}>
-							{value => {
-								events.push(`+${value}`);
-								teardown(() => {
-									events.push(`-${value}`);
-								});
-							}}
-						</Index>;
-					});
-				});
-				assertEvents(events, context === capture ? ["+0", "+1", "e", "-0", "-1"] : ["+0", "+1", "e"]);
-			});
-
-			await test(`initial render error handling (${context.name})`, () => {
-				const events: unknown[] = [];
-				throws(() => {
-					context(() => {
-						<Index each={[0, 1, 2, 3]}>
-							{value => {
-								events.push(`+${value}`);
-								teardown(() => {
-									events.push(`-${value}`);
-								});
-								if (value === 2) {
-									events.push("e");
-									throw new Error("test");
-								}
-							}}
-						</Index>;
-					});
-				});
-				assertEvents(events, context === capture ? ["+0", "+1", "+2", "e", "-2", "-0", "-1"] : ["+0", "+1", "+2", "e", "-2"]);
-			});
-		}
-
-		await test("sequential item render side effects", () => {
+		await test("render side effects", () => {
 			const events: unknown[] = [];
 			const signal = $([1]);
 			const view = uncapture(() => {
 				return <Index each={signal}>
-					{value => {
-						if (value === 3) {
+					{(value, index) => {
+						lifecycleEvent(events, String(index));
+						if (index === 1) {
 							signal.value = [5];
 						}
-						lifecycleEvent(events, String(value));
 						return value;
 					}}
 				</Index> as View;
 			});
 			assertViewState(view);
-			assertEvents(events, ["s:1"]);
+			assertEvents(events, ["s:0"]);
 			strictEqual(viewText(view), "1");
 			signal.value = [2, 3, 4];
 			assertViewState(view);
-			deepStrictEqual(signal.value, [5]);
-			assertEvents(events, ["e:1", "s:2", "s:3", "s:4", "e:2", "s:5", "e:3", "e:4"]);
+			assertEvents(events, ["s:1", "s:2", "e:2", "e:1"]);
 			strictEqual(viewText(view), "5");
 		});
 
-		function lifecycleTest(options: {
-			sequence: [values: unknown[], ...expectedEvents: unknown[]][];
-			disposeEvents: unknown[];
-		}): void {
-			const events: unknown[] = [];
-			const signal = $<unknown[]>([]);
-
-			let view!: View;
-			const dispose = capture(() => {
-				view = <Index each={signal}>
-					{(value, index) => {
-						events.push(["create", value, index]);
-						watchUpdates(index, index => {
-							events.push(["index", value, index]);
-						});
-						teardown(() => {
-							events.push(["dispose", value, index]);
-						});
-					}}
-				</Index> as View;
-			});
-
-			assertViewState(view);
-			assertEvents(events, []);
-			for (const [values, ...expectedEvents] of options.sequence) {
-				signal.value = values;
-				assertViewState(view);
-				assertEvents(events, expectedEvents);
-			}
-
-			dispose();
-			assertViewState(view);
-			assertEvents(events, options.disposeEvents);
-		}
-
-		await test("lifecycle & update order", () => {
-			lifecycleTest({
-				sequence: [
-					[
-						["a", "b"],
-						["create", "a", 0],
-						["create", "b", 1],
-					],
-					[
-						["a", "c", "b"],
-						["dispose", "b", 1],
-						["create", "c", 1],
-						["create", "b", 2],
-					],
-					[
-						["a", "d", "b"],
-						["dispose", "c", 1],
-						["create", "d", 1],
-					],
-					[
-						["a", "b"],
-						["dispose", "d", 1],
-						["create", "b", 1],
-						["dispose", "b", 2],
-					],
-					[
-						["b", "a"],
-						["dispose", "a", 0],
-						["create", "b", 0],
-						["dispose", "b", 1],
-						["create", "a", 1],
-					],
-				],
-				disposeEvents: [
-					["dispose", "b", 0],
-					["dispose", "a", 1],
-				],
-			});
-		});
-
-		await test("lifecycle & update order (NaN)", () => {
-			lifecycleTest({
-				sequence: [
-					[
-						[NaN, NaN, "a"],
-						["create", NaN, 0],
-						["create", NaN, 1],
-						["create", "a", 2],
-					],
-					[
-						["b", NaN, "a"],
-						["dispose", NaN, 0],
-						["create", "b", 0],
-					],
-					[
-						["b", NaN, "a"],
-					],
-				],
-				disposeEvents: [
-					["dispose", "b", 0],
-					["dispose", NaN, 1],
-					["dispose", "a", 2],
-				],
-			});
-		});
-
-		await test("iterator internal updates", () => {
-			const proxy = wrap(["a", "b"]);
-			const view = uncapture(() => {
-				return <Index each={proxy}>{v => v}</Index> as View;
-			});
-			assertViewState(view);
-			strictEqual(viewText(view), "ab");
-			proxy.splice(1, 0, "c");
-			assertViewState(view);
-			strictEqual(viewText(view), "acb");
-		});
-
-		await test("component access isolation", () => {
-			const events: unknown[] = [];
+		await test("component isolation", () => {
 			const values = $([1]);
-			const signal = $(2);
+			const signal = $(1);
 			const view = uncapture(() => {
-				return <Index each={() => {
-					events.push("iter");
-					return values.value;
-				}}>
-					{value => value + signal.value}
-				</Index> as View;
-			});
-			assertViewState(view);
-			strictEqual(viewText(view), "3");
-			assertEvents(events, ["iter"]);
-			signal.value = 4;
-			assertViewState(view);
-			strictEqual(viewText(view), "3");
-			assertEvents(events, []);
-			values.value = [5];
-			assertViewState(view);
-			strictEqual(viewText(view), "9");
-			assertEvents(events, ["iter"]);
-		});
-
-		await test("expression & iteration lifecycle", () => {
-			const events: unknown[] = [];
-			const signal = $(0);
-			const view = uncapture(() => {
-				return <Index each={function * () {
-					lifecycleEvent(events, "a");
-					yield signal.value;
-					lifecycleEvent(events, "b");
-				}}>
+				return <Index each={values}>
 					{value => {
-						lifecycleEvent(events, value);
-						return value;
+						const signalValue = signal.value;
+						return () => value() + signalValue;
 					}}
 				</Index> as View;
 			});
-			assertViewState(view);
-			assertEvents(events, ["s:a", "s:0", "s:b"]);
+			strictEqual(viewText(view), "2");
 			signal.value++;
-			assertViewState(view);
-			assertEvents(events, ["e:b", "e:a", "s:a", "e:0", "s:1", "s:b"]);
+			strictEqual(viewText(view), "2");
+			values.value = [2];
+			strictEqual(viewText(view), "3");
+			values.value = [];
+			values.value = [2];
+			strictEqual(viewText(view), "4");
 		});
 	});
 

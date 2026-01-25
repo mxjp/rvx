@@ -1,7 +1,7 @@
 import { deepStrictEqual, fail, notStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 
-import { For, uncapture, View, watchUpdates } from "rvx";
+import { For, Index, uncapture, View, watchUpdates } from "rvx";
 import { wrap } from "rvx/store";
 
 import { assertEvents, viewText } from "../common.js";
@@ -360,14 +360,19 @@ await suite("store/reactive-array-proxy", async () => {
 		}
 	});
 
-	await test("view compat", async () => {
-		const proxy = wrap(["a", "b"]);
-		const view = uncapture(() => {
-			return <For each={proxy}>{v => v}</For> as View;
-		});
-		strictEqual(viewText(view), "ab");
-		proxy.splice(1, 0, "c");
-		strictEqual(viewText(view), "acb");
+	await suite("view compat", async () => {
+		function viewCompatTest(render: (proxy: string[]) => View) {
+			return () => {
+				const proxy = wrap(["a", "b"]);
+				const view = uncapture(() => render(proxy));
+				strictEqual(viewText(view), "ab");
+				proxy.splice(1, 0, "c");
+				strictEqual(viewText(view), "acb");
+			};
+		}
+
+		await test("<For>", viewCompatTest(proxy => <For each={proxy}>{v => v}</For> as View));
+		await test("<Index>", viewCompatTest(proxy => <Index each={proxy}>{v => v}</Index> as View));
 	});
 
 	function assertEntries<T>(targets: T[][], entries: T[]) {

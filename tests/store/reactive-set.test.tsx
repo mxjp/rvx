@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { For, uncapture, View, watch } from "rvx";
+import { For, Index, uncapture, View, watch } from "rvx";
 import { ReactiveSet, wrap } from "rvx/store";
 import { assertEvents, viewText } from "../common.js";
 import { WrapTest } from "./common.js";
@@ -127,16 +127,21 @@ await suite("store/reactive-set", async () => {
 		}
 	});
 
-	await test("view compat", async () => {
-		const proxy = wrap(new Set<string>(["a"]));
-		const view = uncapture(() => {
-			return <For each={proxy}>{v => v}</For> as View;
-		});
-		strictEqual(viewText(view), "a");
-		proxy.add("b");
-		strictEqual(viewText(view), "ab");
-		proxy.delete("a");
-		strictEqual(viewText(view), "b");
+	await suite("view compat", async () => {
+		function viewCompatTest(render: (proxy: Set<string>) => View) {
+			return () => {
+				const proxy = wrap(new Set<string>(["a"]));
+				const view = uncapture(() => render(proxy));
+				strictEqual(viewText(view), "a");
+				proxy.add("b");
+				strictEqual(viewText(view), "ab");
+				proxy.delete("a");
+				strictEqual(viewText(view), "b");
+			};
+		}
+
+		await test("<For>", viewCompatTest(proxy => <For each={proxy}>{v => v}</For> as View));
+		await test("<Index>", viewCompatTest(proxy => <Index each={proxy}>{v => v}</Index> as View));
 	});
 
 	function assertEntries<T>(targets: Set<T>[], entries: T[]) {

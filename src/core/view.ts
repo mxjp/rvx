@@ -2,7 +2,6 @@ import { NODE, NodeTarget } from "./element-common.js";
 import { ENV } from "./env.js";
 import { createText } from "./internals/create-text.js";
 import { createMapArrayState, MapArrayFn, mapArrayUpdate } from "./internals/map-array.js";
-import { NOOP } from "./internals/noop.js";
 import { isolate } from "./isolate.js";
 import { capture, teardown, TeardownHook } from "./lifecycle.js";
 import { $, Expression, get, memo, Signal, watch } from "./signals.js";
@@ -578,7 +577,7 @@ export interface IndexContentFn<T> {
 	 * @param index The index.
 	 * @returns The content.
 	 */
-	(value: T, index: number): Content;
+	(value: () => T, index: number): Content;
 }
 
 /**
@@ -603,76 +602,61 @@ export interface IndexContentFn<T> {
 export function indexEach<T>(each: Expression<Iterable<T>>, component: IndexContentFn<T>): View {
 	return new View((setBoundary, self) => {
 		interface Instance {
-			/** value */
-			u: T;
-			/** dispose */
-			d: TeardownHook;
+			/** input value */
+			i: Signal<T>;
 			/** view */
 			v: View;
+			/** dispose */
+			d: TeardownHook;
 		}
 
 		const env = ENV.current;
-		const first: Node = createPlaceholder(env);
+		const state: Instance[] = [];
+
+		const first = createPlaceholder(env);
 		setBoundary(first, first);
 
-		const instances: Instance[] = [];
 		teardown(() => {
-			for (let i = 0; i < instances.length; i++) {
-				instances[i].d();
+			for (let i = state.length - 1; i >= 0; i--) {
+				state[i].d();
 			}
 		});
 
 		watch(() => {
-			let parent = self.parent;
+			let parent = first.parentNode as Node | null;
 			if (!parent) {
 				parent = createParent(env);
 				parent.appendChild(first);
 			}
+
 			let index = 0;
-			let last = first;
-			try {
-				for (const value of get(each)) {
-					if (index < instances.length) {
-						const current = instances[index];
-						if (Object.is(current.u, value)) {
-							last = current.v.last;
-							index++;
-							continue;
-						}
-						current.v.detach();
-						current.d();
-						current.d = NOOP;
-					}
-
-					const instance: Instance = {
-						u: value,
-						d: undefined!,
-						v: undefined!,
-					};
-
-					instance.d = isolate(capture, () => {
-						instance.v = render(component(value, index));
-						instance.v.setBoundaryOwner((_, last) => {
-							if (instances[instances.length - 1] === instance) {
-								setBoundary(undefined, last);
-							}
-						});
+			for (const value of get(each)) {
+				if (index < state.length) {
+					const instance = state[index];
+					instance.i.value = value;
+				} else {
+					const signal = $(value);
+					let view!: View;
+					const dispose = isolate(capture, () => {
+						view = render(component(() => signal.value, index));
 					});
-
-					instance.v.insertBefore(parent, last.nextSibling);
-					instances[index] = instance;
-					last = instance.v.last;
-					index++;
+					state.push({
+						i: signal,
+						v: view,
+						d: dispose,
+					});
+					const prev = index > 0 ? state[index - 1].v.last : first;
+					view.insertBefore(parent, prev.nextSibling);
 				}
-			} finally {
-				if (instances.length > index) {
-					for (let i = index; i < instances.length; i++) {
-						const instance = instances[i];
-						instance.v.detach();
-						instance.d();
-					}
-					instances.length = index;
-				}
+				index++;
+			}
+			while (state.length > index) {
+				const instance = state.pop()!;
+				instance.d();
+				instance.v.detach();
+			}
+			const last = state.length > 0 ? state[state.length - 1].v.last : first;
+			if (self.last !== last) {
 				setBoundary(undefined, last);
 			}
 		});
