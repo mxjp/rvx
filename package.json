@@ -4,7 +4,7 @@
 	"homepage": "https://mxjp.github.io/rvx",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/mxjp/rvx"
+		"url": "git+https://github.com/mxjp/rvx.git"
 	},
 	"keywords": [
 		"declarative",
