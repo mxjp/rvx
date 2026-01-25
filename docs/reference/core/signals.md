@@ -372,7 +372,47 @@ If pipes are nested, the callback for the most inner one is called first. In the
 
 Trigger callbacks run [isolated](./isolation.md) from signal access tracking and the current lifecycle.
 
+## `mapArray`
+Run a function for each value in an iterable expression keyed by value.
 
++ The current [context](./context.md) is available in the map function.
++ Evaluation is stopped when the current [lifecycle](./lifecycle.md) is disposed.
++ Teardown hooks from within the map function are called when a value is removed or when the current [lifecycle](./lifecycle.md) is disposed.
++ Returns a function to reactively access the latest result.
+
+=== "JSX"
+	```jsx
+	import { $, mapArray, watch } from "rvx";
+
+	const items = $([1, 2, 3]);
+
+	const mappedItems = mapArray(items, (value, index) => {
+		watch(index, index => {
+			console.log(value, "is at index", index);
+		});
+
+		return value * 2;
+	});
+
+	watch(mappedItems, values => console.log(values));
+	```
+
+=== "No Build"
+	```jsx
+	import { $, mapArray, watch } from "./rvx.js";
+
+	const items = $([1, 2, 3]);
+
+	const mappedItems = mapArray(items, (value, index) => {
+		watch(index, index => {
+			console.log(value, "is at index", index);
+		});
+
+		return value * 2;
+	});
+
+	watch(mappedItems, values => console.log(values));
+	```
 
 ## Immediate Side Effects
 By default, signal updates are processed immediately. If an update causes recursive side effects, they run in sequence instead.
