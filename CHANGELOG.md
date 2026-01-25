@@ -6,6 +6,7 @@
 + **Breaking:** `<For>`, `forEach`, `<Index>` and `indexEach`:
 	+ Update order is no longer guaranteed.
 	+ Errors during rendering or index updates now result in undefined behavior.
++ `untrack` now supports arbitrary expressions.
 
 ## 23.2
 + Add `cloneNode` support in `rvx/dom`.
