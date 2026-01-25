@@ -29,7 +29,7 @@ export function Example() {
 		</div>
 		<ul>
 			<Index each={stopwatch.laps}>
-				{(lap, i) => <li><Time value={lap - (stopwatch.laps()[i - 1] ?? 0)} /></li>}
+				{(lap, i) => <li><Time value={lap() - (stopwatch.laps()[i - 1] ?? 0)} /></li>}
 			</Index>
 		</ul>
 	</div>;
