@@ -43,11 +43,6 @@ export const TEARDOWN_STACK: (TeardownFrame | undefined)[] = [LEAK];
 let LEAK_HOOK: LeakHook | undefined = undefined;
 
 /**
- * A stack where the top value controls if signal accesses are currently tracked.
- */
-export const TRACKING_STACK: boolean[] = [true];
-
-/**
  * A stack where the top value is called for each tracked signal access.
  */
 export const ACCESS_STACK: (AccessHook | undefined)[] = [];

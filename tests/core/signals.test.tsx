@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { $, batch, capture, Context, isTracking, map, memo, Signal, teardown, TeardownHook, track, trigger, TriggerPipe, uncapture, untrack, watch, watchUpdates } from "rvx";
+import { $, batch, capture, Context, isTracking, map, memo, Signal, teardown, TeardownHook, trigger, TriggerPipe, uncapture, untrack, watch, watchUpdates } from "rvx";
 import { assertEvents, lifecycleEvent, withMsg } from "../common.js";
 
 await suite("signals", async () => {
@@ -947,14 +947,8 @@ await suite("signals", async () => {
 	await suite("tracking", async () => {
 		await test("inert", () => {
 			strictEqual(isTracking(), false);
-			track(() => {
+			untrack(() => {
 				strictEqual(isTracking(), false);
-				untrack(() => {
-					strictEqual(isTracking(), false);
-					track(() => {
-						strictEqual(isTracking(), false);
-					});
-				});
 			});
 		});
 
@@ -966,9 +960,6 @@ await suite("signals", async () => {
 				strictEqual(isTracking(), true);
 				const result = a.value + untrack(() => {
 					strictEqual(isTracking(), false);
-					track(() => {
-						strictEqual(isTracking(), true);
-					});
 					return b.value;
 				});
 				strictEqual(isTracking(), true);
@@ -1513,10 +1504,10 @@ await suite("signals", async () => {
 					untrack(() => {
 						strictEqual(isTracking(), false);
 						pipe(() => {
-							strictEqual(isTracking(), false);
+							strictEqual(isTracking(), true);
 							events.push("access");
 							signal.access();
-							strictEqual(isTracking(), false);
+							strictEqual(isTracking(), true);
 						});
 						strictEqual(isTracking(), false);
 					});
@@ -1525,7 +1516,7 @@ await suite("signals", async () => {
 			});
 			assertEvents(events, ["access"]);
 			signal.notify();
-			assertEvents(events, []);
+			assertEvents(events, ["trigger"]);
 		});
 
 		await test("internal untrack", () => {

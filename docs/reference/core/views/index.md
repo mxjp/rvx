@@ -64,7 +64,7 @@ view.detach();
 ## Implementing Views
 
 !!! tip
-	Before implementing your own view, consider using one of the [already existing](#creating-views) views. Custom views are usually only needed for very special (often performance critical) use cases involving a large number of elements to render.
+	Before implementing your own view, consider using one of the [already existing](#views) views. Custom views are usually only needed for very special (often performance critical) use cases involving a large number of elements to render.
 
 !!! danger
 	When implementing your own view, you need to guarantee the following:

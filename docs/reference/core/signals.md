@@ -111,7 +111,7 @@ The second effect parameter can be omitted if you want or need to run side effec
 	```
 
 !!! tip
-	You can use [`untrack`](#track-untrack) to ignore specific signal accesses or [`isolate`](isolation.md) all side effects of arbitrary code.
+	You can use [`untrack`](#untrack) to ignore specific signal accesses or [`isolate`](isolation.md) all side effects of arbitrary code.
 
 ## `watchUpdates`
 This is the same as [`watch`](#watch), but the initial value is returned instead of being passed to the effect.
@@ -188,21 +188,21 @@ This is the same as [`watch`](#watch) except that it returns a function to react
 + Execution is stopped when the current [lifecycle](lifecycle.md) is disposed.
 + Teardown hooks from the callback are called when the current [lifecycle](lifecycle.md) is disposed or before the next call.
 
-## `track` & `untrack`
-Signal accesses are tracked in expressions by default. You can use `untrack` to disable tracking during a function call or `track` to restore the default.
+## `untrack`
+Evaluate an expression and isolate signal accesses from the current observer.
 
 === "JSX"
 	```jsx
-	import { track, untrack } from "rvx";
+	import { untrack } from "rvx";
 
-	watch(() => a.value * untrack(() => b.value), () => { ... });
+	watch(() => someSignal.value * untrack(someOtherSignal), () => { ... });
 	```
 
 === "No Build"
 	```jsx
-	import { track, untrack } from "./rvx.js";
+	import { untrack } from "./rvx.js";
 
-	watch(() => a.value * untrack(() => b.value), () => { ... });
+	watch(() => someSignal.value * untrack(someOtherSignal), () => { ... });
 	```
 
 ## `get`

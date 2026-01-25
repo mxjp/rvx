@@ -39,7 +39,7 @@ Lifecycle hooks are automatically captured in:
 + `teardownOnError`
 + `watch`
 + `watchUpdates`
-+ All render callbacks in rvx's [view implementations](./core/views/index.md#creating-views).
++ All render callbacks in rvx's [view implementations](./core/views/index.md#views).
 
 ## Render Errors
 Rvx has no dedicated error handling while rendering. If something in the synchronous render tree fails, the entire tree will fail to render and lifecycle hooks are called as [specified above](#lifecycle-hooks).

@@ -61,7 +61,7 @@ Signal accesses are not tracked as if the signal was accessed outside of any obs
 
 === "JSX"
 	```jsx
-	import { isolate, track, watch } from "rvx";
+	import { isolate, watch } from "rvx";
 
 	watch(() => {
 		// This is tracked:
@@ -70,18 +70,13 @@ Signal accesses are not tracked as if the signal was accessed outside of any obs
 		isolate(() => {
 			// This is ignored:
 			signalB.access();
-
-			track(() => {
-				// This is also ignored:
-				signalC.access();
-			});
 		});
 	});
 	```
 
 === "No Build"
 	```jsx
-	import { isolate, track, watch } from "./rvx.js";
+	import { isolate, watch } from "./rvx.js";
 
 	watch(() => {
 		// This is tracked:
@@ -90,16 +85,11 @@ Signal accesses are not tracked as if the signal was accessed outside of any obs
 		isolate(() => {
 			// This is ignored:
 			signalB.access();
-
-			track(() => {
-				// This is also ignored:
-				signalC.access();
-			});
 		});
 	});
 	```
 
-To only control if signal accesses are tracked, use [`track` and `untrack`](./signals.md#track-untrack) instead.
+To only isolate signal accesses, use [`untrack`](./signals.md#untrack) instead.
 
 ## Non Isolated APIs
 [Batches](./signals.md#batch) are not isolated as this could lead to inconsistent signal access tracking:

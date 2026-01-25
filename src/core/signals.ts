@@ -1,6 +1,6 @@
 import { Context } from "./context.js";
 import { NOOP } from "./internals/noop.js";
-import { ACCESS_STACK, AccessHook, NotifyHook, TRACKING_STACK, useStack } from "./internals/stacks.js";
+import { ACCESS_STACK, AccessHook, NotifyHook, useStack } from "./internals/stacks.js";
 import { isolate } from "./isolate.js";
 import { capture, teardown, TeardownHook } from "./lifecycle.js";
 
@@ -162,11 +162,9 @@ export class Signal<T> {
 	 * Manually access this signal.
 	 */
 	access(): void {
-		if (TRACKING_STACK[TRACKING_STACK.length - 1]) {
-			const length = ACCESS_STACK.length;
-			if (length > 0) {
-				ACCESS_STACK[length - 1]?.(this.#hooks);
-			}
+		const length = ACCESS_STACK.length;
+		if (length > 0) {
+			ACCESS_STACK[length - 1]?.(this.#hooks);
 		}
 	}
 
@@ -334,11 +332,9 @@ const _observer = (hook: NotifyHook): Observer => {
 const _access = <T>(frame: AccessHook | undefined, fn: () => T): T => {
 	try {
 		ACCESS_STACK.push(frame);
-		TRACKING_STACK.push(true);
 		return fn();
 	} finally {
 		ACCESS_STACK.pop();
-		TRACKING_STACK.pop();
 	}
 };
 
@@ -517,8 +513,6 @@ export function memo<T>(expr: Expression<T>): () => T {
 /**
  * {@link get Evaluate an expression} without tracking signal accesses.
  *
- * This is the opposite of {@link track}.
- *
  * @param expr The expression to evaluate.
  * @returns The function's return value.
  *
@@ -541,24 +535,14 @@ export function memo<T>(expr: Expression<T>): () => T {
  * ```
  */
 export function untrack<T>(expr: Expression<T>): T {
-	return useStack(TRACKING_STACK, false, () => get(expr));
-}
-
-/**
- * This is the opposite of {@link untrack}.
- *
- * @param expr The expression to evaluate.
- * @returns The function's return value.
- */
-export function track<T>(expr: Expression<T>): T {
-	return useStack(TRACKING_STACK, true, () => get(expr));
+	return useStack(ACCESS_STACK, undefined, () => get(expr));
 }
 
 /**
  * Check if signal accesses are currently tracked.
  */
 export function isTracking(): boolean {
-	return TRACKING_STACK[TRACKING_STACK.length - 1] && ACCESS_STACK[ACCESS_STACK.length - 1] !== undefined;
+	return ACCESS_STACK[ACCESS_STACK.length - 1] !== undefined;
 }
 
 /**

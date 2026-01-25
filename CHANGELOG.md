@@ -6,6 +6,8 @@
 + **Breaking:** `<For>`, `forEach`, `<Index>` and `indexEach`:
 	+ Update order is no longer guaranteed.
 	+ Errors during rendering or index updates now result in undefined behavior.
++ **Breaking:** Remove `track`.
++ Fix: `untrack` outside of a `trigger` pipe no longer affects expressions within.
 + `untrack` now supports arbitrary expressions.
 
 ## 23.2

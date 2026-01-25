@@ -1,7 +1,7 @@
 import { deepStrictEqual } from "node:assert";
 import { ENV, teardown, View, ViewBoundaryOwner, viewNodes } from "rvx";
 import { assertViewState } from "rvx/test";
-import { ACCESS_STACK, LEAK, TEARDOWN_STACK, TRACKING_STACK } from "../dist/es/core/internals/stacks.js";
+import { ACCESS_STACK, LEAK, TEARDOWN_STACK } from "../dist/es/core/internals/stacks.js";
 
 export function assertEvents(events: unknown[], expected: unknown[]): void {
 	deepStrictEqual(events, expected);
@@ -98,8 +98,7 @@ export function withMsg(message: string): (error: unknown) => boolean {
 
 export function isIsolated(): boolean {
 	return TEARDOWN_STACK[TEARDOWN_STACK.length - 1] === LEAK
-		&& ACCESS_STACK[ACCESS_STACK.length - 1] === undefined
-		&& TRACKING_STACK[TRACKING_STACK.length - 1];
+		&& ACCESS_STACK[ACCESS_STACK.length - 1] === undefined;
 }
 
 export async function handleFinallyRejections(fn: () => Promise<void>): Promise<unknown[]> {
