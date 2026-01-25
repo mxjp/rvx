@@ -88,9 +88,9 @@ export function Show<T>(props: {
 }
 
 /**
- * Render content for each unique value in an iterable.
+ * Render content for each value in an iterable.
  *
- * If an error is thrown while iterating or while rendering an item, the update is stopped as if the previous item was the last one and the error is re-thrown.
+ * Errors thrown by the component or while updating an index result in undefined behavior.
  *
  * See {@link forEach} when not using JSX.
  *
@@ -112,7 +112,7 @@ export function For<T>(props: {
 	each: Expression<Iterable<T>>;
 
 	/**
-	 * The component to render for each unique value.
+	 * The component to render for each value.
 	 */
 	children: ForContentFn<T>;
 }): View {
@@ -120,9 +120,9 @@ export function For<T>(props: {
 }
 
 /**
- * Render content for each value in an iterable, keyed by index and value.
+ * Render content for each index in an iterable.
  *
- * If an error is thrown by iterating or by rendering an item, the update is stopped as if the previous item was the last one and the error is re-thrown.
+ * Errors thrown by the component or while updating a value result in undefined behavior.
  *
  * See {@link indexEach} when not using JSX.
  *
@@ -139,14 +139,14 @@ export function For<T>(props: {
  */
 export function Index<T>(props: {
 	/**
-	 * The expression to watch..
+	 * The expression to watch.
 	 *
 	 * Note, that signals accessed during iteration will also trigger updates.
 	 */
 	each: Expression<Iterable<T>>;
 
 	/**
-	 * The component to render for each value/index pair.
+	 * The component to render for each index pair.
 	 */
 	children: IndexContentFn<T>;
 }): View {

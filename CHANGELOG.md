@@ -1,5 +1,12 @@
 # Changelog
 
+## 24.0
++ **Breaking:** `<For>` and `forEach` now render duplicate values.
++ **Breaking:** `<Index>` and `indexEach` no longer re-render replaced values. Values are now passed as expressions.
++ **Breaking:** `<For>`, `forEach`, `<Index>` and `indexEach`:
+	+ Update order is no longer guaranteed.
+	+ Errors during rendering or index updates now result in undefined behavior.
+
 ## 23.2
 + Add `cloneNode` support in `rvx/dom`.
 

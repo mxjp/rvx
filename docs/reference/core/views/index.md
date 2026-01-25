@@ -9,8 +9,8 @@ Rvx provides the following views for common use cases:
 + [`<Show> / when`](show.md) - Render content if a condition is met.
 + [`<Attach> / attachWhen`](attach.md) -  Attach already rendered content if a condition is met.
 + [`<Nest> / nest`](nest.md) - Render a component returned from an expression.
-+ [`<For> / forEach`](for-each.md) - Render content for each unique value in an iterable.
-+ [`<Index> / indexEach`](index-each.md) - Render content for each index/value pair in an iterable.
++ [`<For> / forEach`](for-each.md) - Render content for each value in an iterable.
++ [`<Index> / indexEach`](index-each.md) - Render content for each index in an iterable.
 + [`movable`](movable.md) - Wrap content for safely moving it somewhere else.
 
 ## View API

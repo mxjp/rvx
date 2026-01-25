@@ -6,6 +6,7 @@ import { isolate } from "./isolate.js";
 import { capture, teardown, TeardownHook } from "./lifecycle.js";
 import { $, Expression, get, memo, Signal, watch } from "./signals.js";
 import type { Component, Content, Falsy } from "./types.js";
+import type { For, Index } from "./view-jsx.js";
 
 /**
  * Internal utility to create placeholder comments.
@@ -516,14 +517,14 @@ export interface ForContentFn<T> {
 }
 
 /**
- * Render content for each unique value in an iterable.
+ * Render content for each value in an iterable.
  *
- * If an error is thrown while iterating or while rendering an item, the update is stopped as if the previous item was the last one and the error is re-thrown.
+ * Errors thrown by the component or while updating an index result in undefined behavior.
  *
  * See {@link For `<For>`} for use with JSX.
  *
  * @param each The expression to watch. Note, that signals accessed during iteration will also trigger updates.
- * @param component The component to render for each unique value.
+ * @param component The component to render for each value.
  *
  * @example
  * ```tsx
@@ -573,7 +574,7 @@ export function forEach<T>(each: Expression<Iterable<T>>, component: ForContentF
 
 export interface IndexContentFn<T> {
 	/**
-	 * @param value The value.
+	 * @param value An expression to get the current value.
 	 * @param index The index.
 	 * @returns The content.
 	 */
@@ -581,14 +582,14 @@ export interface IndexContentFn<T> {
 }
 
 /**
- * Render content for each value in an iterable, keyed by index and value.
+ * Render content for each index in an iterable.
  *
- * If an error is thrown by iterating or by rendering an item, the update is stopped as if the previous item was the last one and the error is re-thrown.
+ * Errors thrown by the component or while updating a value result in undefined behavior.
  *
  * See {@link Index `<Index>`} when using JSX.
  *
  * @param each The expression to watch. Note, that signals accessed during iteration will also trigger updates.
- * @param component The component to render for each value/index pair.
+ * @param component The component to render for each index.
  *
  * @example
  * ```tsx
