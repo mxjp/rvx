@@ -70,6 +70,7 @@ await suite("view", async () => {
 			view.appendTo(parent);
 			strictEqual(parent.textContent, "pa");
 			strictEqual(view.parent, parent);
+			assertViewState(view);
 		});
 
 		await test("multiple nodes", () => {
@@ -83,6 +84,24 @@ await suite("view", async () => {
 			view.appendTo(parent);
 			strictEqual(parent.textContent, "pabc");
 			strictEqual(view.parent, parent);
+			assertViewState(view);
+		});
+
+		await test("same position", () => {
+			const inner = render([
+				<div>a</div>,
+				<div>b</div>,
+				<div>c</div>,
+			]);
+			const outer = uncapture(() => render([
+				"0",
+				inner,
+			]));
+			strictEqual(viewText(outer), "0abc");
+			inner.appendTo(outer.parent!);
+			strictEqual(viewText(outer), "0abc");
+			assertViewState(inner);
+			assertViewState(outer);
 		});
 	});
 
@@ -93,6 +112,7 @@ await suite("view", async () => {
 			view.insertBefore(parent, parent.lastChild!);
 			strictEqual(parent.textContent, "acb");
 			strictEqual(view.parent, parent);
+			assertViewState(view);
 		});
 
 		await test("multiple nodes", () => {
@@ -106,6 +126,27 @@ await suite("view", async () => {
 			view.insertBefore(parent, parent.lastChild!);
 			strictEqual(parent.textContent, "acdeb");
 			strictEqual(view.parent, parent);
+			assertViewState(view);
+		});
+
+		await test("same position", () => {
+			const inner = render([
+				<div>a</div>,
+				<div>b</div>,
+				<div>c</div>,
+			]);
+			const ref = <div>r</div> as HTMLElement;
+			const outer = render([
+				"0",
+				inner,
+				ref,
+				"1",
+			]);
+			strictEqual(viewText(outer), "0abcr1");
+			inner.insertBefore(outer.parent!, ref);
+			strictEqual(viewText(outer), "0abcr1");
+			assertViewState(inner);
+			assertViewState(outer);
 		});
 	});
 
