@@ -11,7 +11,7 @@ export { MapArrayFn } from "./internals/map-array.js";
  * + Teardown hooks from within the map function are called when a value is removed or when the current lifecycle is disposed.
  * + Returns a function to reactively access the latest result.
  */
-export function mapArray<I, O>(inputs: Expression<Iterable<I>>, fn: MapArrayFn<I, O>): () => O[] {
+export function mapArray<O, I>(inputs: Expression<Iterable<I>>, fn: MapArrayFn<I, O>): () => O[] {
 	const state = createMapArrayState<I, O>();
 	const output = $<O[]>([]);
 	watch(() => {
