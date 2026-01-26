@@ -17,6 +17,7 @@ import { attachWhen, ForContentFn, forEach, IndexContentFn, indexEach, nest, Vie
  *
  * const count = $(0);
  *
+ * // Using the expression result in a component:
  * <Nest watch={count}>
  *   {count => {
  *     switch (count) {
@@ -25,6 +26,14 @@ import { attachWhen, ForContentFn, forEach, IndexContentFn, indexEach, nest, Vie
  *     }
  *   }}
  * </Nest>
+ *
+ * // Or directly returning a component from the expression:
+ * <Nest watch={() => {
+ *   switch (count.value) {
+ *     case 0: return () => <h1>Hello World!</h1>;
+ *     case 1: return () => "Something else...";
+ *   }
+ * }} />
  * ```
  */
 export function Nest<T>(props: {

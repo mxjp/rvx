@@ -6,7 +6,7 @@ import { isolate } from "./isolate.js";
 import { capture, teardown, TeardownHook } from "./lifecycle.js";
 import { $, Expression, get, memo, Signal, watch } from "./signals.js";
 import type { Component, Content, Falsy } from "./types.js";
-import type { For, Index } from "./view-jsx.js";
+import type { Attach, For, Index, Nest, Show } from "./view-jsx.js";
 
 /**
  * Internal utility to create placeholder comments.
@@ -451,10 +451,19 @@ const _nestDefault = ((component: Component | null | undefined) => component?.()
  *
  * const count = $(0);
  *
+ * // Using the expression result in a component:
  * nest(count, count => {
  *   switch (count) {
  *     case 0: return e("h1").append("Hello World!");
  *     case 1: return "Something else...";
+ *   }
+ * })
+ *
+ * // Or directly returning a component from the expression:
+ * nest(() => {
+ *   switch (count.value) {
+ *     case 0: return () => e("h1").append("Hello World!");
+ *     case 1: return () => "Something else...";
  *   }
  * })
  * ```

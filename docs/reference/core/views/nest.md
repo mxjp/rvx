@@ -10,8 +10,8 @@ Watch an [expression](../signals.md#expressions) and render dynamic content from
 	<Nest watch={message}>
 		{message => {
 			switch (message.type) {
-				case "heading": return () => <h1>{message.value}</h1>;
-				default: return () => <>Unknown message type.</>;
+				case "heading": return <h1>{message.value}</h1>;
+				default: return <>Unknown message type.</>;
 			}
 		}}
 	</Nest>
@@ -25,8 +25,8 @@ Watch an [expression](../signals.md#expressions) and render dynamic content from
 
 	nest(message, message => {
 		switch (message.type) {
-			case "heading": return () => e("h1").append(message.value);
-			default: return () => "Unknown message type.";
+			case "heading": return e("h1").append(message.value);
+			default: return "Unknown message type.";
 		}
 	})
 	```
@@ -52,7 +52,7 @@ All signals accessed from the `watch` expression will trigger a full re-render w
 To avoid re-rendering the component when the same values are returned, you can wrap the expression using [`memo`](../signals.md#memo) or use [`<Show>`](./show.md) instead.
 
 ## Component expresions
-The component can be omitted if the expression itself returns a component, null or undefined.
+The component can be omitted if the expression itself returns a component, `null` or `undefined`:
 
 === "JSX"
 	```jsx
