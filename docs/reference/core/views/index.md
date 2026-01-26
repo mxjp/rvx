@@ -37,12 +37,12 @@ Rvx provides the following views for common use cases:
 		assertViewState(someView);
 		```
 
-The current boundary can be access via the `first` and `last` properties.
+The current boundary can be accessed via the `first` and `last` properties.
 ```jsx
 console.log(view.first, view.last);
 ```
 
-A callback that is called for any boundary updates (known as the _boundary owner_) can be set until the current [lifecycle](../lifecycle.md) is disposed. Note, that there can be only one boundary owner at a time.
+A function that is called for any boundary updates (known as the _boundary owner_) can be set until the current [lifecycle](../lifecycle.md) is disposed. Note, that there can be only one boundary owner at a time.
 ```jsx
 view.setBoundaryOwner((first, last) => {
 	// "first" and "last" are the new current boundary.
