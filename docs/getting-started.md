@@ -5,37 +5,21 @@
 
 To develop an rvx application locally, you need a recent version of [NodeJS](https://nodejs.org/) or any other compatible JavaScript runtime.
 
-You can use the commands below to setup a minimal rvx project using [TypeScript](https://www.typescriptlang.org/) and [Vite](https://vitejs.dev/) or [Webpack](https://webpack.js.org/):
+You can use the commands below to setup a minimal rvx project using [TypeScript](https://www.typescriptlang.org/) and [Vite](https://vitejs.dev/):
 
-=== "Vite"
-	```bash
-	# Create a "my-app" directory from rvx's "vite" template project:
-	npx degit mxjp/rvx/templates/vite my-app
+```bash
+# Create a "my-app" directory from rvx's "vite" template project:
+npx degit mxjp/rvx/templates/vite my-app
 
-	# Move into "my-app":
-	cd my-app
+# Move into "my-app":
+cd my-app
 
-	# Install dependencies:
-	npm install
+# Install dependencies:
+npm install
 
-	# Start a development server:
-	npm start
-	```
-
-=== "Webpack"
-	```bash
-	# Create a "my-app" directory from rvx's "webpack" template project:
-	npx degit mxjp/rvx/templates/webpack my-app
-
-	# Move into "my-app":
-	cd my-app
-
-	# Install dependencies:
-	npm install
-
-	# Start a development server:
-	npm start
-	```
+# Start a development server:
+npm start
+```
 
 ## Entry Point
 After setting up the quick start template, you can find the main entry point in `src/main.tsx`:

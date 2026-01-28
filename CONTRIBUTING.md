@@ -36,9 +36,7 @@ src/
 # Minimal templates for new projects:
 templates/
 	vite/     # Vite + TypeScript & JSX
-	vite-js/  # Vite only
 	vite-ssg/ # Vite + TypeScript & JSX (Static site generation)
-	webpack/  # Webpack + TypeScript & JSX
 
 # Unit tests for the runtime:
 tests/
