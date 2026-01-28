@@ -6,10 +6,10 @@
 		"build": "vite build"
 	},
 	"devDependencies": {
-		"typescript": "^5.9.2",
-		"vite": "^7.1.2"
+		"typescript": "^5.9.3",
+		"vite": "^7.3.1"
 	},
 	"dependencies": {
-		"rvx": "^22.0.0"
+		"rvx": "^24.0.0"
 	}
 }
