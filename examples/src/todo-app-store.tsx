@@ -1,9 +1,7 @@
 /*
 
-# Todo App (Store API)
-This is a basic todo app with browser backed storage using only rvx's store API.
-
-Note, that this example doesn't include any storage error handling or validation.
+# Todo App (JSX & Store API)
+This is a basic todo app with browser backed storage using JSX and rvx's store API.
 
 */
 
@@ -27,7 +25,7 @@ export function Example() {
 
 	function add() {
 		if (name.value) {
-			// Since "items" is a reactive wrapper, it can be modified directly:
+			// "items" can be modified directly because it's a deep reactive wrapper:
 			items.push({ name: name.value, done: false });
 			name.value = "";
 		}

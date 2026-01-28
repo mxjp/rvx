@@ -1,6 +1,6 @@
 /*
 
-# Render To String (Rvx DOM)
+# Render To String
 This example shows how to render a component to HTML using rvx DOM.
 
 */

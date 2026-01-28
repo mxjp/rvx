@@ -1,9 +1,7 @@
 /*
 
 # Todo App (Builder API)
-This is a basic todo app with browser backed storage using only rvx's core features with the builder API.
-
-Note, that this example doesn't include any storage error handling or validation.
+This is a basic todo app with browser backed storage using only rvx's core features.
 
 */
 
