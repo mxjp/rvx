@@ -143,7 +143,7 @@ mount(
 );
 ```
 
-The `For` component repeats content for each unique item in an iterable:
+The `For` component repeats content for each item in an iterable:
 ```jsx
 import { $, mount, For } from "rvx";
 
