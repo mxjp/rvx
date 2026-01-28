@@ -1,6 +1,10 @@
 /*
 
 # Custom View / Push
+
+!!! tip
+	This example exists solely to demonstrate what's possible with the view API. You will most likely never need to implement a custom view, except in cases with extreme performance requirements.
+
 This example shows a custom view that pushes elements onto itself.
 
 This can be useful when you only ever append or prepend elements and you require the absolute best performance possible.
