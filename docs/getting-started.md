@@ -259,7 +259,7 @@ function Message(props: { children?: unknown; }) {
 ```
 
 ## Moving on...
-From here, you can take a look at [the reference](./reference/index.md) or [the examples](./examples/counter.md) to get a brief overview.
+From here, you can take a look at [the reference](./reference/index.md) or [the examples](./examples/stopwatch.md) to get a brief overview.
 
 To develop a deep understanding of rvx, you should read through the core reference in the order below:
 
