@@ -1,5 +1,9 @@
 # Changelog
 
+## 24.1
++ Add `Static` utility type.
++ Add deprecation hints to catch accidental signal API misuse.
+
 ## 24.0
 + **Breaking:** `<For>` and `forEach` now render duplicate values.
 + **Breaking:** `<Index>` and `indexEach` no longer re-render replaced values. Values are now passed as expressions.
