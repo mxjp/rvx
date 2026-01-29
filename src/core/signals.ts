@@ -267,6 +267,11 @@ export type ExpressionResult<T> = T extends Expression<infer R> ? R : never;
 export type Reactive<T> = Signal<T> | (() => T);
 
 /**
+ * Utility type to require `T` to not be reactive.
+ */
+export type Static<T> = unknown extends T ? never : Exclude<T, Reactive<any>>;
+
+/**
  * Internal utility to unfold potential recursion into a sequence.
  */
 const _unfold = (hook: NotifyHook): NotifyHook => {
@@ -369,6 +374,45 @@ const _access = <T>(frame: AccessHook | undefined, fn: () => T): T => {
  * count.value = 2;
  * ```
  */
+export function watch<T>(expr: Reactive<T>, effect: (value: T) => void): void;
+
+/**
+ * @deprecated
+ * This call can be removed because the expression is always static. You can call the effect directly.
+ */
+export function watch<T>(expr: Static<T>, effect: (value: T) => void): void;
+
+/**
+ * Watch an expression until the current lifecycle is disposed.
+ *
+ * + Both the expression and effect are called at least once immediately.
+ * + Lifecycle hooks from the expression or effect are called before a signal update is processed or when the current lifecycle is disposed.
+ *
+ * @param expr The expression to watch.
+ * @param effect An optional function to call with each expression result without tracking signal accesses.
+ *
+ * @example
+ * ```tsx
+ * import { $, watch } from "rvx";
+ *
+ * const count = $(0);
+ *
+ * // Capture teardown hooks registered by "watch":
+ * const dispose = capture(() => {
+ *   // Start watching:
+ *   watch(count, count => {
+ *     console.log("Count:", count);
+ *   });
+ * });
+ *
+ * count.value = 1;
+ *
+ * // Stop watching:
+ * dispose();
+ *
+ * count.value = 2;
+ * ```
+ */
 export function watch(expr: () => void): void;
 export function watch<T>(expr: Expression<T>, effect: (value: T) => void): void;
 export function watch<T>(expr: Expression<T>, effect?: (value: T) => void): void {
@@ -411,6 +455,22 @@ export function watch<T>(expr: Expression<T>, effect?: (value: T) => void): void
  * @param effect A function to call with each subsequent expression result without tracking signal accesses.
  * @returns The first expression result.
  */
+export function watchUpdates<T>(expr: Reactive<T>, effect: (value: T) => void): T;
+
+/**
+ * @deprecated
+ * This call can be removed because the expression is always static.
+ */
+export function watchUpdates<T>(expr: Static<T>, effect: (value: T) => void): T;
+
+/**
+ * Watch an expression until the current lifecycle is disposed.
+ *
+ * @param expr The expression to watch.
+ * @param effect A function to call with each subsequent expression result without tracking signal accesses.
+ * @returns The first expression result.
+ */
+export function watchUpdates<T>(expr: Expression<T>, effect: (value: T) => void): T;
 export function watchUpdates<T>(expr: Expression<T>, effect: (value: T) => void): T {
 	let first: T;
 	let update = false;
@@ -504,6 +564,34 @@ export function batch<T>(fn: () => T): T {
  * });
  * ```
  */
+export function memo<T>(expr: Reactive<T>): () => T;
+
+/**
+ * @deprecated
+ * This call can be removed because the expression is always static. You can use the value directly.
+ */
+export function memo<T>(expr: Static<T>): () => T;
+
+/**
+ * {@link watch Watch} an expression and get a function to reactively access it's result.
+ *
+ * @param expr The expression to watch.
+ * @returns A function to reactively access the latest result.
+ *
+ * @example
+ * ```tsx
+ * import { $, memo, watch } from "rvx";
+ *
+ * const count = $(42);
+ *
+ * const computed = memo(() => someExpensiveComputation(count.value));
+ *
+ * watch(computed, count => {
+ *   console.log("Count:", count);
+ * });
+ * ```
+ */
+export function memo<T>(expr: Expression<T>): () => T;
 export function memo<T>(expr: Expression<T>): () => T {
 	const signal = $<T>(undefined!);
 	watch(() => signal.value = get(expr));
@@ -534,6 +622,39 @@ export function memo<T>(expr: Expression<T>): () => T {
  * b.value = 5;
  * ```
  */
+export function untrack<T>(expr: Reactive<T>): T;
+
+/**
+ * @deprecated
+ * This call can be removed because the expression is always static. You can use the value directly.
+ */
+export function untrack<T>(expr: Static<T>): T;
+
+/**
+ * {@link get Evaluate an expression} without tracking signal accesses.
+ *
+ * @param expr The expression to evaluate.
+ * @returns The function's return value.
+ *
+ * @example
+ * ```tsx
+ * import { $, untrack, watch } from "rvx";
+ *
+ * const a = $(2);
+ * const b = $(3);
+ *
+ * watch(() => a.value + untrack(b), sum => {
+ *   console.log("Sum:", sum);
+ * });
+ *
+ * // This causes an update:
+ * a.value = 4;
+ *
+ * // This has no effect:
+ * b.value = 5;
+ * ```
+ */
+export function untrack<T>(expr: Expression<T>): T;
 export function untrack<T>(expr: Expression<T>): T {
 	return useStack(ACCESS_STACK, undefined, () => get(expr));
 }
@@ -551,7 +672,15 @@ export function isTracking(): boolean {
  * See {@link trigger}.
  */
 export interface TriggerPipe {
-	<T>(fn: Expression<T>): T;
+	<T>(expr: Reactive<T>): T;
+
+	/**
+	 * @deprecated
+	 * This call can be removed because the expression is always static. You can use the value directly.
+	 */
+	<T>(expr: Static<T>): T;
+
+	<T>(expr: Expression<T>): T;
 }
 
 /**
@@ -616,6 +745,34 @@ export function trigger(callback: () => void): TriggerPipe {
  * get(() => 42) // 42
  * ```
  */
+export function get<T>(expr: Reactive<T>): T;
+
+/**
+ * @deprecated
+ * This call can be removed because the expression is always static. You can use the value directly.
+ */
+export function get<T>(expr: Static<T>): T;
+
+/**
+ * Manually evaluate an expression in the current context.
+ *
+ * This can be used to access reactive and non reactive inputs.
+ *
+ * @param expr The expression to evaluate.
+ * @returns The expression result.
+ *
+ * @example
+ * ```tsx
+ * import { $, get } from "rvx";
+ *
+ * const count = $(42);
+ *
+ * get(42) // 42
+ * get(count) // 42
+ * get(() => 42) // 42
+ * ```
+ */
+export function get<T>(expr: Expression<T>): T;
 export function get<T>(expr: Expression<T>): T {
 	if (expr instanceof Signal) {
 		return expr.value;
@@ -641,6 +798,28 @@ export type MapFn<I, O> = (input: I) => O;
  * get(doubleCount) // 84
  * ```
  */
+export function map<I, O>(input: Reactive<I>, mapFn: MapFn<I, O>): Expression<O>;
+
+/**
+ * @deprecated
+ * This call can be removed because the input is always static. You can call the map function directly.
+ */
+export function map<I, O>(input: Static<I>, mapFn: MapFn<I, O>): Expression<O>;
+
+/**
+ * Map an expression value while preserving if the expression is static or not.
+ *
+ * @example
+ * ```tsx
+ * import { $, map, get } from "rvx";
+ *
+ * const count = $(42);
+ * const doubleCount = map(count, value => value * 2);
+ *
+ * get(doubleCount) // 84
+ * ```
+ */
+export function map<I, O>(input: Expression<I>, mapFn: MapFn<I, O>): Expression<O>;
 export function map<I, O>(input: Expression<I>, mapFn: MapFn<I, O>): Expression<O> {
 	if (input instanceof Signal) {
 		return () => mapFn(input.value);
