@@ -6,7 +6,7 @@ import { applyElement } from "./jsx/common.js";
  * Utility for modifying an existing element or {@link ElementBuilder element builder} returned from a component.
  *
  * + Event listeners and the _ref_ attribute are additive.
- * + Unique styles, classes, attributes and properties and additive.
+ * + Unique styles, classes, attributes and properties are additive.
  * + **Styles, classes, attributes and properties that are already set by the component may cause conflicts.**
  *
  * @example
