@@ -400,6 +400,16 @@ await suite("element", async () => {
 				b.value = "silver";
 				strictEqual(elem.style.getPropertyValue("color"), "silver");
 				strictEqual(elem.style.getPropertyValue("width"), "7px");
+				a.value = { "--foo": 0 };
+				strictEqual(elem.style.getPropertyValue("--foo"), "0");
+				a.value = { "--foo": null };
+				strictEqual(elem.style.getPropertyValue("--foo"), "");
+				a.value = { "--foo": undefined };
+				strictEqual(elem.style.getPropertyValue("--foo"), "undefined");
+				a.value = { "--foo": "null" };
+				strictEqual(elem.style.getPropertyValue("--foo"), "null");
+				a.value = { "--foo": 42n };
+				strictEqual(elem.style.getPropertyValue("--foo"), "42");
 			});
 
 			await test("api types", () => {

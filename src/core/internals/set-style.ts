@@ -24,7 +24,7 @@ function watchStyle(value: StyleValue, handler: StyleHandler): void {
 			}
 		} else if (value) {
 			for (const name in value) {
-				watch(value[name]!, value => handler(name, value));
+				watch(value[name], value => handler(name, value));
 			}
 		}
 	});
@@ -32,5 +32,5 @@ function watchStyle(value: StyleValue, handler: StyleHandler): void {
 
 export function setStyle(elem: Element, value: StyleValue): void {
 	const style = (elem as HTMLElement).style;
-	watchStyle(value, (name, value) => style.setProperty(name, value ? String(value) : null));
+	watchStyle(value, (name, value) => style.setProperty(name, value as any));
 }
