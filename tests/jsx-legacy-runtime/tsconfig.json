@@ -6,7 +6,10 @@
 		"sourceMap": true,
 		"jsx": "react",
 		"jsxFactory": "jsx",
-		"jsxFragmentFactory": "Fragment"
+		"jsxFragmentFactory": "Fragment",
+		"types": [
+			"node"
+		]
 	},
 	"include": [
 		"."

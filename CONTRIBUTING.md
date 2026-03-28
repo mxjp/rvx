@@ -68,17 +68,11 @@ npm test
 ## Building the Documentation
 Building the docs also requires python and [mkdocs-material](https://squidfunk.github.io/mkdocs-material/)
 ```bash
-# Install requirements:
-pip install mkdocs-material
-
 # Build examples:
 npm run build --prefix examples
 
-# Build the documentation:
-mkdocs build --site-dir docs_out
-
-# Or view live:
-mkdocs serve --livereload
+# Run & serve the docs locally:
+docker compose -f mkdocs-compose.yml up
 ```
 
 ## Running benchmarks

@@ -44,7 +44,7 @@ export function useTimeout(callback: () => void, timeout: number): void {
 	callback = Context.wrap(callback);
 	let active = true;
 	let dispose: TeardownHook | undefined;
-	let handle: undefined | number | NodeJS.Timeout;
+	let handle: undefined | number;
 	teardown(() => {
 		active = false;
 		clearTimeout(handle);
@@ -73,7 +73,7 @@ export function useInterval(callback: () => void, interval: number): void {
 	callback = Context.wrap(callback);
 	let active = true;
 	let dispose: TeardownHook | undefined;
-	let handle: undefined | number | NodeJS.Timeout;
+	let handle: undefined | number;
 	teardown(() => {
 		active = false;
 		clearInterval(handle);

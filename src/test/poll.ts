@@ -18,7 +18,7 @@ export class PollTimeoutError extends Error {}
  */
 export async function poll<T>(fn: PollFn<T>, timeout?: number): Promise<T> {
 	const ac = new AbortController();
-	let timer: undefined | number | NodeJS.Timeout;
+	let timer: undefined | number;
 	if (timeout !== undefined) {
 		timer = setTimeout(() => ac.abort(new PollTimeoutError()), timeout);
 	}

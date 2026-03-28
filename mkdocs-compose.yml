@@ -1,0 +1,11 @@
+services:
+  rvx-docs:
+    image: python:latest
+    container_name: rvx-docs
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ./docs:/rvx/docs
+      - ./mkdocs.yml:/rvx/mkdocs.yml
+    working_dir: /rvx
+    command: bash -c "pip install mkdocs-material && mkdocs serve -a 0.0.0.0:8000 --livereload"
