@@ -12,7 +12,7 @@ await suite("router/route", async () => {
 			path: string,
 			expected?: [path: string, rest: string, params?: unknown],
 		) {
-			const match = matchRoute(path, [route]);
+			const match = matchRoute(path, route);
 			if (expected === undefined) {
 				strictEqual(match, undefined);
 			} else {

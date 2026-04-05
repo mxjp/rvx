@@ -3,7 +3,7 @@ import { Component } from "../core/types.js";
 import { nest, View } from "../core/view.js";
 import { ChildRouter } from "./child-router.js";
 import { normalize } from "./path.js";
-import { ROUTER } from "./router.js";
+import { Router, ROUTER } from "./router.js";
 
 export interface RouteMatchResult {
 	/**
@@ -59,50 +59,48 @@ export interface RouteMatch<T extends Route> extends ParentRouteMatch<T> {
 }
 
 /**
- * Find the first matching route.
+ * Match a route against the specified path.
  *
  * @param path The {@link normalize normalized} path to match against. Non normalized paths result in undefined behavior.
- * @param routes The routes to test in order.
- * @returns A match or undefined if none of the routes matched.
+ * @param route The route to match.
+ * @returns A match or undefined if the route doesn't match.
  */
-export function matchRoute<T extends Route>(path: string, routes: Iterable<T>): RouteMatch<T> | undefined {
-	for (const route of routes) {
-		if (typeof route.match === "string") {
-			const test = route.match === "/" ? "" : route.match;
-			if (test.endsWith("/")) {
-				if (path.startsWith(test) || path === test.slice(0, -1)) {
-					return {
-						route,
-						path: normalize(path.slice(0, test.length - 1)),
-						params: undefined,
-						rest: normalize(path.slice(test.length)),
-					};
-				}
-			} else if (test === path) {
-				return { route, path, rest: "" };
+export function matchRoute<T extends Route>(path: string, route: T): RouteMatch<T> | undefined {
+	if (typeof route.match === "string") {
+		const test = route.match === "/" ? "" : route.match;
+		if (test.endsWith("/")) {
+			if (path.startsWith(test) || path === test.slice(0, -1)) {
+				return {
+					route,
+					path: normalize(path.slice(0, test.length - 1)),
+					params: undefined,
+					rest: normalize(path.slice(test.length)),
+				};
 			}
-		} else if (typeof route.match === "function") {
-			const match = route.match(path);
-			if (match !== undefined) {
-				let rest = path;
-				if (path.startsWith(match.path) && (path.length === match.path.length || path[match.path.length] === "/")) {
-					rest = normalize(path.slice(match.path.length));
-				}
-				return { ...match, route, rest };
-			}
-		} else if (route.match instanceof RegExp) {
-			const match = route.match.exec(path);
-			if (match !== null) {
-				const matched = normalize(match[0], false);
-				let rest = path;
-				if (path.startsWith(matched) && (path.length === matched.length || path[matched.length] === "/")) {
-					rest = normalize(path.slice(matched.length));
-				}
-				return { route, path: matched, params: match, rest };
-			}
-		} else {
-			return { route, path: "", rest: path };
+		} else if (test === path) {
+			return { route, path, rest: "" };
 		}
+	} else if (typeof route.match === "function") {
+		const match = route.match(path);
+		if (match !== undefined) {
+			let rest = path;
+			if (path.startsWith(match.path) && (path.length === match.path.length || path[match.path.length] === "/")) {
+				rest = normalize(path.slice(match.path.length));
+			}
+			return { ...match, route, rest };
+		}
+	} else if (route.match instanceof RegExp) {
+		const match = route.match.exec(path);
+		if (match !== null) {
+			const matched = normalize(match[0], false);
+			let rest = path;
+			if (path.startsWith(matched) && (path.length === matched.length || path[matched.length] === "/")) {
+				rest = normalize(path.slice(matched.length));
+			}
+			return { route, path: matched, params: match, rest };
+		}
+	} else {
+		return { route, path: "", rest: path };
 	}
 }
 
@@ -121,7 +119,15 @@ export interface WatchedRoutes<T extends Route> {
 export function watchRoutes<T extends Route>(path: Expression<string>, routes: Expression<Iterable<T>>): WatchedRoutes<T> {
 	const parent = $<ParentRouteMatch<T> | undefined>(undefined);
 	const rest = $<string>(undefined!);
-	watch(() => matchRoute(get(path), get(routes)), match => {
+	watch(() => {
+		const rest = get(path);
+		for (const route of get(routes)) {
+			const match = matchRoute(rest, route);
+			if (match) {
+				return match;
+			}
+		}
+	}, match => {
 		if (match) {
 			if (!parent.value || parent.value.path !== match.path || parent.value.route !== match.route) {
 				parent.value = match;
@@ -186,4 +192,16 @@ export function Routes(props: {
 	routes: Expression<Iterable<ComponentRoute<any>>>;
 }): View {
 	return routes(props.routes);
+}
+
+/**
+ * Check if the specified pattern matches the current router's rest path.
+ */
+export function isCurrent(match: Route["match"], router?: Router): boolean {
+	router ??= ROUTER.current;
+	if (!router) {
+		// Router is not available in the current context:
+		throw new Error("G3");
+	}
+	return matchRoute(router.path, { match }) !== undefined;
 }
