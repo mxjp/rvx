@@ -1,4 +1,4 @@
-import { $, Expression, get, watch } from "../core/signals.js";
+import { $, batch, Expression, get, watch } from "../core/signals.js";
 import { Component } from "../core/types.js";
 import { nest, View } from "../core/view.js";
 import { ChildRouter } from "./child-router.js";
@@ -128,15 +128,17 @@ export function watchRoutes<T extends Route>(path: Expression<string>, routes: E
 			}
 		}
 	}, match => {
-		if (match) {
-			if (!parent.value || parent.value.path !== match.path || parent.value.route !== match.route) {
-				parent.value = match;
+		batch(() => {
+			if (match) {
+				if (!parent.value || parent.value.path !== match.path || parent.value.route !== match.route) {
+					parent.value = match;
+				}
+				rest.value = match.rest;
+			} else {
+				parent.value = undefined;
+				rest.value = "";
 			}
-			rest.value = match.rest;
-		} else {
-			parent.value = undefined;
-			rest.value = "";
-		}
+		});
 	});
 	return {
 		match: () => parent.value,

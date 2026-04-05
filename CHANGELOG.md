@@ -3,6 +3,7 @@
 ## 25.0
 + **Breaking:** `matchRoute` now accepts one instead of multiple route objects.
 + Add `isCurrent` route matching utility.
++ Route match & rest path updates are now batched.
 
 ## 24.1
 + Add `Static` utility type.
