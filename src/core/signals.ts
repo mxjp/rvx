@@ -1,6 +1,6 @@
 import { Context } from "./context.js";
 import { NOOP } from "./internals/noop.js";
-import { ACCESS_STACK, AccessHook, NotifyHook, useStack } from "./internals/stacks.js";
+import { ACCESS_STACK, AccessHook, LEAK, NotifyHook, TEARDOWN_STACK, useStack } from "./internals/stacks.js";
 import { isolate } from "./isolate.js";
 import { capture, teardown, TeardownHook } from "./lifecycle.js";
 
@@ -483,6 +483,55 @@ export function watchUpdates<T>(expr: Expression<T>, effect: (value: T) => void)
 		}
 	});
 	return first!;
+}
+
+/**
+ * Wrap an expression to only be re-evaluated when any accessed signal has updated.
+ *
+ * + Lifecycle hooks from the expression are leaked. (TODO: Check if this is useful behavior)
+ * + The context from where `lazy` was called is available within the expression.
+ *
+ * @param expr The expression to wrap.
+ */
+export function lazy<T>(expr: () => T): () => T {
+	let stale = true;
+	let value!: T;
+
+	const signals = new Set<Set<NotifyHook>>();
+
+	const access: AccessHook = signal => {
+		signals.add(signal);
+		signal.add(mark);
+	};
+
+	const mark = () => {
+		stale = true;
+	};
+
+	return Context.wrap(() => {
+		const observer = ACCESS_STACK[ACCESS_STACK.length - 1];
+		if (observer === access) {
+			// TODO: Document:
+			throw new Error("G5");
+		}
+		if (stale) {
+			try {
+				signals.forEach(s => s.delete(mark));
+				signals.clear();
+				ACCESS_STACK.push(access);
+				TEARDOWN_STACK.push(LEAK);
+				value = expr();
+				stale = false;
+			} finally {
+				ACCESS_STACK.pop();
+				TEARDOWN_STACK.pop();
+			}
+		}
+		if (observer) {
+			signals.forEach(observer);
+		}
+		return value;
+	});
 }
 
 function dispatch(batch: Set<NotifyHook>): void {

@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { $, batch, capture, Context, isTracking, map, memo, Signal, teardown, TeardownHook, trigger, TriggerPipe, uncapture, untrack, watch, watchUpdates } from "rvx";
+import { $, batch, capture, Context, isTracking, lazy, map, memo, Signal, teardown, TeardownHook, trigger, TriggerPipe, uncapture, untrack, watch, watchUpdates } from "rvx";
 import { assertEvents, lifecycleEvent, withMsg } from "../common.js";
 
 await suite("signals", async () => {
@@ -942,6 +942,178 @@ await suite("signals", async () => {
 		signal.value = "d";
 		strictEqual(signal.active, false);
 		assertEvents(events, []);
+	});
+
+	await suite("defer", async () => {
+		await test("basic usage", () => {
+			const events: unknown[] = [];
+			const a = $(0);
+			const b = $(1);
+			const c = lazy(() => {
+				events.push("compute");
+				return a.value + b.value;
+			});
+
+			strictEqual(c(), 1);
+			assertEvents(events, ["compute"]);
+
+			uncapture(() => {
+				watch(c, value => events.push("a", value));
+				watch(c, value => events.push("b", value));
+			});
+			assertEvents(events, ["a", 1, "b", 1]);
+
+			a.value = 2;
+			assertEvents(events, ["compute", "a", 3, "b", 3]);
+
+			b.value = 3;
+			assertEvents(events, ["compute", "a", 5, "b", 5]);
+
+			batch(() => {
+				a.value = 4;
+				b.value = 5;
+				assertEvents(events, []);
+			});
+
+			assertEvents(events, ["compute", "a", 9, "b", 9]);
+		});
+
+		await test("nesting", () => {
+			const events: unknown[] = [];
+			const a = $(0);
+			const b = lazy(() => {
+				events.push("computeB");
+				return a.value + 1;
+			});
+			const c = lazy(() => {
+				events.push("computeC");
+				return a.value + b() + 1;
+			});
+
+			uncapture(() => {
+				watch(c, value => events.push("c", value));
+				watch(b, value => events.push("b", value));
+			});
+			assertEvents(events, ["computeC", "computeB", "c", 2, "b", 1]);
+			strictEqual(b(), 1);
+			strictEqual(c(), 2);
+			assertEvents(events, []);
+
+			a.value++;
+			assertEvents(events, ["computeC", "computeB", "c", 4, "b", 2]);
+			strictEqual(b(), 2);
+			strictEqual(c(), 4);
+			assertEvents(events, []);
+		});
+
+		await test("inert usage", () => {
+			const events: unknown[] = [];
+			const a = $(0);
+			let b = 1;
+			const c = lazy(() => {
+				events.push("compute");
+				return a.value + b;
+			});
+			assertEvents(events, []);
+
+			strictEqual(c(), 1);
+			assertEvents(events, ["compute"]);
+
+			strictEqual(c(), 1);
+			assertEvents(events, []);
+
+			b = 2;
+			strictEqual(c(), 1);
+			assertEvents(events, []);
+
+			a.value = 1;
+			strictEqual(c(), 3);
+			assertEvents(events, ["compute"]);
+		});
+
+		await test("inert error handling", () => {
+			const a = $(0);
+			const b = lazy(() => {
+				if (a.value === 1) {
+					throw new Error("test");
+				}
+				return a.value;
+			});
+
+			strictEqual(b(), 0);
+			a.value++;
+
+			throws(b, withMsg("test"));
+			a.value++;
+
+			strictEqual(b(), 2);
+		});
+
+		await test("observer error handling", () => {
+			const events: unknown[] = [];
+			const a = $(0);
+			const b = lazy(() => {
+				if (a.value === 1) {
+					throw new Error("test");
+				}
+				return a.value;
+			});
+
+			uncapture(() => {
+				watch(a, value => {
+					events.push("pre", value);
+				});
+				watch(b, value => {
+					events.push("b", value);
+				});
+				watch(a, value => {
+					events.push("post", value);
+				})
+			});
+
+			assertEvents(events, ["pre", 0, "b", 0, "post", 0]);
+
+			throws(() => a.value++, withMsg("test"));
+			// TODO:
+			// assertEvents(events, ["pre", 1, "post", 1]);
+			strictEqual(a.value, 1);
+
+			a.value++;
+			// TODO:
+			// assertEvents(events, ["pre", 2, "b", 2, "post", 2]);
+			strictEqual(b(), 2);
+		});
+
+		await test("lifecycle", () => {
+			const a = lazy(() => teardown(() => {}));
+			throws(() => a(), withMsg("teardown leak"));
+			throws(() => a(), withMsg("teardown leak"));
+		});
+
+		await test("context", () => {
+			const events: unknown[] = [];
+			const ctx = new Context(42);
+
+			const a = $(1);
+			const b = ctx.inject(77, () => {
+				return lazy(() => {
+					events.push("compute");
+					return ctx.current + a.value;
+				});
+			});
+			assertEvents(events, []);
+
+			ctx.inject(13, () => {
+				strictEqual(b(), 78);
+			});
+			assertEvents(events, ["compute"]);
+
+			a.value++;
+			assertEvents(events, []);
+
+			strictEqual(b(), 79);
+			assertEvents(events, ["compute"]);
+		});
 	});
 
 	await suite("tracking", async () => {
