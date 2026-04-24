@@ -2,7 +2,7 @@ import { notStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
 import { $, Attach, capture, Component, ENV, For, Index, memo, mount, movable, Nest, render, Show, teardown, uncapture, View, watch } from "rvx";
 import { assertViewState } from "rvx/test";
-import { assertEvents, boundaryEvents, computeMapArrayDiffEvents, lifecycleEvent, TestView, testView, text, viewText, withMsg } from "../common.js";
+import { assertEvents, boundaryEvents, causesRejection, computeMapArrayDiffEvents, lifecycleEvent, TestView, testView, text, viewText, withMsg } from "../common.js";
 
 await suite("view", async () => {
 	await test("init incomplete", () => {
@@ -336,7 +336,7 @@ await suite("view", async () => {
 				});
 				strictEqual(viewText(view), "42");
 
-				throws(() => {
+				causesRejection(() => {
 					signal.value = 77;
 				}, withMsg("test"));
 				assertViewState(view);
@@ -382,7 +382,7 @@ await suite("view", async () => {
 				});
 				strictEqual(viewText(view), "42");
 
-				throws(() => {
+				causesRejection(() => {
 					signal.value = 77;
 				}, withMsg("test"));
 				assertViewState(view);

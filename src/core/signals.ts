@@ -14,12 +14,18 @@ let BATCH: Set<NotifyHook> | undefined;
 /**
  * Internal function to call the specified hook.
  */
-const notify = (fn: NotifyHook) => fn();
+const _notify = (fn: NotifyHook) => {
+	try {
+		fn();
+	} catch (error) {
+		Promise.reject(error);
+	}
+};
 
 /**
  * Internal function to add the specified hook to the current batch.
  */
-const queueBatch = (fn: NotifyHook) => BATCH!.add(fn);
+const _queueBatch = (fn: NotifyHook) => BATCH!.add(fn);
 
 /**
  * Represents the source that a signal has been derived from.
@@ -181,9 +187,9 @@ export class Signal<T> {
 		if (BATCH === undefined) {
 			const record = Array.from(hooks);
 			hooks.clear();
-			record.forEach(notify);
+			record.forEach(_notify);
 		} else {
-			hooks.forEach(queueBatch);
+			hooks.forEach(_queueBatch);
 			/*
 				Hooks are not cleared during batches to prevent breaking
 				other observers if an error is thrown during the batch.
@@ -525,10 +531,14 @@ export function lazy<T>(expr: () => T): () => T {
 			} finally {
 				ACCESS_STACK.pop();
 				TEARDOWN_STACK.pop();
+				if (observer) {
+					signals.forEach(observer);
+				}
 			}
-		}
-		if (observer) {
-			signals.forEach(observer);
+		} else {
+			if (observer) {
+				signals.forEach(observer);
+			}
 		}
 		return value;
 	});
@@ -536,18 +546,14 @@ export function lazy<T>(expr: () => T): () => T {
 
 function dispatch(batch: Set<NotifyHook>): void {
 	while (batch.size > 0) {
-		try {
-			batch.forEach(notify => {
-				/*
-					Notify hooks are deleted individually to ensure the correct behavior if calling
-					the hooks adds itself to the batch again due to an immediate side effect.
-				*/
-				batch.delete(notify);
-				notify();
-			});
-		} finally {
-			dispatch(batch);
-		}
+		batch.forEach(notify => {
+			/*
+				Notify hooks are deleted individually to ensure the correct behavior if calling
+				the hooks adds itself to the batch again due to an immediate side effect.
+			*/
+			batch.delete(notify);
+			_notify(notify);
+		});
 	}
 }
 
@@ -745,7 +751,7 @@ export interface TriggerPipe {
 export function trigger(callback: () => void): TriggerPipe {
 	const hookFn = Context.wrap(() => {
 		clear();
-		isolate(callback);
+		isolate(_notify, callback);
 	});
 	const { c: clear, a: access } = _observer(hookFn);
 	teardown(clear);

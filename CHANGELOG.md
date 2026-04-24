@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.0
++ **Breaking:** Signal update errors now cause unhalded rejections instead of throwing at the notify site.
++ Add `lazy` utility.
+
 ## 25.0
 + **Breaking:** `matchRoute` now accepts one instead of multiple route objects.
 + Add `isCurrent` route matching utility.

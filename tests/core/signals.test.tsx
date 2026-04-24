@@ -1,7 +1,7 @@
 import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
 import { $, batch, capture, Context, isTracking, lazy, map, memo, Signal, teardown, TeardownHook, trigger, TriggerPipe, uncapture, untrack, watch, watchUpdates } from "rvx";
-import { assertEvents, lifecycleEvent, withMsg } from "../common.js";
+import { assertEvents, causesRejection, lifecycleEvent, withMsg } from "../common.js";
 
 await suite("signals", async () => {
 	await test("inert usage", () => {
@@ -686,15 +686,15 @@ await suite("signals", async () => {
 						assertEvents(events, ["a42", "b42"]);
 					});
 
-					throws(() => {
+					causesRejection(() => {
 						signal.value = 77;
 					}, withMsg(inExpr ? "e" : "c"));
-					assertEvents(events, ["a77"]);
+					assertEvents(events, ["a77", "b77"]);
 
-					throws(() => {
+					causesRejection(() => {
 						signal.value = 11;
 					}, withMsg(inExpr ? "e" : "c"));
-					assertEvents(events, ["a11"]);
+					assertEvents(events, ["a11", "b11"]);
 
 					dispose();
 					signal.value = 123;
@@ -721,7 +721,7 @@ await suite("signals", async () => {
 						assertEvents(events, ["v42"]);
 					});
 
-					throws(() => {
+					causesRejection(() => {
 						signal.value = 77;
 					}, withMsg(inExpr ? "e" : "c"));
 
@@ -902,15 +902,15 @@ await suite("signals", async () => {
 					assertEvents(events, ["a42", "b42"]);
 				});
 
-				throws(() => {
+				causesRejection(() => {
 					signal.value = 77;
 				}, withMsg("test"));
-				assertEvents(events, ["a77"]);
+				assertEvents(events, ["a77", "b77"]);
 
-				throws(() => {
+				causesRejection(() => {
 					signal.value = 11;
 				}, withMsg("test"));
-				assertEvents(events, ["a11"]);
+				assertEvents(events, ["a11", "b11"]);
 
 				dispose();
 				signal.value = 123;
@@ -944,7 +944,7 @@ await suite("signals", async () => {
 		assertEvents(events, []);
 	});
 
-	await suite("defer", async () => {
+	await suite("lazy", async () => {
 		await test("basic usage", () => {
 			const events: unknown[] = [];
 			const a = $(0);
@@ -1073,15 +1073,17 @@ await suite("signals", async () => {
 
 			assertEvents(events, ["pre", 0, "b", 0, "post", 0]);
 
-			throws(() => a.value++, withMsg("test"));
-			// TODO:
-			// assertEvents(events, ["pre", 1, "post", 1]);
+			causesRejection(() => a.value++, withMsg("test"));
+			assertEvents(events, ["pre", 1, "post", 1]);
 			strictEqual(a.value, 1);
 
 			a.value++;
-			// TODO:
-			// assertEvents(events, ["pre", 2, "b", 2, "post", 2]);
+			assertEvents(events, ["pre", 2, "b", 2, "post", 2]);
 			strictEqual(b(), 2);
+
+			causesRejection(() => a.value--, withMsg("test"));
+			assertEvents(events, ["pre", 1, "post", 1]);
+			strictEqual(a.value, 1);
 		});
 
 		await test("lifecycle", () => {
@@ -1286,7 +1288,7 @@ await suite("signals", async () => {
 			assertEvents(events, [43]);
 			strictEqual(computed(), 43);
 
-			throws(() => {
+			causesRejection(() => {
 				signal.value = 77;
 			}, withMsg("test"));
 			assertEvents(events, []);
@@ -1439,7 +1441,7 @@ await suite("signals", async () => {
 			}));
 
 			assertEvents(events, []);
-			throws(() => {
+			causesRejection(() => {
 				batch(() => {
 					a.value++;
 					b.value++;
@@ -1448,7 +1450,7 @@ await suite("signals", async () => {
 			}, withMsg("test"));
 			assertEvents(events, ["end1", "a", 1, "b", 1]);
 
-			throws(() => {
+			causesRejection(() => {
 				batch(() => {
 					a.value++;
 					b.value++;

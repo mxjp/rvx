@@ -133,6 +133,20 @@ export async function handleExplicitRejections(fn: () => Promise<void>): Promise
 	return errors;
 }
 
+export function causesRejection(fn: () => void, test: (error: unknown) => boolean) {
+	const errors: unknown[] = [];
+	const originalReject = Promise.reject;
+	Promise.reject = function (error: unknown): any {
+		errors.push(error);
+	};
+	try {
+		fn();
+	} finally {
+		Promise.reject = originalReject;
+	}
+	deepStrictEqual(errors.map(test), [true]);
+}
+
 export function computeMapArrayDiffEvents(prev: number[], next: number[]) {
 	function computeRaw(prev: number[], next: number[]) {
 		const events: unknown[] = [];
