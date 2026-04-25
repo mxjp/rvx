@@ -1,15 +1,13 @@
 import { strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-
-import { uncapture } from "rvx";
+import { leak } from "rvx";
 import { Queue } from "rvx/async";
-
 import { assertEvents } from "../common.js";
 
 await suite("async/queue", async () => {
 	await test("sync side effect", () => {
 		const events: unknown[] = [];
-		const queue = uncapture(() => new Queue());
+		const queue = leak(() => new Queue());
 		queue.sideEffect(signal => {
 			events.push(0);
 			strictEqual(signal.aborted, false);
@@ -21,7 +19,7 @@ await suite("async/queue", async () => {
 
 	await test("sync blocking", () => {
 		const events: unknown[] = [];
-		const queue = uncapture(() => new Queue());
+		const queue = leak(() => new Queue());
 		void queue.block(() => {
 			events.push(0);
 		});
@@ -31,7 +29,7 @@ await suite("async/queue", async () => {
 
 	await test("abort side effect", async () => {
 		const events: unknown[] = [];
-		const queue = uncapture(() => new Queue());
+		const queue = leak(() => new Queue());
 		queue.sideEffect(async signal => {
 			events.push(0);
 			await Promise.resolve();
@@ -45,7 +43,7 @@ await suite("async/queue", async () => {
 
 	await test("dequeue side effect & run most recent", async () => {
 		const events: unknown[] = [];
-		const queue = uncapture(() => new Queue());
+		const queue = leak(() => new Queue());
 		queue.sideEffect(async signal => {
 			events.push(0);
 			await Promise.resolve();
@@ -65,7 +63,7 @@ await suite("async/queue", async () => {
 
 	await test("abort side effects by blocking tasks", async () => {
 		const events: unknown[] = [];
-		const queue = uncapture(() => new Queue());
+		const queue = leak(() => new Queue());
 		queue.sideEffect(async signal => {
 			events.push(0);
 			await Promise.resolve();
@@ -88,7 +86,7 @@ await suite("async/queue", async () => {
 
 	await test("multiple blocking tasks", async () => {
 		const events: unknown[] = [];
-		const queue = uncapture(() => new Queue());
+		const queue = leak(() => new Queue());
 		queue.sideEffect(async signal => {
 			events.push(0);
 			await Promise.resolve();
@@ -110,7 +108,7 @@ await suite("async/queue", async () => {
 
 	await test("side effect after blocking", async () => {
 		const events: unknown[] = [];
-		const queue = uncapture(() => new Queue());
+		const queue = leak(() => new Queue());
 		await queue.block(() => {
 			events.push(0);
 		});

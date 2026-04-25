@@ -1,5 +1,5 @@
 import { Queue } from "../async/queue.js";
-import { uncapture } from "../core/lifecycle.js";
+import { leak } from "../core/lifecycle.js";
 
 const KEY = Symbol.for("rvx:test:queues");
 const QUEUES: Map<unknown, Queue> = (globalThis as any)[KEY] ?? ((globalThis as any)[KEY] = new Map());
@@ -13,7 +13,7 @@ const QUEUES: Map<unknown, Queue> = (globalThis as any)[KEY] ?? ((globalThis as 
 export function exclusive<T>(key: unknown, action: () => T | Promise<T>): Promise<T> {
 	let queue = QUEUES.get(key);
 	if (queue === undefined) {
-		queue = uncapture(() => new Queue());
+		queue = leak(() => new Queue());
 		QUEUES.set(key, queue);
 	}
 	return queue.block(action);

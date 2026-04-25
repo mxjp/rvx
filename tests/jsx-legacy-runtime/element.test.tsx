@@ -1,12 +1,12 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { uncapture } from "rvx";
+import { leak } from "rvx";
 import { Fragment, jsx } from "rvx/jsx";
 import { Fragment as R17Fragment } from "rvx/jsx-runtime";
 
 await suite("jsx-legacy-runtime", async () => {
 	await test("create element", () => {
-		const elem = uncapture(() => {
+		const elem = leak(() => {
 			return <div
 				foo="bar"
 				class={["a", "b"]}
@@ -29,14 +29,14 @@ await suite("jsx-legacy-runtime", async () => {
 	});
 
 	await test("complex content", () => {
-		const elem = uncapture(() => {
+		const elem = leak(() => {
 			return <div>{1}{2}</div> as HTMLElement;
 		});
 		deepStrictEqual(elem.textContent, "12");
 	});
 
 	await test("spread operator", () => {
-		const elem = uncapture(() => {
+		const elem = leak(() => {
 			return <div foo="a" {...{ baz: "c" }} bar="b" /> as HTMLElement;
 		});
 		strictEqual(elem.getAttribute("foo"), "a");
@@ -73,7 +73,7 @@ await suite("jsx-legacy-runtime", async () => {
 	});
 
 	await test("element key property", () => {
-		const elem = uncapture(() => {
+		const elem = leak(() => {
 			return <div key="foo" bar="baz" /> as HTMLElement;
 		});
 		strictEqual(elem.getAttribute("key"), "foo");

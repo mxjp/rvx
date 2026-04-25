@@ -198,61 +198,6 @@ You can poll arbitrary functions for the first truthy result using the `poll` fu
 	+ Avoid overly expensive computations in the callback as it runs every event cycle.
 	+ Without a timeout, `poll` might run forever.
 
-## Leak Detection
-The [lifecycle API](./core/lifecycle.md) silently discards teardown hooks outside of `capture` calls. This can be a valid use case, for instance when rendering your application until the browser closes or when intentionally leaking teardown hooks using `uncapture`.
-
-However, this can result in accidental memory leaks when registering teardown hooks in async code:
-```jsx
-const stop = capture(async () => {
-	await something();
-	const interval = setInterval(() => console.log("ping!"), 1000);
-	// "clearInterval" will never be called:
-	teardown(() => clearInterval(interval));
-});
-
-stop();
-```
-
-To catch these cases, you can use the `onLeak` function once before running all of your tests:
-
-=== "JSX"
-	```jsx
-	import { onLeak } from "rvx";
-
-	onLeak(hook => {
-		// "hook" is the teardown hook that is being registered.
-		console.trace("Leaked teardown hook:", hook);
-
-		// Or throw an error from within the **teardown** call:
-		throw new Error("Teardown hook was not captured.");
-	});
-
-	// This will now call the code above:
-	teardown(() => {});
-
-	// This will NOT call the code above, as using **uncapture** is very likely intentional:
-	uncapture(() => teardown(() => {}));
-	```
-
-=== "No Build"
-	```jsx
-	import { onLeak } from "./rvx.js";
-
-	onLeak(hook => {
-		// "hook" is the teardown hook that is being registered.
-		console.trace("Leaked teardown hook:", hook);
-
-		// Or throw an error from within the **teardown** call:
-		throw new Error("Teardown hook was not captured.");
-	});
-
-	// This will now call the code above:
-	teardown(() => {});
-
-	// This will NOT call the code above, as using **uncapture** is very likely intentional:
-	uncapture(() => teardown(() => {}));
-	```
-
 ## Concurrency
 It is generally possible to run tests for rvx based applications concurrently. However, using APIs that may interfere with each other such as `Element.focus` can result in flaky tests. To solve this you can use the `exclusive` function to run code in a globally shared queue for a specific purpose:
 

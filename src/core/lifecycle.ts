@@ -2,8 +2,6 @@ import { NOOP } from "./internals/noop.js";
 import { TEARDOWN_STACK, useStack } from "./internals/stacks.js";
 import { isolate } from "./isolate.js";
 
-export { LeakHook, onLeak } from "./internals/stacks.js";
-
 /**
  * A function that is called to dispose something.
  */
@@ -65,14 +63,12 @@ export function captureSelf<T>(fn: (dispose: TeardownHook) => T): T {
 }
 
 /**
- * Run a function without capturing any teardown hooks.
- *
- * This is the opposite of {@link capture}.
+ * Run a function while intentionally leaking teardown hooks.
  *
  * @param fn The function to run.
  * @returns The function's return value.
  */
-export function uncapture<T>(fn: () => T): T {
+export function leak<T>(fn: () => T): T {
 	return useStack(TEARDOWN_STACK, undefined, fn);
 }
 
@@ -99,7 +95,6 @@ export function teardownOnError<T>(fn: () => T): T {
  * This has no effect if teardown hooks are not captured in the current context.
  *
  * @param hook The hook to register. This may be called multiple times.
- * @throws An error if teardown hooks are {@link nocapture explicitly un-supported}.
  */
 export function teardown(hook: TeardownHook): void {
 	const length = TEARDOWN_STACK.length;

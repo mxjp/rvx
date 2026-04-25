@@ -1,6 +1,6 @@
 import { strictEqual } from "node:assert";
 import test from "node:test";
-import { ENV, uncapture, watch } from "rvx";
+import { ENV, leak, watch } from "rvx";
 import { HashRouter } from "rvx/router";
 import { isRvxDom } from "../../dist/es/dom/env.js";
 import { assertEvents } from "../common.js";
@@ -24,11 +24,11 @@ await test("router/history router", { skip: isRvxDom() }, () => {
 	hash = "";
 
 	const events: unknown[] = [];
-	const router = uncapture(() => new HashRouter());
+	const router = leak(() => new HashRouter());
 	strictEqual(router.root, router);
 	strictEqual(router.parent, undefined);
 
-	uncapture(() => {
+	leak(() => {
 		watch(() => [router.path, router.query] as const, ([path, query]) => {
 			events.push([path, query?.raw]);
 		});

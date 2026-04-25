@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { capture, Context, ENV, mount, uncapture, watch } from "rvx";
+import { capture, Context, ENV, leak, mount, watch } from "rvx";
 import { isPending, isSelfPending, TASKS, Tasks } from "rvx/async";
 import { isRvxDom } from "rvx/dom";
 import { assertEvents, future, handleExplicitRejections, handleFinallyRejections, isIsolated } from "../common.js";
@@ -8,8 +8,8 @@ import { assertEvents, future, handleExplicitRejections, handleFinallyRejections
 await suite("async/tasks", async () => {
 	for (const fn of [false, true]) {
 		await test(`waitFor ${fn ? "function" : "promise"}`, async () => {
-			const parent = uncapture(() => new Tasks());
-			const inner = uncapture(() => new Tasks(parent));
+			const parent = leak(() => new Tasks());
+			const inner = leak(() => new Tasks(parent));
 			strictEqual(parent.pending, false);
 			strictEqual(parent.selfPending, false);
 			strictEqual(inner.pending, false);
@@ -32,7 +32,7 @@ await suite("async/tasks", async () => {
 	}
 
 	await test("waitFor isolation", async () => {
-		const tasks = uncapture(() => new Tasks());
+		const tasks = leak(() => new Tasks());
 		capture(() => {
 			strictEqual(isIsolated(), false);
 			tasks.waitFor(() => {
@@ -42,7 +42,7 @@ await suite("async/tasks", async () => {
 	});
 
 	await test("setPending", () => {
-		const tasks = uncapture(() => new Tasks());
+		const tasks = leak(() => new Tasks());
 		strictEqual(tasks.pending, false);
 		const dispose = capture(() => tasks.setPending());
 		strictEqual(tasks.pending, true);
@@ -53,7 +53,7 @@ await suite("async/tasks", async () => {
 	await test("multiple tasks", async () => {
 		const [a, resolveA] = future();
 		const [b, resolveB] = future();
-		const tasks = uncapture(() => new Tasks());
+		const tasks = leak(() => new Tasks());
 		tasks.waitFor(a);
 		tasks.waitFor(b);
 		strictEqual(tasks.pending, true);
@@ -70,7 +70,7 @@ await suite("async/tasks", async () => {
 
 	await test("promise source error handling", async () => {
 		const errors = await handleFinallyRejections(async () => {
-			const tasks = uncapture(() => new Tasks());
+			const tasks = leak(() => new Tasks());
 			const [a,, rejectA] = future();
 			tasks.waitFor(a);
 			strictEqual(tasks.pending, true);
@@ -86,7 +86,7 @@ await suite("async/tasks", async () => {
 
 	await test("function source error handling", async () => {
 		const errors = await handleExplicitRejections(async () => {
-			const tasks = uncapture(() => new Tasks());
+			const tasks = leak(() => new Tasks());
 			const [a,, rejectA] = future();
 			tasks.waitFor(() => a);
 			strictEqual(tasks.pending, true);
@@ -102,8 +102,8 @@ await suite("async/tasks", async () => {
 
 	await test("tracking", async () => {
 		const events: unknown[] = [];
-		const tasks = uncapture(() => new Tasks());
-		uncapture(() => {
+		const tasks = leak(() => new Tasks());
+		leak(() => {
 			watch(() => tasks.pending, pending => {
 				events.push(pending);
 			});
@@ -126,11 +126,11 @@ await suite("async/tasks", async () => {
 		strictEqual(isPending(), false);
 		strictEqual(isSelfPending(), false);
 
-		await TASKS.provide(uncapture(() => new Tasks()), () => {
+		await TASKS.provide(leak(() => new Tasks()), () => {
 			const outer = TASKS.current;
 			strictEqual(outer instanceof Tasks, true);
 
-			TASKS.provide(uncapture(() => new Tasks(outer)), () => {
+			TASKS.provide(leak(() => new Tasks(outer)), () => {
 				strictEqual(TASKS.current?.parent, outer);
 			});
 
@@ -157,7 +157,7 @@ await suite("async/tasks", async () => {
 		const input = <input /> as HTMLInputElement;
 		const dispose = capture(() => mount(ENV.current.document.body, input));
 		try {
-			const tasks = uncapture(() => new Tasks());
+			const tasks = leak(() => new Tasks());
 
 			input.focus();
 			strictEqual(ENV.current.document.activeElement, input);

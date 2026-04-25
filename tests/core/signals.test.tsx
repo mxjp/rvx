@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { $, batch, capture, Context, isTracking, lazy, map, memo, Signal, teardown, TeardownHook, trigger, TriggerPipe, uncapture, untrack, watch, watchUpdates } from "rvx";
+import { $, batch, capture, Context, isTracking, lazy, leak, map, memo, Signal, teardown, TeardownHook, trigger, TriggerPipe, untrack, watch, watchUpdates } from "rvx";
 import { assertEvents, causesRejection, lifecycleEvent, withMsg } from "../common.js";
 
 await suite("signals", async () => {
@@ -156,7 +156,7 @@ await suite("signals", async () => {
 			const a = $(0);
 			const b = $();
 
-			uncapture(() => {
+			leak(() => {
 				watch(() => {
 					strictEqual(isTracking(), true);
 					events.push(`a:${a.value}`);
@@ -199,7 +199,7 @@ await suite("signals", async () => {
 			const a = $(0);
 			const b = $();
 
-			uncapture(() => {
+			leak(() => {
 				watch(() => {
 					strictEqual(isTracking(), true);
 					return a.value;
@@ -309,7 +309,7 @@ await suite("signals", async () => {
 		const events: unknown[] = [];
 
 		strictEqual(isTracking(), false);
-		uncapture(() => watch(() => {
+		leak(() => watch(() => {
 			strictEqual(isTracking(), true);
 			return a.value ? b.value : 0;
 		}, value => {
@@ -355,7 +355,7 @@ await suite("signals", async () => {
 	await test("same values", () => {
 		const events: unknown[] = [];
 		const signal = $(42);
-		uncapture(() => watch(signal, value => {
+		leak(() => watch(signal, value => {
 			events.push(value);
 		}));
 		assertEvents(events, [42]);
@@ -416,7 +416,7 @@ await suite("signals", async () => {
 			strictEqual(a.active, false);
 			strictEqual(b.active, false);
 			strictEqual(isTracking(), false);
-			uncapture(() => watch(() => {
+			leak(() => watch(() => {
 				strictEqual(isTracking(), true);
 				return a.value + b.value;
 			}, value => {
@@ -453,14 +453,14 @@ await suite("signals", async () => {
 			strictEqual(isTracking(), false);
 		});
 
-		await test("uncapture expression", () => {
+		await test("leak expression", () => {
 			const events: unknown[] = [];
 			const signal = $(42);
-			uncapture(() => watch(() => {
+			leak(() => watch(() => {
 				// throws(() => {
 				// 	teardown(() => {});
 				// }, withMsg("G0"));
-				uncapture(() => {
+				leak(() => {
 					teardown(() => {});
 				});
 				return signal.value;
@@ -508,7 +508,7 @@ await suite("signals", async () => {
 			const outer = $(1);
 			const inner = $(1);
 			let innerHook: TeardownHook | undefined;
-			uncapture(() => {
+			leak(() => {
 				watch(() => {
 					events.push("o");
 					innerHook?.();
@@ -540,7 +540,7 @@ await suite("signals", async () => {
 			const outer = $(1);
 			const inner = $(1);
 			let innerHook: TeardownHook | undefined;
-			uncapture(() => {
+			leak(() => {
 				watch(() => {
 					events.push("o");
 					innerHook?.();
@@ -570,7 +570,7 @@ await suite("signals", async () => {
 			const events: unknown[] = [];
 			const outer = $(1);
 			const inner = $(1);
-			uncapture(() => {
+			leak(() => {
 				watch(inner, value => {
 					strictEqual(isTracking(), false);
 					events.push(`s${value}`);
@@ -597,7 +597,7 @@ await suite("signals", async () => {
 		await test("re-entry tracking isolation", () => {
 			const events: unknown[] = [];
 			const signal = $();
-			uncapture(() => {
+			leak(() => {
 				watch(() => {
 					events.push("a");
 					strictEqual(isTracking(), true);
@@ -627,7 +627,7 @@ await suite("signals", async () => {
 
 			const ctx = new Context<number | undefined>();
 			ctx.provide(42, () => {
-				uncapture(() => watch(() => {
+				leak(() => watch(() => {
 					strictEqual(isTracking(), true);
 					events.push(`e${ctx.current}`);
 					strictEqual(isTracking(), true);
@@ -647,7 +647,7 @@ await suite("signals", async () => {
 		for (const inExpr of [false, true]) {
 			await suite(`${inExpr ? "expression" : "callback"} error handling`, async () => {
 				await test("immediate, no access", () => {
-					uncapture(() => {
+					leak(() => {
 						throws(() => {
 							watch(() => {
 								if (inExpr) {
@@ -768,7 +768,7 @@ await suite("signals", async () => {
 			const events: unknown[] = [];
 			const a = $("a");
 			const b = $(1);
-			uncapture(() => {
+			leak(() => {
 				watch(() => {
 					events.push(`${a.value}${b.value}`);
 				});
@@ -787,7 +787,7 @@ await suite("signals", async () => {
 			const events: unknown[] = [];
 			const outer = $(1);
 			const inner = $(1);
-			uncapture(() => {
+			leak(() => {
 				watch(() => {
 					events.push(`o${outer.value}`);
 					watch(() => {
@@ -810,7 +810,7 @@ await suite("signals", async () => {
 			const events: unknown[] = [];
 			const outer = $(1);
 			const inner = $(1);
-			uncapture(() => {
+			leak(() => {
 				watch(() => {
 					const value = inner.value;
 					strictEqual(isTracking(), true);
@@ -834,7 +834,7 @@ await suite("signals", async () => {
 		await test("re-entry tracking isolation", () => {
 			const events: unknown[] = [];
 			const signal = $();
-			uncapture(() => {
+			leak(() => {
 				watch(() => {
 					events.push("a");
 					strictEqual(isTracking(), true);
@@ -858,7 +858,7 @@ await suite("signals", async () => {
 		await test("expected infinite loop", () => {
 			let count = 0;
 			const signal = $(0);
-			uncapture(() => {
+			leak(() => {
 				watch(() => {
 					if (count < 5) {
 						count++;
@@ -871,7 +871,7 @@ await suite("signals", async () => {
 
 		await suite("error handling", async () => {
 			await test("immediate, no access", () => {
-				uncapture(() => {
+				leak(() => {
 					throws(() => {
 						watch(() => {
 							throw new Error("test");
@@ -957,7 +957,7 @@ await suite("signals", async () => {
 			strictEqual(c(), 1);
 			assertEvents(events, ["compute"]);
 
-			uncapture(() => {
+			leak(() => {
 				watch(c, value => events.push("a", value));
 				watch(c, value => events.push("b", value));
 			});
@@ -990,7 +990,7 @@ await suite("signals", async () => {
 				return a.value + b() + 1;
 			});
 
-			uncapture(() => {
+			leak(() => {
 				watch(c, value => events.push("c", value));
 				watch(b, value => events.push("b", value));
 			});
@@ -1059,7 +1059,7 @@ await suite("signals", async () => {
 				return a.value;
 			});
 
-			uncapture(() => {
+			leak(() => {
 				watch(a, value => {
 					events.push("pre", value);
 				});
@@ -1088,8 +1088,8 @@ await suite("signals", async () => {
 
 		await test("lifecycle", () => {
 			const a = lazy(() => teardown(() => {}));
-			throws(() => a(), withMsg("teardown leak"));
-			throws(() => a(), withMsg("teardown leak"));
+			throws(() => a(), withMsg("G5"));
+			throws(() => a(), withMsg("G5"));
 		});
 
 		await test("context", () => {
@@ -1135,7 +1135,7 @@ await suite("signals", async () => {
 				}
 			});
 
-			uncapture(() => {
+			leak(() => {
 				watch(b, value => {
 					events.push(value);
 				});
@@ -1165,7 +1165,7 @@ await suite("signals", async () => {
 			});
 			assertEvents(events, []);
 
-			uncapture(() => {
+			leak(() => {
 				watch(() => {
 					events.push("d", `a${untrack(a)}`, `b${untrack(b)}`);
 					if (a.value === 1) {
@@ -1175,7 +1175,7 @@ await suite("signals", async () => {
 			});
 			assertEvents(events, ["d", "a0", "b0"]);
 
-			uncapture(() => {
+			leak(() => {
 				watch(c, value => {
 					events.push(`v${value}`);
 				});
@@ -1207,7 +1207,7 @@ await suite("signals", async () => {
 			});
 			assertEvents(events, []);
 
-			uncapture(() => {
+			leak(() => {
 				watch(d, value => events.push(`d${value}`));
 				assertEvents(events, ["d", "c", "d5"]);
 				watch(c, value => events.push(`c${value}`));
@@ -1235,7 +1235,7 @@ await suite("signals", async () => {
 			const events: unknown[] = [];
 			const a = $(0);
 			const b = $(0);
-			uncapture(() => watch(() => {
+			leak(() => watch(() => {
 				strictEqual(isTracking(), true);
 				const result = a.value + untrack(() => {
 					strictEqual(isTracking(), false);
@@ -1263,7 +1263,7 @@ await suite("signals", async () => {
 			strictEqual(signal.active, false);
 			strictEqual(isTracking(), false);
 
-			uncapture(() => watch(memo(() => {
+			leak(() => watch(memo(() => {
 				strictEqual(isTracking(), true);
 				events.push("e");
 				return signal.value;
@@ -1308,8 +1308,8 @@ await suite("signals", async () => {
 			await test(`${batchType} + memos + non-memos in same observer`, () => {
 				const events: unknown[] = [];
 				const signal = $(1);
-				const computed = uncapture(() => memo(() => signal.value * 2));
-				uncapture(() => watch(() => [signal.value, computed()], value => {
+				const computed = leak(() => memo(() => signal.value * 2));
+				leak(() => watch(() => [signal.value, computed()], value => {
 					events.push(value);
 				}));
 				assertEvents(events, [[1, 2]]);
@@ -1327,11 +1327,11 @@ await suite("signals", async () => {
 			await test(`${batchType} + memos + non-memos in distinct observers`, () => {
 				const events: unknown[] = [];
 				const signal = $(1);
-				const computed = uncapture(() => memo(() => signal.value * 2));
-				uncapture(() => watch(() => signal.value, value => {
+				const computed = leak(() => memo(() => signal.value * 2));
+				leak(() => watch(() => signal.value, value => {
 					events.push(["signal", value]);
 				}));
-				uncapture(() => watch(computed, value => {
+				leak(() => watch(computed, value => {
 					events.push(["memo", value]);
 				}));
 				assertEvents(events, [["signal", 1], ["memo", 2]]);
@@ -1350,16 +1350,16 @@ await suite("signals", async () => {
 		await test("batch & nested memos", () => {
 			const events: unknown[] = [];
 			const signal = $(1);
-			const inner = uncapture(() => memo(() => {
+			const inner = leak(() => memo(() => {
 				events.push("i");
 				return signal.value * 2;
 			}));
-			const outer = uncapture(() => memo(() => {
+			const outer = leak(() => memo(() => {
 				events.push("o");
 				return signal.value + inner();
 			}));
 
-			uncapture(() => watch(outer, value => {
+			leak(() => watch(outer, value => {
 				events.push(value);
 			}));
 
@@ -1378,14 +1378,14 @@ await suite("signals", async () => {
 			const events: unknown[] = [];
 			const signal = $(42);
 
-			const computed = uncapture(() => memo(() => {
+			const computed = leak(() => memo(() => {
 				if (signal.value === 77) {
 					throw new Error("test");
 				}
 				return signal.value + 1;
 			}));
 
-			uncapture(() => {
+			leak(() => {
 				watch(computed, value => {
 					events.push(value);
 				});
@@ -1410,7 +1410,7 @@ await suite("signals", async () => {
 			const events: unknown[] = [];
 			const a = $(0);
 			const b = $(1);
-			uncapture(() => watch(() => {
+			leak(() => watch(() => {
 				strictEqual(isTracking(), true);
 				return a.value + b.value;
 			}, value => {
@@ -1460,7 +1460,7 @@ await suite("signals", async () => {
 		await test("error handling", () => {
 			const events: unknown[] = [];
 			const signal = $(42);
-			uncapture(() => watch(signal, value => {
+			leak(() => watch(signal, value => {
 				events.push(value);
 			}));
 			assertEvents(events, [42]);
@@ -1503,7 +1503,7 @@ await suite("signals", async () => {
 			const dispose = capture(() => watch(signal, value => {
 				events.push("a", value);
 			}));
-			uncapture(() => watch(signal, value => {
+			leak(() => watch(signal, value => {
 				events.push("b", value);
 			}));
 			assertEvents(events, ["a", 42, "b", 42]);
@@ -1520,7 +1520,7 @@ await suite("signals", async () => {
 			const dispose = capture(() => watch(() => {
 				events.push("a", signal.value);
 			}));
-			uncapture(() => watch(() => {
+			leak(() => watch(() => {
 				events.push("b", signal.value);
 			}));
 			assertEvents(events, ["a", 42, "b", 42]);
@@ -1536,12 +1536,12 @@ await suite("signals", async () => {
 			const a = $(0);
 			const b = $(0);
 
-			uncapture(() => watchUpdates(a, value => {
+			leak(() => watchUpdates(a, value => {
 				events.push("a", value);
 				throw new Error("test");
 			}));
 
-			uncapture(() => watchUpdates(b, value => {
+			leak(() => watchUpdates(b, value => {
 				events.push("b", value);
 			}));
 
@@ -1634,10 +1634,10 @@ await suite("signals", async () => {
 		await test("distinct update order, pre+post", () => {
 			const events: unknown[] = [];
 			const signal = $(1);
-			uncapture(() => watch(signal, () => events.push("a")));
-			const pipe = uncapture(() => trigger(() => events.push("t")));
+			leak(() => watch(signal, () => events.push("a")));
+			const pipe = leak(() => trigger(() => events.push("t")));
 			strictEqual(pipe(signal), 1);
-			uncapture(() => watch(signal, () => events.push("b")));
+			leak(() => watch(signal, () => events.push("b")));
 			assertEvents(events, ["a", "b"]);
 			signal.value = 2;
 			assertEvents(events, ["a", "t", "b"]);
@@ -1648,10 +1648,10 @@ await suite("signals", async () => {
 		await test("distinct update order, pre", () => {
 			const events: unknown[] = [];
 			const signal = $(1);
-			const pipe = uncapture(() => trigger(() => events.push("t")));
+			const pipe = leak(() => trigger(() => events.push("t")));
 			strictEqual(pipe(signal), 1);
-			uncapture(() => watch(signal, () => events.push("a")));
-			uncapture(() => watch(signal, () => events.push("b")));
+			leak(() => watch(signal, () => events.push("a")));
+			leak(() => watch(signal, () => events.push("b")));
 			assertEvents(events, ["a", "b"]);
 			signal.value = 2;
 			assertEvents(events, ["t", "a", "b"]);
@@ -1662,9 +1662,9 @@ await suite("signals", async () => {
 		await test("distinct update order, post", () => {
 			const events: unknown[] = [];
 			const signal = $(1);
-			uncapture(() => watch(signal, () => events.push("a")));
-			uncapture(() => watch(signal, () => events.push("b")));
-			const pipe = uncapture(() => trigger(() => events.push("t")));
+			leak(() => watch(signal, () => events.push("a")));
+			leak(() => watch(signal, () => events.push("b")));
+			const pipe = leak(() => trigger(() => events.push("t")));
 			strictEqual(pipe(signal), 1);
 			assertEvents(events, ["a", "b"]);
 			signal.value = 2;
@@ -1676,9 +1676,9 @@ await suite("signals", async () => {
 		await test("nested update order", () => {
 			const events: unknown[] = [];
 			const signal = $(1);
-			const pipeA = uncapture(() => trigger(() => events.push("a")));
-			const pipeB = uncapture(() => trigger(() => events.push("b")));
-			uncapture(() => watch(() => {
+			const pipeA = leak(() => trigger(() => events.push("a")));
+			const pipeB = leak(() => trigger(() => events.push("b")));
+			leak(() => watch(() => {
 				return pipeA(() => {
 					return pipeB(() => {
 						return signal.value;
@@ -1698,7 +1698,7 @@ await suite("signals", async () => {
 			const events: unknown[] = [];
 			const signalA = $(1);
 			const signalB = $(2);
-			const pipe = uncapture(() => trigger(() => events.push("t")));
+			const pipe = leak(() => trigger(() => events.push("t")));
 			strictEqual(pipe(() => signalA.value + signalB.value), 3);
 			assertEvents(events, []);
 
@@ -1720,7 +1720,7 @@ await suite("signals", async () => {
 			const events: unknown[] = [];
 			const signalA = $(1);
 			const signalB = $(2);
-			const pipe = uncapture(() => trigger(() => events.push("t")));
+			const pipe = leak(() => trigger(() => events.push("t")));
 			strictEqual(pipe(() => signalA.value + signalB.value), 3);
 			assertEvents(events, []);
 
@@ -1748,8 +1748,8 @@ await suite("signals", async () => {
 		await test("nested + batch", () => {
 			const events: unknown[] = [];
 			const signal = $(1);
-			const pipe = uncapture(() => trigger(() => events.push("t")));
-			uncapture(() => watch(() => {
+			const pipe = leak(() => trigger(() => events.push("t")));
+			leak(() => watch(() => {
 				return pipe(() => {
 					return signal.value;
 				});
@@ -1773,11 +1773,11 @@ await suite("signals", async () => {
 		await test("external untrack", () => {
 			const events: unknown[] = [];
 			const signal = $(1);
-			const pipe = uncapture(() => trigger(() => {
+			const pipe = leak(() => trigger(() => {
 				strictEqual(isTracking(), false);
 				events.push("trigger");
 			}));
-			uncapture(() => {
+			leak(() => {
 				watch(() => {
 					strictEqual(isTracking(), true);
 					untrack(() => {
@@ -1801,11 +1801,11 @@ await suite("signals", async () => {
 		await test("internal untrack", () => {
 			const events: unknown[] = [];
 			const signal = $(1);
-			const pipe = uncapture(() => trigger(() => {
+			const pipe = leak(() => trigger(() => {
 				strictEqual(isTracking(), false);
 				events.push("trigger");
 			}));
-			uncapture(() => {
+			leak(() => {
 				watch(() => {
 					pipe(() => {
 						strictEqual(isTracking(), true);
@@ -1825,11 +1825,11 @@ await suite("signals", async () => {
 		await test("callback tracking stack isolation", () => {
 			const events: unknown[] = [];
 			const outer = $(1);
-			const outerPipe = uncapture(() => trigger(() => {
+			const outerPipe = leak(() => trigger(() => {
 				events.push("outer");
 
 				const inner = $(1);
-				const innerPipe = uncapture(() => trigger(() => {
+				const innerPipe = leak(() => trigger(() => {
 					events.push("inner");
 				}));
 
@@ -1847,7 +1847,7 @@ await suite("signals", async () => {
 		await test("callback side effect", () => {
 			const events: unknown[] = [];
 			const signal = $(1);
-			const pipe = uncapture(() => trigger(() => {
+			const pipe = leak(() => trigger(() => {
 				strictEqual(isTracking(), false);
 				const value = signal.value;
 				events.push(`t:${value}`);
@@ -1864,7 +1864,7 @@ await suite("signals", async () => {
 		await test("callback re-entry", () => {
 			const events: unknown[] = [];
 			const signal = $(1);
-			const pipe = uncapture(() => trigger(() => {
+			const pipe = leak(() => trigger(() => {
 				strictEqual(isTracking(), false);
 				const value = signal.value;
 				events.push(`t:${value}`);
@@ -1885,7 +1885,7 @@ await suite("signals", async () => {
 			const a = $(1);
 			const b = $(2);
 
-			const pipe = uncapture(() => trigger(() => {
+			const pipe = leak(() => trigger(() => {
 				strictEqual(isTracking(), false);
 				events.push(`${a.value}:${b.value}`);
 			}));

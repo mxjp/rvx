@@ -1,6 +1,6 @@
 import { throws } from "node:assert";
 import test, { suite } from "node:test";
-import { capture, Emitter, uncapture } from "rvx";
+import { capture, Emitter, leak } from "rvx";
 import { assertEvents, withMsg } from "../common.js";
 
 await suite("event", async () => {
@@ -40,7 +40,7 @@ await suite("event", async () => {
 		const events: unknown[] = [];
 		const emitter = new Emitter<[]>();
 
-		uncapture(() => {
+		leak(() => {
 			emitter.event(() => events.push(0));
 			emitter.event(() => {
 				events.push(1);

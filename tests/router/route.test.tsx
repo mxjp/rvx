@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { $, Provide, uncapture, watch } from "rvx";
+import { $, leak, Provide, watch } from "rvx";
 import { ChildRouter, matchRoute, Route, ROUTER, Routes, watchRoutes } from "rvx/router";
 import { assertEvents, lifecycleEvent, text } from "../common.js";
 import { TestRouter } from "./common.js";
@@ -75,8 +75,8 @@ await suite("router/route", async () => {
 		];
 
 		const path = $("");
-		const watched = uncapture(() => watchRoutes(path, routes));
-		uncapture(() => {
+		const watched = leak(() => watchRoutes(path, routes));
+		leak(() => {
 			watch(watched.match, () => events.push("match"));
 			watch(watched.rest, () => events.push("rest"));
 		});
@@ -107,7 +107,7 @@ await suite("router/route", async () => {
 	await suite("routes", async () => {
 		await test("matching", () => {
 			const router = new TestRouter();
-			const root = uncapture(() => <div>
+			const root = leak(() => <div>
 				<Provide context={ROUTER} value={router}>
 					{() => <Routes routes={[
 						{ match: "/", content: () => <>a</> },
@@ -135,7 +135,7 @@ await suite("router/route", async () => {
 		await test("lifecycle & child router", () => {
 			const events: unknown[] = [];
 			const router = new TestRouter();
-			uncapture(() => <div>
+			leak(() => <div>
 				<Provide context={ROUTER} value={router}>
 					{() => <Routes routes={[
 						{ match: "/", content: () => lifecycleEvent(events, "a") },

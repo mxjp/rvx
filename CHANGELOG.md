@@ -10,8 +10,11 @@
 	+ `<Inject> => <Provide>`
 	+ `overwrite => override`
 	+ `<Overwrite> => <Override>`
+	+ `uncapture => leak`
 + **Breaking:** `ContextState` fields are now internal and no longer subject to semantic versioning.
 + **Breaking:** Remove jsx `ref` attribute.
++ **Breaking:** Remove `onLeak`.
++ **Breaking:** Unintentionally leaking teardown hooks now always throws an error.
 + Add `lazy` utility.
 
 ## 25.0

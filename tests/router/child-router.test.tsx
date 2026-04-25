@@ -1,6 +1,6 @@
 import { strictEqual } from "node:assert";
 import test from "node:test";
-import { $, uncapture, watch } from "rvx";
+import { $, leak, watch } from "rvx";
 import { ChildRouter, normalize } from "rvx/router";
 import { assertEvents } from "../common.js";
 import { TestRouter } from "./common.js";
@@ -17,7 +17,7 @@ await test("router/child router", async () => {
 	strictEqual(child.root, root);
 	strictEqual(child.parent, root);
 
-	uncapture(() => watch(() => [child.path, child.query] as const, ([path, query]) => {
+	leak(() => watch(() => [child.path, child.query] as const, ([path, query]) => {
 		events.push([
 			"update",
 			path,

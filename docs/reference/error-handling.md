@@ -115,10 +115,10 @@ The stack trace will point to the place where the wrongly implemented view was i
 
 This is thrown by the [`<Routes>`](./routing.md) component if no router has been provided via the current [`context`](./core/context.md).
 
-### `G4`
-**`onLeak` must only be called once and outside of any capture calls.**
+### `G5`
+**Teardown hooks can not be registered outside of a lifecycle context.**
 
-[Leak detection](./testing.md#leak-detection) is meant for testing purposes. You need to ensure that `onLeak` is only called once per thread and before anything else is initialized.
+Make sure that you are not leaking teardown hooks by accident and either [`capture`](./core/lifecycle.md#capture) or intentionally [`leak`](./core/lifecycle.md#leak) them.
 
 ### Reserved Error Codes
-The following error codes existed in previous versions: `G0`
+The following error codes existed in previous versions: `G0, G4`

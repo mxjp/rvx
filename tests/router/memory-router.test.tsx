@@ -1,7 +1,7 @@
 import { strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 
-import { uncapture, watch } from "rvx";
+import { leak, watch } from "rvx";
 import { MemoryRouter } from "rvx/router";
 
 import { assertEvents } from "../common.js";
@@ -9,11 +9,11 @@ import { assertEvents } from "../common.js";
 await suite("router/memory router", async () => {
 	await test("general usage", () => {
 		const events: unknown[] = [];
-		const router = uncapture(() => new MemoryRouter());
+		const router = leak(() => new MemoryRouter());
 		strictEqual(router.root, router);
 		strictEqual(router.parent, undefined);
 
-		uncapture(() => {
+		leak(() => {
 			watch(() => [router.path, router.query] as const, ([path, query]) => {
 				events.push([path, query?.raw]);
 			});
@@ -35,7 +35,7 @@ await suite("router/memory router", async () => {
 	});
 
 	await test("initial state", () => {
-		const router = uncapture(() => new MemoryRouter({
+		const router = leak(() => new MemoryRouter({
 			path: "/foo/bar/",
 			query: {
 				foo: "1",

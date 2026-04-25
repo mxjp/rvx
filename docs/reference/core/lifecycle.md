@@ -30,7 +30,7 @@ Register a hook to be called when the current lifecycle is disposed:
 	});
 	```
 
-Calling `teardown` outside of any functions listed below has no effect and "leaks" the teardown hook. When running tests, this behavior can be [configured](../testing.md#leak-detection) to log leaks or to throw an error.
+Calling `teardown` outside of a lifecycle context "leaks" the teardown hook and causes an [error](../error-handling.md#g5) by default. See [`leak`](#leak) for intentionally leaking teardown hooks.
 
 Teardown hooks run [isolated](./isolation.md) from signal access tracking and the current lifecycle.
 
@@ -94,14 +94,14 @@ When `dispose` is called while the callback is still running, it has no effect a
 
 If the specified function throws an error, teardown hooks are called in reverse registration order and the error is re-thrown.
 
-## `uncapture`
-To explicitly leak teardown hooks, the `uncapture` function can be used. Code running during the call has an infinitly long lifecycle.
+## `leak`
+To explicitly leak teardown hooks, the `leak` function can be used. Code running during the call has an infinitly long lifecycle.
 
 === "JSX"
 	```jsx
-	import { uncapture } from "rvx";
+	import { leak } from "rvx";
 
-	uncapture(() => {
+	leak(() => {
 		// This has no effect here:
 		teardown(() => { ... });
 	});
@@ -109,9 +109,9 @@ To explicitly leak teardown hooks, the `uncapture` function can be used. Code ru
 
 === "No Build"
 	```jsx
-	import { uncapture } from "./rvx.js";
+	import { leak } from "./rvx.js";
 
-	uncapture(() => {
+	leak(() => {
 		// This has no effect here:
 		teardown(() => { ... });
 	});
@@ -148,9 +148,9 @@ Any lifecycle related API calls can be arbitrarily nested.
 
 === "JSX"
 	```jsx
-	import { capture, uncapture, teardown } from "rvx";
+	import { capture, leak, teardown } from "rvx";
 
-	uncapture(() => {
+	leak(() => {
 		const dispose = capture(() => {
 			teardown(() => {
 				...
@@ -163,9 +163,9 @@ Any lifecycle related API calls can be arbitrarily nested.
 
 === "No Build"
 	```jsx
-	import { capture, uncapture, teardown } from "./rvx.js";
+	import { capture, leak, teardown } from "./rvx.js";
 
-	uncapture(() => {
+	leak(() => {
 		const dispose = capture(() => {
 			teardown(() => {
 				...

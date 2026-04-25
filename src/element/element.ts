@@ -1,5 +1,5 @@
 import { ENV } from "../core/env.js";
-import { capture, TeardownHook, uncapture } from "../core/lifecycle.js";
+import { capture, leak, TeardownHook } from "../core/lifecycle.js";
 import { $, Signal, watchUpdates } from "../core/signals.js";
 import { Content } from "../core/types.js";
 import { render } from "../core/view.js";
@@ -78,7 +78,7 @@ export abstract class RvxElement extends moduleEnv.HTMLElement {
 		if (signal === undefined) {
 			signal = $(this.getAttribute(name));
 			this.#signals.set(name, signal);
-			uncapture(() => {
+			leak(() => {
 				watchUpdates(signal!, value => {
 					if (value === null) {
 						this.removeAttribute(name);

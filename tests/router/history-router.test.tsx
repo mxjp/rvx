@@ -1,6 +1,6 @@
 import { strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { ENV, uncapture, watch } from "rvx";
+import { ENV, leak, watch } from "rvx";
 import { isRvxDom } from "rvx/dom";
 import { HistoryRouter } from "rvx/router";
 import { assertEvents } from "../common.js";
@@ -48,11 +48,11 @@ await suite("router/history router", { skip: isRvxDom() }, async () => {
 		locationSearch = "";
 
 		const events: unknown[] = [];
-		const router = uncapture(() => new HistoryRouter());
+		const router = leak(() => new HistoryRouter());
 		strictEqual(router.root, router);
 		strictEqual(router.parent, undefined);
 
-		uncapture(() => {
+		leak(() => {
 			watch(() => [router.path, router.query] as const, ([path, query]) => {
 				events.push([path, query?.raw]);
 			});
@@ -88,9 +88,9 @@ await suite("router/history router", { skip: isRvxDom() }, async () => {
 		locationSearch = "";
 
 		const events: unknown[] = [];
-		const router = uncapture(() => new HistoryRouter({ basePath: "foo/bar" }));
+		const router = leak(() => new HistoryRouter({ basePath: "foo/bar" }));
 
-		uncapture(() => {
+		leak(() => {
 			watch(() => router.path, path => {
 				events.push(path);
 			});
@@ -112,7 +112,7 @@ await suite("router/history router", { skip: isRvxDom() }, async () => {
 			assertEvents(events, ["/foo/bar"]);
 		}
 
-		const router2 = uncapture(() => new HistoryRouter());
+		const router2 = leak(() => new HistoryRouter());
 		router2.push("/test");
 		strictEqual(locationPath, "/test");
 		assertEvents(events, ["/../../test"]);

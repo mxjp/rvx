@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { $, capture, ClassValue, Context, e, ENV, ExpressionResult, NODE, StyleMap, uncapture } from "rvx";
+import { $, capture, ClassValue, Context, e, ENV, ExpressionResult, leak, NODE, StyleMap } from "rvx";
 import { isRvxDom } from "rvx/dom";
 import { assertEvents } from "../common.js";
 
@@ -76,7 +76,7 @@ await suite("element", async () => {
 			});
 
 			await test("attributes", () => {
-				const elem = uncapture(() => {
+				const elem = leak(() => {
 					return jsx
 						? <div
 							foo="bar"
@@ -107,7 +107,7 @@ await suite("element", async () => {
 
 			await test("removed attribute", () => {
 				const signal = $<any>(false);
-				const elem = uncapture(() => {
+				const elem = leak(() => {
 					return jsx
 						? <div test-attr={signal} /> as HTMLElement
 						: e("div").set("test-attr", signal).elem;
@@ -162,7 +162,7 @@ await suite("element", async () => {
 							}) as typeof document.createElementNS;
 						}
 
-						const elem = uncapture(() => {
+						const elem = leak(() => {
 							return jsx
 								? <div class={value} /> as HTMLElement
 								: e("div").class(value).elem;
@@ -357,7 +357,7 @@ await suite("element", async () => {
 				const a = $<StyleMap>({ color: "blue" });
 				const b = $<unknown>("red");
 				const c = $<StyleMap>({ width: "42px" });
-				const elem = uncapture(() => {
+				const elem = leak(() => {
 					return jsx
 						? <div style={[
 							a,
@@ -483,14 +483,14 @@ await suite("element", async () => {
 	});
 
 	await test("jsx complex content", () => {
-		const elem = uncapture(() => {
+		const elem = leak(() => {
 			return <div>{1}{2}</div> as HTMLElement;
 		});
 		deepStrictEqual(elem.textContent, "12");
 	});
 
 	await test("jsx spread operator", () => {
-		const elem = uncapture(() => {
+		const elem = leak(() => {
 			return <div foo="a" {...{ baz: "c" }} bar="b" /> as HTMLElement;
 		});
 		strictEqual(elem.getAttribute("foo"), "a");
@@ -528,7 +528,7 @@ await suite("element", async () => {
 	});
 
 	await test("jsx element key property", () => {
-		const elem = uncapture(() => {
+		const elem = leak(() => {
 			return <div key="foo" bar="baz" /> as HTMLElement;
 		});
 		strictEqual(elem.getAttribute("key"), "foo");

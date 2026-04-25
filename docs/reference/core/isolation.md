@@ -54,8 +54,6 @@ Teardown hooks are leaked as if [`teardown`](./lifecycle.md#teardown) was called
 	});
 	```
 
-To isolate only the lifecycle, you can also use [`uncapture`](./lifecycle.md#uncapture), but this will not trigger [leak detection](../testing.md#leak-detection).
-
 ## Signals
 Signal accesses are not tracked as if the signal was accessed outside of any observer.
 

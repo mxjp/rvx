@@ -21,10 +21,4 @@ for (const key of [
 	(globalThis as any)[key] = dom.window[key];
 }
 
-const { onLeak } = await import("rvx");
-
-onLeak(() => {
-	throw new Error("teardown leak");
-});
-
 polyfillAnimationFrames();

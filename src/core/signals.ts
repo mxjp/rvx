@@ -1,6 +1,6 @@
 import { Context } from "./context.js";
 import { NOOP } from "./internals/noop.js";
-import { ACCESS_STACK, AccessHook, LEAK, NotifyHook, TEARDOWN_STACK, useStack } from "./internals/stacks.js";
+import { ACCESS_STACK, AccessHook, THROW_ON_LEAK, NotifyHook, TEARDOWN_STACK, useStack } from "./internals/stacks.js";
 import { isolate } from "./isolate.js";
 import { capture, teardown, TeardownHook } from "./lifecycle.js";
 
@@ -521,7 +521,7 @@ export function lazy<T>(expr: () => T): () => T {
 				signals.forEach(s => s.delete(mark));
 				signals.clear();
 				ACCESS_STACK.push(access);
-				TEARDOWN_STACK.push(LEAK);
+				TEARDOWN_STACK.push(THROW_ON_LEAK);
 				value = expr();
 				stale = false;
 			} finally {

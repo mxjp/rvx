@@ -1,6 +1,6 @@
 import { notStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { $, Attach, capture, Component, ENV, For, Index, memo, mount, movable, Nest, render, Show, teardown, uncapture, View, watch } from "rvx";
+import { $, Attach, capture, Component, ENV, For, Index, leak, memo, mount, movable, Nest, render, Show, teardown, View, watch } from "rvx";
 import { assertViewState } from "rvx/test";
 import { assertEvents, boundaryEvents, causesRejection, computeMapArrayDiffEvents, lifecycleEvent, TestView, testView, text, viewText, withMsg } from "../common.js";
 
@@ -54,7 +54,7 @@ await suite("view", async () => {
 
 		throws(() => view.view.setBoundaryOwner(() => {}), withMsg("G2"));
 		unset();
-		uncapture(() => view.view.setBoundaryOwner(() => {}));
+		leak(() => view.view.setBoundaryOwner(() => {}));
 
 		const c = view.nextFirst();
 		strictEqual(view.view.first, c);
@@ -93,7 +93,7 @@ await suite("view", async () => {
 				<div>b</div>,
 				<div>c</div>,
 			]);
-			const outer = uncapture(() => render([
+			const outer = leak(() => render([
 				"0",
 				inner,
 			]));
@@ -285,7 +285,7 @@ await suite("view", async () => {
 			const events: unknown[] = [];
 			const signal = $(0);
 			let view!: View;
-			uncapture(() => {
+			leak(() => {
 				view = <Nest watch={signal}>
 					{value => {
 						lifecycleEvent(events, `${value}`);
@@ -413,7 +413,7 @@ await suite("view", async () => {
 				return <>b{signal}</>;
 			}
 
-			const view = uncapture(() => {
+			const view = leak(() => {
 				return <Nest watch={memo<Component>(() => signal.value < 2 ? A : B)}>
 					{comp => comp()}
 				</Nest> as View;
@@ -444,7 +444,7 @@ await suite("view", async () => {
 			const signal = $();
 			const count = $(0);
 
-			const view = uncapture(() => {
+			const view = leak(() => {
 				return <Nest watch={signal}>
 					{() => {
 						const version = `v${count.value}`;
@@ -477,7 +477,7 @@ await suite("view", async () => {
 		await test("explicit component from signal", () => {
 			const events: unknown[] = [];
 			const comp = $<Component | undefined>(undefined);
-			const view = uncapture(() => <Nest watch={comp}>{c => c?.()}</Nest> as View);
+			const view = leak(() => <Nest watch={comp}>{c => c?.()}</Nest> as View);
 
 			assertViewState(view);
 			assertEvents(events, []);
@@ -508,7 +508,7 @@ await suite("view", async () => {
 		await test("implicit component from signal", () => {
 			const events: unknown[] = [];
 			const comp = $<Component | undefined | null>(undefined);
-			const view = uncapture(() => <Nest watch={comp} /> as View);
+			const view = leak(() => <Nest watch={comp} /> as View);
 
 			assertViewState(view);
 			assertEvents(events, []);
@@ -546,7 +546,7 @@ await suite("view", async () => {
 				const signal = $();
 				const inner = render(<>{0}{1}</>);
 				assertViewState(inner);
-				const outer = uncapture(() => {
+				const outer = leak(() => {
 					return <Nest watch={signal}>
 						{() => <>{inner}x</>}
 					</Nest> as View;
@@ -564,7 +564,7 @@ await suite("view", async () => {
 				const signal = $();
 				const inner = render(<>{0}{1}</>);
 				assertViewState(inner);
-				const outer = uncapture(() => {
+				const outer = leak(() => {
 					return <Nest watch={signal}>
 						{() => <>x{inner}</>}
 					</Nest> as View;
@@ -582,7 +582,7 @@ await suite("view", async () => {
 				const signal = $();
 				const inner = render(<>{0}{1}</>);
 				assertViewState(inner);
-				const outer = uncapture(() => {
+				const outer = leak(() => {
 					return <Nest watch={signal}>
 						{() => <>{inner}x</>}
 					</Nest> as View;
@@ -601,7 +601,7 @@ await suite("view", async () => {
 				const signal = $();
 				const inner = render(<>{0}{1}</>);
 				assertViewState(inner);
-				const outer = uncapture(() => {
+				const outer = leak(() => {
 					return <Nest watch={signal}>
 						{() => <>x{inner}</>}
 					</Nest> as View;
@@ -622,7 +622,7 @@ await suite("view", async () => {
 		const events: unknown[] = [];
 		const signal = $(0);
 
-		const view = uncapture(() => {
+		const view = leak(() => {
 			return <Show when={signal} else={() => {
 				events.push("+f");
 				teardown(() => {
@@ -922,7 +922,7 @@ await suite("view", async () => {
 		await test("render side effects", () => {
 			const events: unknown[] = [];
 			const signal = $([1]);
-			const view = uncapture(() => {
+			const view = leak(() => {
 				return <Index each={signal}>
 					{(value, index) => {
 						lifecycleEvent(events, String(index));
@@ -945,7 +945,7 @@ await suite("view", async () => {
 		await test("component isolation", () => {
 			const values = $([1]);
 			const signal = $(1);
-			const view = uncapture(() => {
+			const view = leak(() => {
 				return <Index each={values}>
 					{value => {
 						const signalValue = signal.value;
@@ -967,15 +967,15 @@ await suite("view", async () => {
 	await suite("movable", async () => {
 		await test("basic usage", () => {
 			const inner = $(1);
-			const view = uncapture(() => movable(<>
+			const view = leak(() => movable(<>
 				inner:{inner}
 			</>));
 
-			const a = uncapture(view.move);
+			const a = leak(view.move);
 			assertViewState(a);
 			strictEqual(viewText(a), "inner:1");
 
-			const b = uncapture(view.move);
+			const b = leak(view.move);
 			assertViewState(a);
 			assertViewState(b);
 			strictEqual(viewText(a), "");
@@ -997,7 +997,7 @@ await suite("view", async () => {
 			strictEqual(b.first, b.last);
 			notStrictEqual(a.first, b.first);
 
-			const c = uncapture(view.move);
+			const c = leak(view.move);
 			assertViewState(a);
 			assertViewState(b);
 			assertViewState(c);
@@ -1006,7 +1006,7 @@ await suite("view", async () => {
 		});
 
 		await test("lifecycle", () => {
-			const view = uncapture(() => movable(<>test</>));
+			const view = leak(() => movable(<>test</>));
 			let a!: View;
 			const disposeA = capture(() => {
 				a = render(<>0{view.move()}1</>);
@@ -1015,7 +1015,7 @@ await suite("view", async () => {
 			disposeA();
 			view.detach();
 			strictEqual(viewText(a), "0test1");
-			const b = uncapture(() => render(<>2{view.move()}3</>));
+			const b = leak(() => render(<>2{view.move()}3</>));
 			strictEqual(viewText(a), "01");
 			strictEqual(viewText(b), "2test3");
 		});
@@ -1025,7 +1025,7 @@ await suite("view", async () => {
 		const signal = $(false);
 		const inner = $(1);
 
-		const view = uncapture(() => {
+		const view = leak(() => {
 			return <Attach when={signal}>
 				inner:{inner}
 			</Attach> as View;

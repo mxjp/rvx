@@ -1,7 +1,7 @@
 import { deepStrictEqual, fail, notStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 
-import { For, Index, uncapture, View, watchUpdates } from "rvx";
+import { For, Index, leak, View, watchUpdates } from "rvx";
 import { wrap } from "rvx/store";
 
 import { assertEvents, viewText } from "../common.js";
@@ -37,7 +37,7 @@ await suite("store/reactive-array-proxy", async () => {
 				const events: unknown[] = [];
 				const inner = Array.from(options.start);
 				const proxy = wrap(inner);
-				uncapture(() => {
+				leak(() => {
 					const maxEntries = 10;
 					watchUpdates(() => {
 						function noop(_arg: unknown) {}
@@ -274,7 +274,7 @@ await suite("store/reactive-array-proxy", async () => {
 		await test("at", () => {
 			const events: unknown[] = [];
 			const proxy = wrap(["a", "b"]);
-			uncapture(() => {
+			leak(() => {
 				watchUpdates(() => proxy.at(1), value => {
 					events.push(value);
 				});
@@ -318,7 +318,7 @@ await suite("store/reactive-array-proxy", async () => {
 			await test(name, () => {
 				const events: unknown[] = [];
 				const proxy = wrap(["a", "b", "c"]);
-				uncapture(() => {
+				leak(() => {
 					watchUpdates(() => access(proxy), () => {
 						events.push("access");
 					});
@@ -350,7 +350,7 @@ await suite("store/reactive-array-proxy", async () => {
 		] as [string, (target: string[]) => void][]) {
 			await test(name, () => {
 				const proxy = wrap(["a", "b", "c"]);
-				uncapture(() => {
+				leak(() => {
 					watchUpdates(() => access(proxy), () => {
 						fail("unexpected update");
 					});
@@ -364,7 +364,7 @@ await suite("store/reactive-array-proxy", async () => {
 		function viewCompatTest(render: (proxy: string[]) => View) {
 			return () => {
 				const proxy = wrap(["a", "b"]);
-				const view = uncapture(() => render(proxy));
+				const view = leak(() => render(proxy));
 				strictEqual(viewText(view), "ab");
 				proxy.splice(1, 0, "c");
 				strictEqual(viewText(view), "acb");

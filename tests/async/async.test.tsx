@@ -1,6 +1,6 @@
 import { strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { capture, Provide, uncapture } from "rvx";
+import { capture, leak, Provide } from "rvx";
 import { ASYNC, Async, AsyncContext } from "rvx/async";
 import { assertEvents, future, isIsolated, text } from "../common.js";
 
@@ -9,7 +9,7 @@ await suite("async/async", async () => {
 		const events: unknown[] = [];
 		const [promise, resolve] = future();
 		const ac = new AsyncContext();
-		const root = uncapture(() => <div>
+		const root = leak(() => <div>
 			<Provide context={ASYNC} value={ac}>
 				{() => <Async source={promise} />}
 			</Provide>
@@ -29,7 +29,7 @@ await suite("async/async", async () => {
 		const events: unknown[] = [];
 		const [promise,, reject] = future();
 		const ac = new AsyncContext();
-		const root = uncapture(() => <div>
+		const root = leak(() => <div>
 			<Provide context={ASYNC} value={ac}>
 				{() => <Async source={promise} />}
 			</Provide>
@@ -47,7 +47,7 @@ await suite("async/async", async () => {
 
 	await test("content, resolve", async () => {
 		const [promise, resolve] = future<number>();
-		const root = uncapture(() => <div>
+		const root = leak(() => <div>
 			<Async source={promise} pending={() => "pending"}>
 				{value => `resolved: ${value}`}
 			</Async>
@@ -60,7 +60,7 @@ await suite("async/async", async () => {
 
 	await test("content, reject", async () => {
 		const [promise,, reject] = future<number>();
-		const root = uncapture(() => <div>
+		const root = leak(() => <div>
 			<Async
 				source={promise}
 				pending={() => "pending"}

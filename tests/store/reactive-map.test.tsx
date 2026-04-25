@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { For, Index, uncapture, View, watch } from "rvx";
+import { For, Index, leak, View, watch } from "rvx";
 import { ReactiveMap, wrap } from "rvx/store";
 import { assertEvents, viewText } from "../common.js";
 import { WrapTest } from "./common.js";
@@ -34,7 +34,7 @@ await suite("store/reactive-map", async () => {
 		const inner = new Map<string, number>([["foo", 7]]);
 		const map = wrap(inner);
 
-		uncapture(() => {
+		leak(() => {
 			watch(() => map.size, value => {
 				events.push(["size", value]);
 			});
@@ -139,7 +139,7 @@ await suite("store/reactive-map", async () => {
 		function viewCompatTest(render: (proxy: Map<string, number>) => View) {
 			return () => {
 				const proxy = wrap(new Map<string, number>([["foo", 0]]));
-				const view = uncapture(() => render(proxy));
+				const view = leak(() => render(proxy));
 				strictEqual(viewText(view), "(foo:0)");
 				proxy.set("foo", 1);
 				strictEqual(viewText(view), "(foo:1)");

@@ -1,6 +1,6 @@
 import { deepStrictEqual, notStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { For, uncapture, View, watch } from "rvx";
+import { For, leak, View, watch } from "rvx";
 import { unwrap, wrap, wrapInstancesOf } from "rvx/store";
 import { assertEvents, viewText } from "../common.js";
 import { WrapTest } from "./common.js";
@@ -36,7 +36,7 @@ await suite("store/reactive-proxy", async () => {
 		const proxy = wrap(inner);
 		notStrictEqual(inner, proxy);
 
-		uncapture(() => {
+		leak(() => {
 			watch(() => Object.entries(proxy), value => {
 				events.push(["entries", value]);
 			});
@@ -134,7 +134,7 @@ await suite("store/reactive-proxy", async () => {
 		notStrictEqual(inner, proxy);
 		strictEqual(proxy instanceof Test, true);
 
-		uncapture(() => {
+		leak(() => {
 			watch(() => proxy.value, value => {
 				events.push(["value", value]);
 			});
@@ -194,7 +194,7 @@ await suite("store/reactive-proxy", async () => {
 
 	await test("view compat", () => {
 		const proxy = wrap<Record<string, number>>({ foo: 0 });
-		const view = uncapture(() => {
+		const view = leak(() => {
 			return <For each={() => Object.entries(proxy)}>{v => `(${v[0]}:${v[1]})`}</For> as View;
 		});
 		strictEqual(viewText(view), "(foo:0)");

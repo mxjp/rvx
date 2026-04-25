@@ -1,6 +1,6 @@
 import { strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { $, batch, Context, isolate, isTracking, teardown, trigger, uncapture, untrack, watch } from "rvx";
+import { $, batch, Context, isolate, isTracking, leak, teardown, trigger, untrack, watch } from "rvx";
 import { assertEvents, withMsg } from "../common.js";
 
 await suite("isolate", async () => {
@@ -10,14 +10,14 @@ await suite("isolate", async () => {
 
 	await test("lifecycle isolation", () => {
 		isolate(() => {
-			throws(() => teardown(() => {}), withMsg("teardown leak"));
+			throws(() => teardown(() => {}), withMsg("G5"));
 		});
 	});
 
 	await test("access isolation", () => {
 		const events: unknown[] = [];
 		const signal = $(0);
-		uncapture(() => {
+		leak(() => {
 			watch(() => {
 				isolate(() => {
 					events.push(signal.value);
@@ -32,10 +32,10 @@ await suite("isolate", async () => {
 	await test("tracking isolation", () => {
 		const events: unknown[] = [];
 		const signal = $(0);
-		const pipe = uncapture(() => trigger(() => {
+		const pipe = leak(() => trigger(() => {
 			events.push("trigger");
 		}));
-		uncapture(() => {
+		leak(() => {
 			untrack(() => {
 				strictEqual(isTracking(), false);
 				isolate(() => {
@@ -64,7 +64,7 @@ await suite("isolate", async () => {
 		const events: unknown[] = [];
 		const a = $(1);
 		const b = $(2);
-		uncapture(() => {
+		leak(() => {
 			watch(() => {
 				events.push(a.value + b.value);
 			});

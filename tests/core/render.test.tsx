@@ -1,6 +1,6 @@
 import { deepStrictEqual, notStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { $, ENV, NODE, render, uncapture, View, viewNodes } from "rvx";
+import { $, ENV, leak, NODE, render, View, viewNodes } from "rvx";
 import { createText } from "../../dist/es/core/internals/create-text.js";
 import { assertEvents, boundaryEvents, testView, text, viewText } from "../common.js";
 
@@ -11,7 +11,7 @@ await suite("render", async () => {
 
 	await test("createText (internal)", () => {
 		const signal = $<unknown>(undefined);
-		const text = uncapture(() => createText(signal, ENV.current));
+		const text = leak(() => createText(signal, ENV.current));
 		strictEqual(text.textContent, "");
 		signal.value = null;
 		strictEqual(text.textContent, "");
@@ -83,7 +83,7 @@ await suite("render", async () => {
 	await test("empty document fragment in array with view", () => {
 		const events: unknown[] = [];
 		const inner = testView();
-		const view = uncapture(() => {
+		const view = leak(() => {
 			return render([
 				ENV.current.document.createDocumentFragment(),
 				inner.view,
@@ -91,7 +91,7 @@ await suite("render", async () => {
 			]);
 		});
 		strictEqual(viewText(view), "fl");
-		uncapture(() => view.setBoundaryOwner(boundaryEvents(events)));
+		leak(() => view.setBoundaryOwner(boundaryEvents(events)));
 		inner.nextFirst();
 		inner.nextLast();
 		assertEvents(events, []);
@@ -100,7 +100,7 @@ await suite("render", async () => {
 	await test("empty document fragments in array with view", () => {
 		const events: unknown[] = [];
 		const inner = testView();
-		const view = uncapture(() => {
+		const view = leak(() => {
 			return render([
 				ENV.current.document.createDocumentFragment(),
 				ENV.current.document.createDocumentFragment(),
@@ -110,7 +110,7 @@ await suite("render", async () => {
 			]);
 		});
 		strictEqual(viewText(view), "fl");
-		uncapture(() => view.setBoundaryOwner(boundaryEvents(events)));
+		leak(() => view.setBoundaryOwner(boundaryEvents(events)));
 		strictEqual(view.first instanceof ENV.current.Comment, true);
 		strictEqual(view.last instanceof ENV.current.Comment, true);
 		inner.nextFirst();
@@ -121,7 +121,7 @@ await suite("render", async () => {
 	await test("non empty document fragments in array with view", () => {
 		const events: unknown[] = [];
 		const inner = testView();
-		const view = uncapture(() => {
+		const view = leak(() => {
 			return render([
 				ENV.current.document.createDocumentFragment(),
 				render([1, "2"]),
@@ -133,7 +133,7 @@ await suite("render", async () => {
 			]);
 		});
 		strictEqual(viewText(view), "12fl34");
-		uncapture(() => view.setBoundaryOwner(boundaryEvents(events)));
+		leak(() => view.setBoundaryOwner(boundaryEvents(events)));
 		inner.nextFirst();
 		inner.nextLast();
 		assertEvents(events, []);
@@ -152,8 +152,8 @@ await suite("render", async () => {
 		for (const value of ["test", 42, true]) {
 			for (const nodes of [
 				renderToNodes(value),
-				uncapture(() => renderToNodes(() => value)),
-				uncapture(() => renderToNodes($(value))),
+				leak(() => renderToNodes(() => value)),
+				leak(() => renderToNodes($(value))),
 			]) {
 				strictEqual(nodes.length, 1);
 				strictEqual(nodes[0] instanceof ENV.current.Text, true);
@@ -167,7 +167,7 @@ await suite("render", async () => {
 			const content = ENV.current.document.createElement("div");
 			const inner = render(content);
 			strictEqual(inner instanceof View, true);
-			const outer = uncapture(() => render([inner]));
+			const outer = leak(() => render([inner]));
 			notStrictEqual(inner, outer);
 			deepStrictEqual(Array.from(viewNodes(outer)), [content]);
 		});
@@ -179,7 +179,7 @@ await suite("render", async () => {
 			const fragment = ENV.current.document.createDocumentFragment();
 			fragment.appendChild(fragmentChild);
 
-			const view = uncapture(() => render([
+			const view = leak(() => render([
 				"foo",
 				[
 					null,
@@ -190,7 +190,7 @@ await suite("render", async () => {
 				[undefined],
 			]));
 
-			uncapture(() => view.setBoundaryOwner(() => {
+			leak(() => view.setBoundaryOwner(() => {
 				throw new Error("boundary should be static");
 			}));
 
@@ -223,7 +223,7 @@ await suite("render", async () => {
 			const fragment = ENV.current.document.createDocumentFragment();
 			fragment.appendChild(fragmentChild);
 
-			const view = uncapture(() => render([
+			const view = leak(() => render([
 				[first.view],
 				[[
 					"foo",
@@ -233,7 +233,7 @@ await suite("render", async () => {
 				last.view,
 			]));
 
-			uncapture(() => view.setBoundaryOwner(boundaryEvents(events)));
+			leak(() => view.setBoundaryOwner(boundaryEvents(events)));
 
 			{
 				const nodes = Array.from(viewNodes(view));

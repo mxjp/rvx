@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { $, capture, mapArray, memo, teardown, uncapture, watch } from "rvx";
+import { $, capture, leak, mapArray, memo, teardown, watch } from "rvx";
 import { assertEvents, computeMapArrayDiffEvents, lifecycleEvent } from "../common.js";
 
 await suite("mapArray", async () => {
@@ -26,7 +26,7 @@ await suite("mapArray", async () => {
 			});
 		});
 
-		const watchedOutput = uncapture(() => memo(output));
+		const watchedOutput = leak(() => memo(output));
 
 		function assertIndexes() {
 			deepStrictEqual(outputByIndex.slice(0, output().length), output());
@@ -113,7 +113,7 @@ await suite("mapArray", async () => {
 	await test("sequential map side effects", () => {
 		const events: unknown[] = [];
 		const signal = $([1]);
-		const output = uncapture(() => mapArray(signal, value => {
+		const output = leak(() => mapArray(signal, value => {
 			if (value === 3) {
 				signal.value = [5];
 			}
@@ -130,7 +130,7 @@ await suite("mapArray", async () => {
 	await test("sequential index side effects", () => {
 		const events: unknown[] = [];
 		const signal = $([1, 2]);
-		const output = uncapture(() => mapArray(signal, (value, index) => {
+		const output = leak(() => mapArray(signal, (value, index) => {
 			if (index() === 0) {
 				watch(index, index => {
 					if (index === 2) {
@@ -150,7 +150,7 @@ await suite("mapArray", async () => {
 
 	await test("map isolation", () => {
 		const signal = $(0);
-		const output = uncapture(() => mapArray([1], value => {
+		const output = leak(() => mapArray([1], value => {
 			return value + signal.value;
 		}));
 		deepStrictEqual(output(), [1]);

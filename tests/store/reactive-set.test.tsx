@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { For, Index, uncapture, View, watch } from "rvx";
+import { For, Index, leak, View, watch } from "rvx";
 import { ReactiveSet, wrap } from "rvx/store";
 import { assertEvents, viewText } from "../common.js";
 import { WrapTest } from "./common.js";
@@ -32,7 +32,7 @@ await suite("store/reactive-set", async () => {
 		const inner = new Set(["foo"]);
 		const set = wrap(inner);
 
-		uncapture(() => {
+		leak(() => {
 			watch(() => set.size, value => {
 				events.push(["size", value]);
 			});
@@ -131,7 +131,7 @@ await suite("store/reactive-set", async () => {
 		function viewCompatTest(render: (proxy: Set<string>) => View) {
 			return () => {
 				const proxy = wrap(new Set<string>(["a"]));
-				const view = uncapture(() => render(proxy));
+				const view = leak(() => render(proxy));
 				strictEqual(viewText(view), "a");
 				proxy.add("b");
 				strictEqual(viewText(view), "ab");

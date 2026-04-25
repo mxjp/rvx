@@ -1,12 +1,11 @@
-import { deepStrictEqual, fail, strictEqual, throws } from "node:assert";
+import { fail, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { capture, captureSelf, onLeak, teardown, TeardownHook, teardownOnError, uncapture } from "rvx";
-import { getLeakHook, setLeakHook } from "../../dist/es/core/internals/stacks.js";
+import { capture, captureSelf, leak, teardown, TeardownHook, teardownOnError } from "rvx";
 import { assertEvents, withMsg } from "../common.js";
 
 await suite("lifecycle", async () => {
 	await test("inert use", () => {
-		uncapture(() => {
+		leak(() => {
 			teardown(() => {
 				throw new Error("this should not happen");
 			});
@@ -15,51 +14,20 @@ await suite("lifecycle", async () => {
 
 	await suite("test/lifecycle", async () => {
 		await test("leak", () => {
-			cleanTeardownStack(() => {
-				const leaks: TeardownHook[] = [];
-				onLeak(hook => {
-					leaks.push(hook);
-					throw new Error("test");
-				});
-
-				const hook = () => {};
-				throws(() => {
-					teardown(hook);
-				}, error => {
-					return error instanceof Error && error.message === "test";
-				});
-
-				deepStrictEqual(leaks, [hook]);
-			});
+			throws(() => {
+				teardown(() => {});
+			}, withMsg("G5"));
 		});
 
 		await test("captures", () => {
-			cleanTeardownStack(() => {
-				const leaks: TeardownHook[] = [];
-				onLeak(hook => {
-					leaks.push(hook);
-					throw new Error("invalid hook");
-				});
+			leak(() => {
+				teardown(() => {});
+			});
 
-				uncapture(() => {
-					teardown(() => {});
-				});
-
-				capture(() => {
-					teardown(() => {});
-				});
+			capture(() => {
+				teardown(() => {});
 			});
 		});
-
-		function cleanTeardownStack(fn: () => void): void {
-			const original = getLeakHook();
-			try {
-				setLeakHook(undefined);
-				fn();
-			} finally {
-				setLeakHook(original);
-			}
-		}
 	});
 
 	await test("capture", () => {
@@ -73,7 +41,7 @@ await suite("lifecycle", async () => {
 				events.push(2);
 			});
 
-			uncapture(() => {
+			leak(() => {
 				events.push(3);
 
 				teardown(() => {
