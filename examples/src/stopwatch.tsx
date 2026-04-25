@@ -7,16 +7,16 @@ This example also demonstrates how state and logic can be separated from it's re
 
 */
 
-import { $, batch, Expression, get, Index, Nest, Overwrite, Show, watchUpdates } from "rvx";
+import { $, batch, Expression, get, Index, Nest, Override, Show, watchUpdates } from "rvx";
 import { useAnimation } from "rvx/async";
 
 export function Example() {
 	const stopwatch = new Stopwatch();
 
 	return <div class="column">
-		<Overwrite style={{ "font-size": "2rem" }}>
+		<Override style={{ "font-size": "2rem" }}>
 			<Time value={stopwatch.time} />
-		</Overwrite>
+		</Override>
 		<div class="row">
 			<Nest watch={stopwatch.running}>
 				{running => running

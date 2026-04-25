@@ -11,12 +11,12 @@ import { applyElement } from "./jsx/common.js";
  *
  * @example
  * ```tsx
- * <Overwrite class="some-class">
+ * <Override class="some-class">
  *   <SomeComponent />
- * </Overwrite>
+ * </Override>
  * ```
  */
-export function Overwrite<E extends Element>(props: { children: unknown } & Attributes<E>): unknown {
+export function Override<E extends Element>(props: { children: unknown } & Attributes<E>): unknown {
 	const { children } = props as { children: NodeTarget<Element> | Element };
 	delete props.children;
 	applyElement<Element>(NODE in children ? children[NODE] : children, props as Attributes<Element>);

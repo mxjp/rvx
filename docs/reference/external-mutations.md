@@ -6,7 +6,7 @@ Common use cases for manual DOM mutation are the embedding of third party librar
 ## Attributes & Properties
 Attributes and properties can be safely updated manually. When a signal involved in setting a value is updated, that value is overwritten.
 
-In the example below, updating `someSignal` will overwrite only the `"alt"` attribute:
+In the example below, updating `someSignal` will override only the `"alt"` attribute:
 
 === "JSX"
 	```jsx
@@ -44,7 +44,7 @@ In the example below, updating `someSignal` has no effect on other tokens.
 ### `style`
 When any signal used in the `style` attribute is updated, only the affected property is overwritten.
 
-In the example below, updating `someSignal` will only overwrite the `"color"` property:
+In the example below, updating `someSignal` will only override the `"color"` property:
 
 === "JSX"
 	```jsx

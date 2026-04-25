@@ -6,7 +6,7 @@ export * from "./event.js";
 export * from "./isolate.js";
 export * from "./lifecycle.js";
 export * from "./map-array.js";
-export * from "./overwrite.js";
+export * from "./override.js";
 export * from "./signals.js";
 export type * from "./types.js";
 export * from "./unique-id.js";

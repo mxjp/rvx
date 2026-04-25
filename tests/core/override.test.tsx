@@ -1,18 +1,18 @@
 import { strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { e, ElementBuilder, Overwrite, overwrite, uncapture } from "rvx";
+import { e, ElementBuilder, Override, override, uncapture } from "rvx";
 
-await suite("overwrite", async () => {
+await suite("override", async () => {
 	await suite("element builder based", async () => {
 		await test("with element", () => {
-			const elem = uncapture(() => overwrite(
+			const elem = uncapture(() => override(
 				e("div").class("foo").elem
 			).class("bar").elem);
 			strictEqual(elem.getAttribute("class"), "foo bar");
 		});
 
 		await test("with builder", () => {
-			const elem = uncapture(() => overwrite(
+			const elem = uncapture(() => override(
 				e("div").class("foo")
 			).class("bar").elem);
 			strictEqual(elem.getAttribute("class"), "foo bar");
@@ -21,16 +21,16 @@ await suite("overwrite", async () => {
 
 	await suite("jsx based", async () => {
 		await test("with element", () => {
-			const elem = uncapture(() => <Overwrite class="bar">
+			const elem = uncapture(() => <Override class="bar">
 				<div class="foo">test</div>
-			</Overwrite> as HTMLElement);
+			</Override> as HTMLElement);
 			strictEqual(elem.getAttribute("class"), "foo bar");
 		});
 
 		await test("with builder", () => {
-			const elem = uncapture(() => <Overwrite class="bar">
+			const elem = uncapture(() => <Override class="bar">
 				{e("div").class("foo")}
-			</Overwrite> as ElementBuilder<HTMLElement>).elem;
+			</Override> as ElementBuilder<HTMLElement>).elem;
 			strictEqual(elem.getAttribute("class"), "foo bar");
 		});
 	});

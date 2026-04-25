@@ -2,12 +2,14 @@
 
 ## 26.0
 + **Breaking:** Signal update errors now cause unhalded rejections instead of throwing at the notify site.
-+ **Breaking:** Rename for clarity:
++ **Breaking:** Rename:
 	+ `Context.wrap => Context.bind`
 	+ `Context.inject => Context.provide`
 	+ `Context.prototype.inject => Context.prototype.provide`
 	+ `Context.window => Context.isolate`
 	+ `<Inject> => <Provide>`
+	+ `overwrite => override`
+	+ `<Overwrite> => <Override>`
 + **Breaking:** `ContextState` fields are now internal and no longer subject to semantic versioning.
 + **Breaking:** Remove jsx `ref` attribute.
 + Add `lazy` utility.
@@ -41,7 +43,7 @@
 + **Breaking:** Remove JSX component wrappers from core bundle.
 + **Breaking:** Remove exports: `setPending`, `waitFor`, `NoopEvent`, `NoopEventTarget` and `NoopComment`.
 + Export JSX internal: `applyElement`.
-+ Add element overwrite utilities.
++ Add element override utilities.
 + Fix `StyleValue` types to disallow expressions may that return `undefined`.
 
 ## 22.5

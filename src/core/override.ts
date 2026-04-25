@@ -10,11 +10,11 @@ import { NODE, NodeTarget } from "./element-common.js";
  *
  * @example
  * ```tsx
- * overwrite(
+ * override(
  *   SomeComponent(...)
  * ).class("some-class")
  * ```
  */
-export function overwrite<E extends Element>(target: E | NodeTarget<E>): ElementBuilder<E> {
+export function override<E extends Element>(target: E | NodeTarget<E>): ElementBuilder<E> {
 	return new ElementBuilder(NODE in target ? target[NODE] : target);
 }

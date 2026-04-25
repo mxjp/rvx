@@ -133,7 +133,7 @@ await suite("context", async () => {
 		});
 	});
 
-	await test("nested window overwrite unwinding", () => {
+	await test("nested window override unwinding", () => {
 		const ctx = new Context<number | undefined>();
 		ctx.provide(1, () => {
 			strictEqual(ctx.current, 1);
@@ -216,7 +216,7 @@ await suite("context", async () => {
 			Context.provide([ctx.with(77)], fn);
 		});
 
-		await test("nested overwrite unwinding", () => {
+		await test("nested override unwinding", () => {
 			const ctx = new Context<number | undefined>();
 			ctx.provide(1, () => {
 				ctx.provide(2, () => {
