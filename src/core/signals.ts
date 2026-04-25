@@ -494,7 +494,7 @@ export function watchUpdates<T>(expr: Expression<T>, effect: (value: T) => void)
 /**
  * Wrap an expression to only be re-evaluated when any accessed signal has updated.
  *
- * + Lifecycle hooks from the expression are leaked. (TODO: Check if this is useful behavior)
+ * + Lifecycle hooks from the expression are leaked.
  * + The context from where `lazy` was called is available within the expression.
  *
  * @param expr The expression to wrap.
@@ -540,7 +540,7 @@ export function lazy<T>(expr: () => T): () => T {
 	});
 }
 
-function dispatch(batch: Set<NotifyHook>): void {
+function _dispatch(batch: Set<NotifyHook>): void {
 	while (batch.size > 0) {
 		batch.forEach(notify => {
 			/*
@@ -587,7 +587,7 @@ export function batch<T>(fn: () => T): T {
 		try {
 			BATCH = batch;
 			value = fn();
-			dispatch(batch);
+			_dispatch(batch);
 		} finally {
 			BATCH = undefined;
 		}
