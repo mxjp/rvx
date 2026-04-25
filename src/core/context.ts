@@ -5,8 +5,8 @@ import { CONTEXT_WINDOWS } from "./internals/stacks.js";
  */
 const _capture = <T>(context: Context<T>): ContextState<T> => {
 	return {
-		context: context,
-		value: context.current,
+		c: context,
+		v: context.current,
 	};
 };
 
@@ -56,16 +56,16 @@ export class Context<T> {
 	}
 
 	/**
-	 * Run a function while injecting the specified value for this context.
+	 * Run a function while providing the specified value for this context.
 	 *
-	 * See {@link Inject `<Inject>`} when using JSX.
+	 * See {@link Provide `<Provide>`} when using JSX.
 	 *
-	 * @param value The value to inject.
+	 * @param value The value to provide.
 	 * @param fn The function to run.
 	 * @param args The function arguments.
 	 * @returns The function's return value.
 	 */
-	inject<F extends (...args: any) => any>(value: T | null | undefined, fn: F, ...args: Parameters<F>): ReturnType<F> {
+	provide<F extends (...args: any) => any>(value: T | null | undefined, fn: F, ...args: Parameters<F>): ReturnType<F> {
 		const window = CONTEXT_WINDOWS[CONTEXT_WINDOWS.length - 1];
 		const stack = this.#stack;
 		const parent = this.#windowId;
@@ -85,42 +85,42 @@ export class Context<T> {
 	 * Shorthand for creating a context-value pair for this context.
 	 */
 	with(value: T | null | undefined): ContextState<T> {
-		return { context: this, value };
+		return { c: this, v: value };
 	}
 
 	/**
-	 * Run a function in a new context window (ignoring all current contexts) while injecting the specified states.
+	 * Run a function in a new context window (ignoring all current contexts) while providing the specified states.
 	 *
-	 * @param states The states to inject.
+	 * @param states The states to provide.
 	 * @param fn The function to run.
 	 * @param args The function arguments.
 	 * @returns The function's return value.
 	 */
-	static window<F extends (...args: any) => any>(states: ContextState<unknown>[], fn: F, ...args: Parameters<F>): ReturnType<F> {
+	static isolate<F extends (...args: any) => any>(states: ContextState<unknown>[], fn: F, ...args: Parameters<F>): ReturnType<F> {
 		try {
 			CONTEXT_WINDOWS.push([]);
-			return Context.inject<F>(states, fn, ...args);
+			return Context.provide<F>(states, fn, ...args);
 		} finally {
 			CONTEXT_WINDOWS.pop();
 		}
 	}
 
 	/**
-	 * Run a function while injecting the specified states.
+	 * Run a function while providing the specified states.
 	 *
-	 * See {@link Inject `<Inject>`} when using JSX.
+	 * See {@link Provide `<Provide>`} when using JSX.
 	 *
-	 * @param states The states to inject. When providing multiple values for the same context, the last one is used.
+	 * @param states The states to provide. When providing multiple values for the same context, the last one is used.
 	 * @param fn The function to run.
 	 * @param args The function arguments.
 	 * @returns The function's return value.
 	 */
-	static inject<F extends (...args: any) => any>(states: ContextState<unknown>[], fn: F, ...args: Parameters<F>): ReturnType<F> {
+	static provide<F extends (...args: any) => any>(states: ContextState<unknown>[], fn: F, ...args: Parameters<F>): ReturnType<F> {
 		const active: ActiveState<unknown>[] = [];
 		const windowId = CONTEXT_WINDOWS.length;
 		const window = CONTEXT_WINDOWS[windowId - 1];
 		for (let i = 0; i < states.length; i++) {
-			const { context, value } = states[i];
+			const { c: context, v: value } = states[i];
 			active.push({ c: context, p: context.#windowId });
 			context.#windowId = windowId;
 			context.#stack.push(value);
@@ -146,14 +146,14 @@ export class Context<T> {
 	}
 
 	/**
-	 * Capture all current context states and wrap a function to always run with only these states injected.
+	 * Bind a function to the current context.
 	 *
-	 * @param fn The function to wrap.
-	 * @returns The wrapped function.
+	 * @param fn The function to bind.
+	 * @returns The bound function.
 	 */
-	static wrap<T extends (...args: any) => any>(fn: T): T {
+	static bind<T extends (...args: any) => any>(fn: T): T {
 		const states = Context.capture();
-		return ((...args) => Context.window<any>(states, fn, ...args)) as T;
+		return ((...args) => Context.isolate<any>(states, fn, ...args)) as T;
 	}
 }
 
@@ -166,34 +166,33 @@ interface ActiveState<T> {
 
 /**
  * A context-value pair.
+ *
+ * Fields are considered internal and not subject to semantic versioning.
  */
 export interface ContextState<T> {
-	context: Context<T>;
-
-	/**
-	 * The value that is injected when using this state with {@link Inject `<Inject>`}, {@link Context.inject} or {@link Context.window}.
-	 */
-	value: T | null | undefined;
+	c: Context<T>;
+	v: T | null | undefined;
 }
 
+// TODO: Move into jsx module:
 /**
- * Component for injecting context values while rendering.
+ * Component for providing context values while rendering.
  *
- * See {@link Context.inject} when not using JSX.
+ * See {@link Context.provide} or {@link Context.prototype.provide} when not using JSX.
  */
-export function Inject<T>(props: {
-	/** The context to inject into. */
+export function Provide<T>(props: {
+	/** The context to provide a value for. */
 	context: Context<T>;
-	/** The value to inject. */
+	/** The value to provide. */
 	value: T | null | undefined;
 	children: () => unknown;
 } | {
-	/** The context states to inject. */
+	/** The context states to provide. */
 	states: ContextState<unknown>[];
 	children: () => unknown;
 }): unknown {
 	if ("context" in props) {
-		return props.context.inject(props.value, props.children);
+		return props.context.provide(props.value, props.children);
 	}
-	return Context.inject(props.states, props.children);
+	return Context.provide(props.states, props.children);
 }

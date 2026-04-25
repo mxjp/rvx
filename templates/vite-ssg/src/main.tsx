@@ -6,7 +6,7 @@ import { App } from "./app.js";
 async function main() {
 	try {
 		const asyncCtx = new AsyncContext();
-		const app = render(Context.inject([
+		const app = render(Context.provide([
 			ROUTER.with(new HistoryRouter()),
 			ASYNC.with(asyncCtx),
 		], App));

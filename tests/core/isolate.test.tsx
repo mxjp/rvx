@@ -53,7 +53,7 @@ await suite("isolate", async () => {
 
 	await test("context transparency", () => {
 		const ctx = new Context(42);
-		ctx.inject(77, () => {
+		ctx.provide(77, () => {
 			isolate(() => {
 				strictEqual(ctx.current, 77);
 			});

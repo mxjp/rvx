@@ -1,8 +1,8 @@
-import { strictEqual, throws } from "node:assert";
+import { strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { capture, Inject, teardown, uncapture, watch } from "rvx";
+import { capture, Provide, uncapture } from "rvx";
 import { ASYNC, Async, AsyncContext } from "rvx/async";
-import { assertEvents, future, isIsolated, text, withMsg } from "../common.js";
+import { assertEvents, future, isIsolated, text } from "../common.js";
 
 await suite("async/async", async () => {
 	await test("tracking", async () => {
@@ -10,9 +10,9 @@ await suite("async/async", async () => {
 		const [promise, resolve] = future();
 		const ac = new AsyncContext();
 		const root = uncapture(() => <div>
-			<Inject context={ASYNC} value={ac}>
+			<Provide context={ASYNC} value={ac}>
 				{() => <Async source={promise} />}
-			</Inject>
+			</Provide>
 		</div>) as HTMLElement;
 		strictEqual(text(root), "");
 		const complete = ac.complete().then(() => {
@@ -30,9 +30,9 @@ await suite("async/async", async () => {
 		const [promise,, reject] = future();
 		const ac = new AsyncContext();
 		const root = uncapture(() => <div>
-			<Inject context={ASYNC} value={ac}>
+			<Provide context={ASYNC} value={ac}>
 				{() => <Async source={promise} />}
-			</Inject>
+			</Provide>
 		</div>) as HTMLElement;
 		strictEqual(text(root), "");
 		const complete = ac.complete().catch(error => {

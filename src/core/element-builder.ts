@@ -49,8 +49,8 @@ export class ElementBuilder<E extends Element> implements NodeTarget<E> {
 	on<K extends keyof HTMLElementEventMap>(type: K, listener: EventListener<HTMLElementEventMap[K]>, options?: AddEventListenerOptions): this;
 	on<E extends Event>(type: string, listener: EventListener<E>, options?: AddEventListenerOptions): this;
 	on(type: string, listener: EventListener<Event>, options?: AddEventListenerOptions): this {
-		const wrapped = Context.wrap(listener);
-		this.elem.addEventListener(type, event => isolate(wrapped, event), options);
+		const bound = Context.bind(listener);
+		this.elem.addEventListener(type, event => isolate(bound, event), options);
 		return this;
 	}
 
@@ -176,7 +176,7 @@ export class ElementBuilder<E extends Element> implements NodeTarget<E> {
  * ```tsx
  * e("h1").append("Hello World!")
  *
- * XMLNS.inject(SVG, () => {
+ * XMLNS.provide(SVG, () => {
  *   return e("svg").set("viewbox", "0 0 ...")
  * })
  * ```

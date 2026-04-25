@@ -37,7 +37,7 @@ await suite("element", async () => {
 				const events: unknown[] = [];
 
 				const ctx = new Context<string | undefined>();
-				const elem = ctx.inject("bar", () => {
+				const elem = ctx.provide("bar", () => {
 					return jsx
 						? <div
 							on:click={event => {

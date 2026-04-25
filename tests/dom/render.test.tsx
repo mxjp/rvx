@@ -26,7 +26,7 @@ await suite("dom/render", async () => {
 
 		await test("context", () => {
 			const TEST = new Context<string | undefined>();
-			strictEqual(TEST.inject("test", () => {
+			strictEqual(TEST.provide("test", () => {
 				return renderToString(() => <>{TEST.current}42</>);
 			}), "test42");
 		});
@@ -67,7 +67,7 @@ await suite("dom/render", async () => {
 
 		await test("context", async () => {
 			const TEST = new Context<string | undefined>();
-			strictEqual(await TEST.inject("test", () => {
+			strictEqual(await TEST.provide("test", () => {
 				return renderToStringAsync(() => <>{TEST.current}42</>);
 			}), "test42");
 		});

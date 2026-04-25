@@ -116,7 +116,7 @@ The `isolate` function is transparent to all [contexts](./context.md) for perfor
 
 	const EXAMPLE = new Context(42);
 
-	EXAMPLE.inject(77, () => {
+	EXAMPLE.provide(77, () => {
 		isolate(() => {
 			EXAMPLE.value; // 77
 		});
@@ -129,20 +129,20 @@ The `isolate` function is transparent to all [contexts](./context.md) for perfor
 
 	const EXAMPLE = new Context(42);
 
-	EXAMPLE.inject(77, () => {
+	EXAMPLE.provide(77, () => {
 		isolate(() => {
 			EXAMPLE.value; // 77
 		});
 	});
 	```
 
-In case you also need to isolate all contexts, `isolate` can be combined with `Context.window`:
+In case you also need to isolate all contexts, `isolate` can be combined with `Context.isolate`:
 
 === "JSX"
 	```jsx
 	import { Context, isolate } from "rvx";
 
-	isolate(Context.window, [], () => {
+	isolate(Context.isolate, [], () => {
 		// ...
 	});
 	```
@@ -151,7 +151,7 @@ In case you also need to isolate all contexts, `isolate` can be combined with `C
 	```jsx
 	import { Context, isolate } from "./rvx.js";
 
-	isolate(Context.window, [], () => {
+	isolate(Context.isolate, [], () => {
 		// ...
 	});
 	```

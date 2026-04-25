@@ -57,14 +57,14 @@ To wait for async parts in a specific context to complete, you can use `AsyncCon
 
 === "JSX"
 	```jsx
-	import { Inject } from "rvx";
+	import { Provide } from "rvx";
 	import { ASYNC, Async, AsyncContext } from "rvx/async";
 
 	const ctx = new AsyncContext();
 
-	<Inject context={ASYNC} value={ctx}>
+	<Provide context={ASYNC} value={ctx}>
 		{() => <Async>...</Async>}
-	</Inject>
+	</Provide>
 
 	// Wait for all "<Async>" parts to complete and re-throw unhandled errors:
 	await ctx.complete();
@@ -79,7 +79,7 @@ To wait for async parts in a specific context to complete, you can use `AsyncCon
 
 	const ctx = new AsyncContext();
 
-	ASYNC.inject(ctx, () => {
+	ASYNC.provide(ctx, () => {
 		return nestAsync(...);
 	})
 
@@ -95,18 +95,18 @@ When there are multiple async parts in the same place, tracking can be used to h
 
 === "JSX"
 	```jsx
-	import { $, Inject, movable } from "rvx";
+	import { $, Provide, movable } from "rvx";
 	import { ASYNC, Async, AsyncContext } from "rvx/async";
 
 	const innerCtx = new AsyncContext();
 	const inner = movable(
-		<Inject context={ASYNC} value={innerCtx}>
+		<Provide context={ASYNC} value={innerCtx}>
 			{() => <>
 				<Async>...</Async>
 				<Async>...</Async>
 				<Async>...</Async>
 			</>}
-		</Inject>
+		</Provide>
 	);
 
 	<Async source={innerCtx.complete()}>
@@ -120,7 +120,7 @@ When there are multiple async parts in the same place, tracking can be used to h
 	import { ASYNC, nestAsync, AsyncContext } from "./rvx.async.js";
 
 	const innerCtx = new AsyncContext();
-	const inner = movable(ASYNC.inject(innerCtx, () => [
+	const inner = movable(ASYNC.provide(innerCtx, () => [
 		nestAsync(...),
 		nestAsync(...),
 		nestAsync(...),

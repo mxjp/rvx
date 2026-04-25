@@ -2,6 +2,13 @@
 
 ## 26.0
 + **Breaking:** Signal update errors now cause unhalded rejections instead of throwing at the notify site.
++ **Breaking:** Rename for clarity:
+	+ `Context.wrap => Context.bind`
+	+ `Context.inject => Context.provide`
+	+ `Context.prototype.inject => Context.prototype.provide`
+	+ `Context.window => Context.isolate`
+	+ `<Inject> => <Provide>`
++ **Breaking:** `ContextState` fields are now internal and no longer subject to semantic versioning.
 + Add `lazy` utility.
 
 ## 25.0

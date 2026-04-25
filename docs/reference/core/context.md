@@ -8,8 +8,8 @@ Contexts can be used to implicitly pass values along the call stack and other rv
 	// Create a context:
 	const MESSAGE = new Context<string | undefined>();
 
-	// Inject a value for the context while running a function:
-	MESSAGE.inject("Hello World!", () => {
+	// Provide a value for the context while running a function:
+	MESSAGE.provide("Hello World!", () => {
 		// Access the current value:
 		MESSAGE.current; // "Hello World!"
 	});
@@ -22,14 +22,14 @@ Contexts can be used to implicitly pass values along the call stack and other rv
 	// Create a context:
 	const MESSAGE = new Context();
 
-	// Inject a value for the context while running a function:
-	MESSAGE.inject("Hello World!", () => {
+	// Provide a value for the context while running a function:
+	MESSAGE.provide("Hello World!", () => {
 		// Access the current value:
 		MESSAGE.current; // "Hello World!"
 	});
 	```
 
-You can also inject values for multiple contexts at once:
+You can also provide values for multiple contexts at once:
 
 === "JSX"
 	```jsx
@@ -37,7 +37,7 @@ You can also inject values for multiple contexts at once:
 
 	const MESSAGE = new Context<string | undefined>();
 
-	Context.inject([
+	Context.provide([
 		MESSAGE.with("Hello World!"),
 		OTHER_CONTEXT.with(...),
 		...
@@ -52,7 +52,7 @@ You can also inject values for multiple contexts at once:
 
 	const MESSAGE = new Context();
 
-	Context.inject([
+	Context.provide([
 		MESSAGE.with("Hello World!"),
 		OTHER_CONTEXT.with(...),
 		...
@@ -62,7 +62,7 @@ You can also inject values for multiple contexts at once:
 	```
 
 ## Default Values
-Contexts have a global default value which is returned if nothing, `null` or `undefined` is injected.
+Contexts have a global default value which is returned if nothing, `null` or `undefined` is provided.
 
 === "JSX"
 	```jsx
@@ -72,10 +72,10 @@ Contexts have a global default value which is returned if nothing, `null` or `un
 
 	CONTEXT.current; // 42
 
-	CONTEXT.inject(77, () => {
+	CONTEXT.provide(77, () => {
 		CONTEXT.current; // 77
 
-		CONTEXT.inject(null, () => {
+		CONTEXT.provide(null, () => {
 			CONTEXT.current; // 42
 		});
 	});
@@ -89,32 +89,32 @@ Contexts have a global default value which is returned if nothing, `null` or `un
 
 	CONTEXT.current; // 42
 
-	CONTEXT.inject(77, () => {
+	CONTEXT.provide(77, () => {
 		CONTEXT.current; // 77
 
-		CONTEXT.inject(null, () => {
+		CONTEXT.provide(null, () => {
 			CONTEXT.current; // 42
 		});
 	});
 	```
 
 ## Components
-When rendering content, you can use the `<Inject>` component with JSX or the functions specified above:
+When rendering content, you can use the `<Provide>` component with JSX or the functions specified above:
 
 === "JSX"
 	```jsx
-	import { Inject, Context } from "rvx";
+	import { Provide, Context } from "rvx";
 
 	const MESSAGE = new Context<string>();
 
-	<Inject context={MESSAGE} value="Hello World!">
+	<Provide context={MESSAGE} value="Hello World!">
 		{() => <h1>{MESSAGE.current}</h1>}
-	</Inject>
+	</Provide>
 
-	// Or inject multiple contexts:
-	<Inject states={[MESSAGE.with("Hello World!"), ...]}>
+	// Or provide multiple contexts:
+	<Provide states={[MESSAGE.with("Hello World!"), ...]}>
 		{() => <h1>{MESSAGE.current}</h1>}
-	</Inject>
+	</Provide>
 	```
 
 === "No Build"
@@ -123,11 +123,12 @@ When rendering content, you can use the `<Inject>` component with JSX or the fun
 
 	const MESSAGE = new Context();
 
-	MESSAGE.inject("Hello World!", () => {
+	MESSAGE.provide("Hello World!", () => {
 		return e("h1").append(MESSAGE.current);
 	});
 
-	Context.inject([MESSAGE.with("Hello World!"), ...], () => {
+	// Or provide multiple contexts:
+	Context.provide([MESSAGE.with("Hello World!"), ...], () => {
 		return e("h1").append(MESSAGE.current);
 	});
 	```
@@ -141,7 +142,7 @@ Since contexts rely on the synchronous call stack, they don't automatically work
 
 	const MESSAGE = new Context<string>();
 
-	MESSAGE.inject("Hello World!", () => {
+	MESSAGE.provide("Hello World!", () => {
 		MESSAGE.current; // "Hello World!"
 		queueMicrotask(() => {
 			MESSAGE.current; // undefined
@@ -155,7 +156,7 @@ Since contexts rely on the synchronous call stack, they don't automatically work
 
 	const MESSAGE = new Context();
 
-	MESSAGE.inject("Hello World!", () => {
+	MESSAGE.provide("Hello World!", () => {
 		MESSAGE.current; // "Hello World!"
 		queueMicrotask(() => {
 			MESSAGE.current; // undefined
@@ -163,13 +164,13 @@ Since contexts rely on the synchronous call stack, they don't automatically work
 	});
 	```
 
-You can wrap functions to always be called in the current context to fix this manually:
+You can bind functions to the current context to fix this:
 
 === "JSX"
 	```jsx
-	MESSAGE.inject("Hello World!", () => {
+	MESSAGE.provide("Hello World!", () => {
 		MESSAGE.current; // "Hello World!"
-		queueMicrotask(Context.wrap(() => {
+		queueMicrotask(Context.bind(() => {
 			MESSAGE.current; // "Hello World!"
 		}));
 	});
@@ -177,9 +178,9 @@ You can wrap functions to always be called in the current context to fix this ma
 
 === "No Build"
 	```jsx
-	MESSAGE.inject("Hello World!", () => {
+	MESSAGE.provide("Hello World!", () => {
 		MESSAGE.current; // "Hello World!"
-		queueMicrotask(Context.wrap(() => {
+		queueMicrotask(Context.bind(() => {
 			MESSAGE.current; // "Hello World!"
 		}));
 	});

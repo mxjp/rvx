@@ -12,7 +12,7 @@ import { capture, teardown, TeardownHook } from "../core/lifecycle.js";
  * @throws An error if teardown hooks are explicitly un-supported in this context.
  */
 export function useMicrotask(callback: () => void): void {
-	callback = Context.wrap(callback);
+	callback = Context.bind(callback);
 	let active = true;
 	let dispose: TeardownHook | undefined;
 	teardown(() => {
@@ -41,7 +41,7 @@ export function useMicrotask(callback: () => void): void {
  * @throws An error if teardown hooks are explicitly un-supported in this context.
  */
 export function useTimeout(callback: () => void, timeout: number): void {
-	callback = Context.wrap(callback);
+	callback = Context.bind(callback);
 	let active = true;
 	let dispose: TeardownHook | undefined;
 	let handle: undefined | number;
@@ -70,7 +70,7 @@ export function useTimeout(callback: () => void, timeout: number): void {
  * @throws An error if teardown hooks are explicitly un-supported in this context.
  */
 export function useInterval(callback: () => void, interval: number): void {
-	callback = Context.wrap(callback);
+	callback = Context.bind(callback);
 	let active = true;
 	let dispose: TeardownHook | undefined;
 	let handle: undefined | number;
@@ -100,7 +100,7 @@ export function useInterval(callback: () => void, interval: number): void {
  * @throws An error if teardown hooks are explicitly un-supported in this context.
  */
 export function useAnimation(callback: (now: number) => void): void {
-	callback = Context.wrap(callback);
+	callback = Context.bind(callback);
 	let active = true;
 	let dispose: TeardownHook | undefined;
 	let handle: number;

@@ -667,10 +667,10 @@ await suite("dom/model", async () => {
 
 		await test("tree", () => {
 			const root = new DocumentFragment();
-			VISIBLE_COMMENTS.inject(true, () => {
+			VISIBLE_COMMENTS.provide(true, () => {
 				root.appendChild(new Comment("a"));
 			});
-			VISIBLE_COMMENTS.inject(false, () => {
+			VISIBLE_COMMENTS.provide(false, () => {
 				root.appendChild(new Comment("b"));
 			});
 			root.appendChild(new Text("c"));
@@ -802,7 +802,7 @@ await suite("dom/model", async () => {
 		});
 
 		await test("visible", () => {
-			VISIBLE_COMMENTS.inject(true, () => {
+			VISIBLE_COMMENTS.provide(true, () => {
 				const node = new Comment("foo");
 				strictEqual(node.outerHTML, "<!--foo-->");
 				node.textContent = "-->";

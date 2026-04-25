@@ -54,8 +54,8 @@ export function applyElement<E extends Element>(elem: E, attrs: Attributes<E>): 
 				} else {
 					listener = value as EventListener<Event>;
 				}
-				const wrapped = Context.wrap(listener);
-				elem.addEventListener(name.slice(3), event => isolate(wrapped, event), options);
+				const bound = Context.bind(listener);
+				elem.addEventListener(name.slice(3), event => isolate(bound, event), options);
 			} else if (name.startsWith("prop:")) {
 				const prop = name.slice(5);
 				watch(value, value => (elem as any)[prop] = value);

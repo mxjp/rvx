@@ -99,7 +99,7 @@ export abstract class RvxElement extends moduleEnv.HTMLElement {
 	start(): void {
 		if (this.#dispose === undefined) {
 			this.#dispose = capture(() => {
-				ENV.inject(moduleEnv, () => {
+				ENV.provide(moduleEnv, () => {
 					const parent = this.#shadow ?? this;
 					parent.innerHTML = "";
 					render(this.render()).appendTo(parent);

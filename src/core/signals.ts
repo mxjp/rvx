@@ -428,7 +428,7 @@ export function watch<T>(expr: Expression<T>, effect?: (value: T) => void): void
 		let disposed = false;
 		let dispose: TeardownHook = NOOP;
 		const runExpr = isSignal ? () => (expr as Signal<T>).value : (expr as () => T);
-		const entry = _unfold(Context.wrap(() => {
+		const entry = _unfold(Context.bind(() => {
 			if (disposed) {
 				// This covers an edge case where this observer is notified during a batch and then disposed immediately.
 				return;
@@ -514,7 +514,7 @@ export function lazy<T>(expr: () => T): () => T {
 		stale = true;
 	};
 
-	return Context.wrap(() => {
+	return Context.bind(() => {
 		const observer = ACCESS_STACK[ACCESS_STACK.length - 1];
 		if (observer === access) {
 			// TODO: Document:
@@ -749,7 +749,7 @@ export interface TriggerPipe {
  * @returns The pipe to evaluate expressions.
  */
 export function trigger(callback: () => void): TriggerPipe {
-	const hookFn = Context.wrap(() => {
+	const hookFn = Context.bind(() => {
 		clear();
 		isolate(_notify, callback);
 	});

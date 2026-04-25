@@ -7,7 +7,7 @@ import { ENV } from "rvx";
 ENV.default = someAPI;
 
 // Or use a different DOM API in a specific context:
-ENV.inject(someAPI, () => {
+ENV.provide(someAPI, () => {
 	// ...
 });
 
@@ -97,7 +97,7 @@ If needed, you can wait for [`<Async>`](./async-utilities/async.md) parts to com
 	import { ASYNC, Async, AsyncContext } from "rvx/async";
 
 	const asyncCtx = new AsyncContext();
-	const app = ASYNC.inject(asyncCtx, () => {
+	const app = ASYNC.provide(asyncCtx, () => {
 		return render(
 			<Async source={Promise.resolve("Hello World!")}>
 				{title => <h1>{title}</h1>}
@@ -118,7 +118,7 @@ If needed, you can wait for [`<Async>`](./async-utilities/async.md) parts to com
 	import { ASYNC, Async, AsyncContext } from "./rvx.async.js";
 
 	const asyncCtx = new AsyncContext();
-	const app = ASYNC.inject(asyncCtx, () => {
+	const app = ASYNC.provide(asyncCtx, () => {
 		return render(
 			Async({
 				source: Promise.resolve("Hello World!"),

@@ -11,7 +11,7 @@ await suite("async/timers", async () => {
 	await suite("useMicrotask", async () => {
 		await test("regular usage", async () => {
 			const events: unknown[] = [];
-			const dispose = CONTEXT.inject(77, () => {
+			const dispose = CONTEXT.provide(77, () => {
 				return capture(() => {
 					useMicrotask(() => {
 						teardown(() => {
@@ -39,7 +39,7 @@ await suite("async/timers", async () => {
 
 		await test("callback disposal", async () => {
 			const events: unknown[] = [];
-			const dispose = CONTEXT.inject(77, () => {
+			const dispose = CONTEXT.provide(77, () => {
 				return capture(() => {
 					useMicrotask(() => {
 						teardown(() => {
@@ -59,7 +59,7 @@ await suite("async/timers", async () => {
 		await test("regular usage", async () => {
 			const delay = 10;
 			const events: unknown[] = [];
-			const dispose = CONTEXT.inject(77, () => {
+			const dispose = CONTEXT.provide(77, () => {
 				return capture(() => {
 					useTimeout(() => {
 						teardown(() => {
@@ -89,7 +89,7 @@ await suite("async/timers", async () => {
 		await test("callback disposal", async () => {
 			const delay = 10;
 			const events: unknown[] = [];
-			const dispose = CONTEXT.inject(77, () => {
+			const dispose = CONTEXT.provide(77, () => {
 				return capture(() => {
 					useTimeout(() => {
 						teardown(() => {
@@ -109,7 +109,7 @@ await suite("async/timers", async () => {
 		await test("regular usage", async () => {
 			const delay = 10;
 			const events: unknown[] = [];
-			const dispose = CONTEXT.inject(77, () => {
+			const dispose = CONTEXT.provide(77, () => {
 				return capture(() => {
 					let nextId = 0;
 					useInterval(() => {
@@ -144,7 +144,7 @@ await suite("async/timers", async () => {
 		await test("callback disposal", async () => {
 			const delay = 10;
 			const events: unknown[] = [];
-			const dispose = CONTEXT.inject(77, () => {
+			const dispose = CONTEXT.provide(77, () => {
 				return capture(() => {
 					let nextId = 0;
 					useInterval(() => {
@@ -170,7 +170,7 @@ await suite("async/timers", async () => {
 	await suite("useAnimation", async () => {
 		await test("regular usage", async () => {
 			const events: unknown[] = [];
-			const dispose = CONTEXT.inject(77, () => {
+			const dispose = CONTEXT.provide(77, () => {
 				return capture(() => {
 					let nextId = 0;
 					useAnimation(now => {
@@ -209,7 +209,7 @@ await suite("async/timers", async () => {
 
 		await test("callback disposal", async () => {
 			const events: unknown[] = [];
-			const dispose = CONTEXT.inject(77, () => {
+			const dispose = CONTEXT.provide(77, () => {
 				return capture(() => {
 					let nextId = 0;
 					useAnimation(now => {

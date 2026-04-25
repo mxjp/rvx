@@ -126,11 +126,11 @@ await suite("async/tasks", async () => {
 		strictEqual(isPending(), false);
 		strictEqual(isSelfPending(), false);
 
-		await TASKS.inject(uncapture(() => new Tasks()), () => {
+		await TASKS.provide(uncapture(() => new Tasks()), () => {
 			const outer = TASKS.current;
 			strictEqual(outer instanceof Tasks, true);
 
-			TASKS.inject(uncapture(() => new Tasks(outer)), () => {
+			TASKS.provide(uncapture(() => new Tasks(outer)), () => {
 				strictEqual(TASKS.current?.parent, outer);
 			});
 
@@ -141,12 +141,12 @@ await suite("async/tasks", async () => {
 			strictEqual(isSelfPending(), true);
 
 			return Promise.resolve()
-				.then(Context.wrap(() => {
+				.then(Context.bind(() => {
 					strictEqual(isPending(), true);
 					strictEqual(isSelfPending(), true);
 				}))
 				.then(resolveA)
-				.then(Context.wrap(() => {
+				.then(Context.bind(() => {
 					strictEqual(isPending(), false);
 					strictEqual(isSelfPending(), false);
 				}));

@@ -16,7 +16,7 @@ for (const path of prerender) {
 	console.log("Rendering", JSON.stringify(path));
 	const outFile = join(dist, "static", path, ...(path.endsWith(".html") ? [] : ["index.html"]));
 	const html = await renderToStringAsync(() => {
-		return ROUTER.inject(new MemoryRouter({ path }), App);
+		return ROUTER.provide(new MemoryRouter({ path }), App);
 	});
 	await mkdir(dirname(outFile), { recursive: true });
 	await writeFile(outFile, indexHtml.replace("<!--app-->", "<!--app-start-->" + html + "<!--app-end-->"));

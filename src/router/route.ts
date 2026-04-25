@@ -164,7 +164,7 @@ export interface ComponentRoute<P = unknown> extends Route {
 /**
  * Match and render routes in the current context.
  *
- * A {@link ChildRouter} is injected as a replacement for the current router when rendering route content.
+ * A {@link ChildRouter} is provided as a replacement for the current router when rendering route content.
  */
 export function routes(routes: Expression<Iterable<ComponentRoute<any>>>): View {
 	const router = ROUTER.current;
@@ -175,7 +175,7 @@ export function routes(routes: Expression<Iterable<ComponentRoute<any>>>): View 
 	const watched = watchRoutes(() => router.path, routes);
 	return nest(watched.match, match => {
 		if (match) {
-			return ROUTER.inject(new ChildRouter(router, match.path, watched.rest), () => {
+			return ROUTER.provide(new ChildRouter(router, match.path, watched.rest), () => {
 				return match.route.content({ params: match.params });
 			});
 		}
@@ -185,7 +185,7 @@ export function routes(routes: Expression<Iterable<ComponentRoute<any>>>): View 
 /**
  * Match and render routes in the current context.
  *
- * A {@link ChildRouter} is injected as a replacement for the current router when rendering route content.
+ * A {@link ChildRouter} is provided as a replacement for the current router when rendering route content.
  */
 export function Routes(props: {
 	/**

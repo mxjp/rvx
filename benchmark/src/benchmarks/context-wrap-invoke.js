@@ -6,12 +6,12 @@ export function create({ Context }) {
 	const a = new Context();
 	const b = new Context();
 	return () => {
-		Context.inject([
+		Context.provide([
 			a.with(1),
 			b.with(2),
 		], () => {
 			for (let i = 0; i < multiplier; i++) {
-				Context.wrap(() => {})();
+				Context.bind(() => {})();
 			}
 		});
 	};

@@ -370,22 +370,22 @@ Content can be wrapped in arbitrarily nested arrays and JSX fragments.
 ## Namespaces
 By default, elements are created as HTML elements. This works fine for most cases, but requires some extra work to create **SVG** or **MathML** elements.
 
-The namespace URI for new elements can be [injected](context.md).
+The namespace URI for new elements can be provided via [contexts](context.md).
 
 === "JSX"
 	```jsx
-	import { Inject, XMLNS, SVG } from "rvx";
+	import { Provide, XMLNS, SVG } from "rvx";
 
-	<Inject context={XMLNS} value={SVG}>
+	<Provide context={XMLNS} value={SVG}>
 		{() => <svg viewBox="0 0 100 100">...</svg>}
-	</Inject>
+	</Provide>
 	```
 
 === "No Build"
 	```jsx
 	import { XMLNS, SVG } from "./rvx.js";
 
-	XMLNS.inject(SVG, () => {
+	XMLNS.provide(SVG, () => {
 		return e("svg").set("viewBox", "0 0 100 100").append(...)
 	})
 	```

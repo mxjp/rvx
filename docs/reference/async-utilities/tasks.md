@@ -3,10 +3,10 @@ The task system keeps track of pending tasks in a specific context. This is mean
 
 === "JSX"
 	```jsx
-	import { Inject } from "rvx";
+	import { Provide } from "rvx";
 	import { TASKS, Tasks, isPending } from "rvx/async";
 
-	<Inject context={TASKS} value={new Tasks()}>
+	<Provide context={TASKS} value={new Tasks()}>
 		{() => <>
 			<button
 				// Disable this button when there are any pending tasks:
@@ -19,14 +19,14 @@ The task system keeps track of pending tasks in a specific context. This is mean
 				}}
 			>Click me!</button>
 		</>}
-	</Inject>
+	</Provide>
 	```
 
 === "No Build"
 	```jsx
 	import { TASKS, Tasks, isPending } from "./rvx.async.js";
 
-	TASKS.inject(new Tasks(), () => [
+	TASKS.provide(new Tasks(), () => [
 		e("button")
 			// Disable this button when there are any pending tasks:
 			.set("disabled", isPending)
@@ -46,9 +46,9 @@ The task system keeps track of pending tasks in a specific context. This is mean
 === "JSX"
 	```jsx
 	function SomePopoverComponent(props: { children: () => unknown; }) {
-		return <Inject context={TASKS} value={Tasks.fork()}>
+		return <Provide context={TASKS} value={Tasks.fork()}>
 			<props.children />
-		</Inject>;
+		</Provide>;
 	}
 	```
 
@@ -59,7 +59,7 @@ The task system keeps track of pending tasks in a specific context. This is mean
 	 * @param {() => unknown} props.children
 	 */
 	function SomePopoverComponent(props) {
-		return TASKS.inject(Tasks.fork(), props.children);
+		return TASKS.provide(Tasks.fork(), props.children);
 	}
 	```
 

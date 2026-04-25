@@ -25,7 +25,7 @@ export async function runAsyncTest<T>(fn: AsyncTestFn<T>): Promise<T> {
 			asyncCtx,
 			use: fn => captureSelf(dispose => {
 				teardown.push(dispose);
-				return ASYNC.inject(asyncCtx, fn);
+				return ASYNC.provide(asyncCtx, fn);
 			}),
 		});
 		await cleanup();

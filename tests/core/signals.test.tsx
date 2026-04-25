@@ -626,7 +626,7 @@ await suite("signals", async () => {
 			const signal = $(1);
 
 			const ctx = new Context<number | undefined>();
-			ctx.inject(42, () => {
+			ctx.provide(42, () => {
 				uncapture(() => watch(() => {
 					strictEqual(isTracking(), true);
 					events.push(`e${ctx.current}`);
@@ -638,7 +638,7 @@ await suite("signals", async () => {
 			});
 
 			assertEvents(events, ["e42", "c42"]);
-			ctx.inject(7, () => {
+			ctx.provide(7, () => {
 				signal.notify();
 			});
 			assertEvents(events, ["e42", "c42"]);
@@ -1097,7 +1097,7 @@ await suite("signals", async () => {
 			const ctx = new Context(42);
 
 			const a = $(1);
-			const b = ctx.inject(77, () => {
+			const b = ctx.provide(77, () => {
 				return lazy(() => {
 					events.push("compute");
 					return ctx.current + a.value;
@@ -1105,7 +1105,7 @@ await suite("signals", async () => {
 			});
 			assertEvents(events, []);
 
-			ctx.inject(13, () => {
+			ctx.provide(13, () => {
 				strictEqual(b(), 78);
 			});
 			assertEvents(events, ["compute"]);

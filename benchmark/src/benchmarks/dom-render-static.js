@@ -3,7 +3,7 @@ export const multiplier = 1000;
 
 /** @param {import("rvx") & import("rvx/dom")} */
 export function create({ e, WINDOW, ENV }) {
-	const root = ENV.inject(WINDOW, () => {
+	const root = ENV.provide(WINDOW, () => {
 		return e("div")
 			.class(["foo", "bar"])
 			.style({

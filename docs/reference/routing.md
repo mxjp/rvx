@@ -9,21 +9,21 @@ You can either implement your own router using the `Router` interface or use one
 
 === "JSX"
 	```jsx
-	import { Inject } from "rvx";
+	import { Provide } from "rvx";
 	import { ROUTER, HistoryRouter } from "rvx/router";
 
-	<Inject context={ROUTER} value={new HistoryRouter()}>
+	<Provide context={ROUTER} value={new HistoryRouter()}>
 		{() => <>
 			Everything in here has access to the history router.
 		</>}
-	</Inject>
+	</Provide>
 	```
 
 === "No Build"
 	```jsx
 	import { ROUTER, HistoryRouter } from "./rvx.router.js";
 
-	ROUTER.inject(new HistoryRouter(), () => [
+	ROUTER.provide(new HistoryRouter(), () => [
 		"Everything in here has access to the history router."
 	])
 	```
@@ -32,10 +32,10 @@ The `Routes` component can be used to render content based on the current path.
 
 === "JSX"
 	```jsx
-	import { Inject } from "rvx";
+	import { Provide } from "rvx";
 	import { ROUTER, HistoryRouter, Routes } from "rvx/router";
 
-	<Inject context={ROUTER} value={new HistoryRouter()}>
+	<Provide context={ROUTER} value={new HistoryRouter()}>
 		{() => <>
 			<Routes routes={[
 				{ match: "/", content: () => "Home" },
@@ -43,7 +43,7 @@ The `Routes` component can be used to render content based on the current path.
 				{ content: () => "Not found" },
 			]} />
 		</>}
-	</Inject>
+	</Provide>
 
 	function ExamplePage() {
 		return <>Example</>;
@@ -54,7 +54,7 @@ The `Routes` component can be used to render content based on the current path.
 	```jsx
 	import { ROUTER, HistoryRouter, routes } from "./rvx.router.js";
 
-	ROUTER.inject(new HistoryRouter(), () => [
+	ROUTER.provide(new HistoryRouter(), () => [
 		routes([
 			{ match: "/", content: () => "Home" },
 			{ match: "/foo", content: ExamplePage },
@@ -272,10 +272,10 @@ The example below renders text for the paths `/, /foo/bar, /foo/baz`:
 
 === "JSX"
 	```jsx
-	import { Inject } from "rvx";
+	import { Provide } from "rvx";
 	import { ROUTER, HistoryRouter, Routes } from "rvx/router";
 
-	<Inject context={ROUTER} value={new HistoryRouter()}>
+	<Provide context={ROUTER} value={new HistoryRouter()}>
 		{() => <>
 			<Routes routes={[
 				{ match: "/", content: () => "Home" },
@@ -291,14 +291,14 @@ The example below renders text for the paths `/, /foo/bar, /foo/baz`:
 				} },
 			]} />
 		</>}
-	</Inject>
+	</Provide>
 	```
 
 === "No Build"
 	```jsx
 	import { ROUTER, HistoryRouter, routes } from "./rvx.router.js";
 
-	ROUTER.inject(new HistoryRouter(), () => [
+	ROUTER.provide(new HistoryRouter(), () => [
 		routes([
 			{ match: "/", content: () => "Home" },
 			{ match: "/foo/", content: () => {

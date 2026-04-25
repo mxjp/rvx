@@ -6,7 +6,7 @@ export function create({ e, ENV, WINDOW }) {
 		props[`value${i}`] = String(i);
 	}
 	return () => {
-		ENV.inject(WINDOW, () => {
+		ENV.provide(WINDOW, () => {
 			e("div").style(props);
 		});
 	};

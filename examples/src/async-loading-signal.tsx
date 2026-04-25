@@ -12,7 +12,7 @@ function WithLoadingSignal(props: {
 	children: Component;
 }) {
 	const ctx = AsyncContext.fork();
-	const content = movable(ASYNC.inject(ctx, props.children));
+	const content = movable(ASYNC.provide(ctx, props.children));
 	return <Async source={ctx.complete()} pending={() => <>Loading...</>}>
 		{content.move}
 	</Async>;

@@ -2,7 +2,7 @@
 /** @param {import("rvx") & import("rvx/dom")} */
 export function create({ e, ENV, WINDOW }) {
 	return () => {
-		ENV.inject(WINDOW, () => {
+		ENV.provide(WINDOW, () => {
 			e("div")
 				.set("foo", "a")
 				.set("bar", "b")

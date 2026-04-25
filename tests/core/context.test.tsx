@@ -1,12 +1,12 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { Context, Inject } from "rvx";
+import { Context, Provide } from "rvx";
 
 await suite("context", async () => {
 	await test("usage", () => {
 		const ctx = new Context<number | undefined>();
 		strictEqual(ctx.current, undefined);
-		strictEqual(ctx.inject(7, () => {
+		strictEqual(ctx.provide(7, () => {
 			strictEqual(ctx.current, 7);
 			return 42;
 		}), 42);
@@ -15,37 +15,37 @@ await suite("context", async () => {
 
 	await test("instance args", () => {
 		const ctx = new Context<number | undefined>();
-		strictEqual(ctx.inject(42, (a: number, b: number) => {
+		strictEqual(ctx.provide(42, (a: number, b: number) => {
 			return ctx.current! + a * b;
 		}, 2, 3), 48);
 	});
 
 	await test("static args", () => {
 		const ctx = new Context<number | undefined>();
-		strictEqual(Context.inject([ctx.with(42)], (a: number, b: number) => {
+		strictEqual(Context.provide([ctx.with(42)], (a: number, b: number) => {
 			return ctx.current! + a * b;
 		}, 2, 3), 48);
 	});
 
 	await test("with", () => {
 		const ctx = new Context<number | undefined>();
-		deepStrictEqual(ctx.with(42), { context: ctx, value: 42 });
+		deepStrictEqual(ctx.with(42), { c: ctx, v: 42 });
 		strictEqual(ctx.current, undefined);
 	});
 
 	await test("window args", () => {
-		strictEqual(Context.window([], (a: number, b: number) => a * b, 2, 3), 6);
+		strictEqual(Context.isolate([], (a: number, b: number) => a * b, 2, 3), 6);
 	});
 
-	await test("instance inject in empty window", () => {
+	await test("instance provide in empty window", () => {
 		const ctx = new Context<number | undefined>();
-		strictEqual(Context.window([], () => {
+		strictEqual(Context.isolate([], () => {
 			strictEqual(ctx.current, undefined);
-			strictEqual(ctx.inject(77, () => {
+			strictEqual(ctx.provide(77, () => {
 				strictEqual(ctx.current, 77);
-				strictEqual(Context.window([], () => {
+				strictEqual(Context.isolate([], () => {
 					strictEqual(ctx.current, undefined);
-					ctx.inject(42, () => {
+					ctx.provide(42, () => {
 						strictEqual(ctx.current, 42);
 					});
 					return "c";
@@ -59,15 +59,15 @@ await suite("context", async () => {
 		strictEqual(ctx.current, undefined);
 	});
 
-	await test("static inject in empty window", () => {
+	await test("static provide in empty window", () => {
 		const ctx = new Context<number | undefined>();
-		strictEqual(Context.window([], () => {
+		strictEqual(Context.isolate([], () => {
 			strictEqual(ctx.current, undefined);
-			strictEqual(Context.inject([ctx.with(77)], () => {
+			strictEqual(Context.provide([ctx.with(77)], () => {
 				strictEqual(ctx.current, 77);
-				strictEqual(Context.window([], () => {
+				strictEqual(Context.isolate([], () => {
 					strictEqual(ctx.current, undefined);
-					strictEqual(Context.inject([ctx.with(42)], () => {
+					strictEqual(Context.provide([ctx.with(42)], () => {
 						strictEqual(ctx.current, 42);
 						return "d";
 					}), "d");
@@ -82,11 +82,11 @@ await suite("context", async () => {
 		strictEqual(ctx.current, undefined);
 	});
 
-	await test("instance inject through many windows", () => {
+	await test("instance provide through many windows", () => {
 		const ctx = new Context<number | undefined>();
-		Context.window([], () => {
-			Context.window([], () => {
-				ctx.inject(42, () => {
+		Context.isolate([], () => {
+			Context.isolate([], () => {
+				ctx.provide(42, () => {
 					strictEqual(ctx.current, 42);
 				});
 				strictEqual(ctx.current, undefined);
@@ -95,11 +95,11 @@ await suite("context", async () => {
 		});
 	});
 
-	await test("static inject through many windows", () => {
+	await test("static provide through many windows", () => {
 		const ctx = new Context<number | undefined>();
-		Context.window([], () => {
-			Context.window([], () => {
-				Context.inject([ctx.with(42)], () => {
+		Context.isolate([], () => {
+			Context.isolate([], () => {
+				Context.provide([ctx.with(42)], () => {
 					strictEqual(ctx.current, 42);
 				});
 				strictEqual(ctx.current, undefined);
@@ -111,15 +111,15 @@ await suite("context", async () => {
 	await test("window", () => {
 		const a = new Context<number | undefined>();
 		const b = new Context<number | undefined>();
-		a.inject(42, () => {
+		a.provide(42, () => {
 			strictEqual(a.current, 42);
-			Context.window([a.with(7), b.with(77)], () => {
+			Context.isolate([a.with(7), b.with(77)], () => {
 				strictEqual(a.current, 7);
 				strictEqual(b.current, 77);
-				a.inject(11, () => {
+				a.provide(11, () => {
 					strictEqual(a.current, 11);
 					strictEqual(b.current, 77);
-					Context.window([b.with(13)], () => {
+					Context.isolate([b.with(13)], () => {
 						strictEqual(a.current, undefined);
 						strictEqual(b.current, 13);
 					});
@@ -135,9 +135,9 @@ await suite("context", async () => {
 
 	await test("nested window overwrite unwinding", () => {
 		const ctx = new Context<number | undefined>();
-		ctx.inject(1, () => {
+		ctx.provide(1, () => {
 			strictEqual(ctx.current, 1);
-			Context.window([ctx.with(2), ctx.with(3)], () => {
+			Context.isolate([ctx.with(2), ctx.with(3)], () => {
 				strictEqual(ctx.current, 3);
 			});
 			strictEqual(ctx.current, 1);
@@ -147,87 +147,87 @@ await suite("context", async () => {
 	await suite("wrap", async () => {
 		await test("empty context", () => {
 			const ctx = new Context<number | undefined>();
-			const fn = Context.wrap(() => {
+			const fn = Context.bind(() => {
 				strictEqual(ctx.current, undefined);
 			});
 			fn();
-			ctx.inject(42, fn);
-			Context.inject([ctx.with(77)], fn);
+			ctx.provide(42, fn);
+			Context.provide([ctx.with(77)], fn);
 		});
 
 		await test("args", () => {
-			const fn = Context.wrap((a: number, b: number) => a * b);
+			const fn = Context.bind((a: number, b: number) => a * b);
 			strictEqual(fn(2, 3), 6);
 		});
 
-		await test("instance inject", () => {
+		await test("instance provide", () => {
 			const ctx = new Context<number | undefined>();
-			const fn = ctx.inject(11, () => {
-				return Context.wrap(() => {
+			const fn = ctx.provide(11, () => {
+				return Context.bind(() => {
 					strictEqual(ctx.current, 11);
 				});
 			});
 			fn();
-			ctx.inject(42, fn);
-			Context.inject([ctx.with(77)], fn);
+			ctx.provide(42, fn);
+			Context.provide([ctx.with(77)], fn);
 		});
 
-		await test("static inject", () => {
+		await test("static provide", () => {
 			const ctx = new Context<number | undefined>();
-			const fn = Context.inject([ctx.with(11)], () => {
-				return Context.wrap(() => {
+			const fn = Context.provide([ctx.with(11)], () => {
+				return Context.bind(() => {
 					strictEqual(ctx.current, 11);
 				});
 			});
 			fn();
-			ctx.inject(42, fn);
-			Context.inject([ctx.with(77)], fn);
+			ctx.provide(42, fn);
+			Context.provide([ctx.with(77)], fn);
 		});
 
-		await test("nested window with instance inject", () => {
+		await test("nested window with instance provide", () => {
 			const ctx = new Context<number | undefined>();
-			const fn = Context.window([ctx.with(17)], () => {
-				return Context.window([], () => {
-					return ctx.inject(11, () => {
-						return Context.wrap(() => {
+			const fn = Context.isolate([ctx.with(17)], () => {
+				return Context.isolate([], () => {
+					return ctx.provide(11, () => {
+						return Context.bind(() => {
 							strictEqual(ctx.current, 11);
 						});
 					});
 				});
 			});
 			fn();
-			ctx.inject(42, fn);
-			Context.inject([ctx.with(77)], fn);
+			ctx.provide(42, fn);
+			Context.provide([ctx.with(77)], fn);
 		});
 
-		await test("nested window with static inject", () => {
+		await test("nested window with static provide", () => {
 			const ctx = new Context<number | undefined>();
-			const fn = Context.window([ctx.with(17)], () => {
-				return Context.window([], () => {
-					return Context.inject([ctx.with(11)], () => {
-						return Context.wrap(() => {
+			const fn = Context.isolate([ctx.with(17)], () => {
+				return Context.isolate([], () => {
+					return Context.provide([ctx.with(11)], () => {
+						return Context.bind(() => {
 							strictEqual(ctx.current, 11);
 						});
 					});
 				});
 			});
 			fn();
-			ctx.inject(42, fn);
-			Context.inject([ctx.with(77)], fn);
+			ctx.provide(42, fn);
+			Context.provide([ctx.with(77)], fn);
 		});
 
 		await test("nested overwrite unwinding", () => {
 			const ctx = new Context<number | undefined>();
-			ctx.inject(1, () => {
-				ctx.inject(2, () => {
-					const fn = Context.wrap(() => {
+			ctx.provide(1, () => {
+				ctx.provide(2, () => {
+					const fn = Context.bind(() => {
 						strictEqual(ctx.current, 2);
 					});
 
 					fn();
 					strictEqual(ctx.current, 2);
 
-					Context.window([ctx.with(3), ctx.with(4)], () => {
+					Context.isolate([ctx.with(3), ctx.with(4)], () => {
 						strictEqual(ctx.current, 4);
 						fn();
 						strictEqual(ctx.current, 4);
@@ -237,19 +237,19 @@ await suite("context", async () => {
 		});
 	});
 
-	await suite("inject component", async () => {
-		await test("instance inject", () => {
+	await suite("provide component", async () => {
+		await test("instance provide", () => {
 			const a = new Context<number | undefined>();
 			const b = new Context<number | undefined>();
-			const result = a.inject(11, () => {
+			const result = a.provide(11, () => {
 				strictEqual(a.current, 11);
-				const result = <Inject context={b} value={42}>
+				const result = <Provide context={b} value={42}>
 					{() => {
 						strictEqual(a.current, 11);
 						strictEqual(b.current, 42);
 						return 77;
 					}}
-				</Inject>;
+				</Provide>;
 				strictEqual(a.current, 11);
 				strictEqual(b.current, undefined);
 				return result;
@@ -257,18 +257,18 @@ await suite("context", async () => {
 			strictEqual(result, 77);
 		});
 
-		await test("static inject", () => {
+		await test("static provide", () => {
 			const a = new Context<number | undefined>();
 			const b = new Context<number | undefined>();
-			const result = a.inject(11, () => {
+			const result = a.provide(11, () => {
 				strictEqual(a.current, 11);
-				const result = <Inject states={[b.with(42)]}>
+				const result = <Provide states={[b.with(42)]}>
 					{() => {
 						strictEqual(a.current, 11);
 						strictEqual(b.current, 42);
 						return 77;
 					}}
-				</Inject>;
+				</Provide>;
 				strictEqual(a.current, 11);
 				strictEqual(b.current, undefined);
 				return result;
@@ -281,12 +281,12 @@ await suite("context", async () => {
 		await test("null", () => {
 			const ctx = new Context<number | null>(null);
 			strictEqual(ctx.current, null);
-			ctx.inject(42, () => {
+			ctx.provide(42, () => {
 				strictEqual(ctx.current, 42);
-				ctx.inject(null, () => {
+				ctx.provide(null, () => {
 					strictEqual(ctx.current, null);
 				});
-				ctx.inject(undefined, () => {
+				ctx.provide(undefined, () => {
 					strictEqual(ctx.current, null);
 				});
 			});
@@ -295,12 +295,12 @@ await suite("context", async () => {
 		await test("undefined", () => {
 			const ctx = new Context<number | undefined>();
 			strictEqual(ctx.current, undefined);
-			ctx.inject(42, () => {
+			ctx.provide(42, () => {
 				strictEqual(ctx.current, 42);
-				ctx.inject(null, () => {
+				ctx.provide(null, () => {
 					strictEqual(ctx.current, undefined);
 				});
-				ctx.inject(undefined, () => {
+				ctx.provide(undefined, () => {
 					strictEqual(ctx.current, undefined);
 				});
 			});
@@ -309,12 +309,12 @@ await suite("context", async () => {
 		await test("optional value", () => {
 			const ctx = new Context<number | undefined>(42);
 			strictEqual(ctx.current, 42);
-			ctx.inject(77, () => {
+			ctx.provide(77, () => {
 				strictEqual(ctx.current, 77);
-				ctx.inject(null, () => {
+				ctx.provide(null, () => {
 					strictEqual(ctx.current, 42);
 				});
-				ctx.inject(undefined, () => {
+				ctx.provide(undefined, () => {
 					strictEqual(ctx.current, 42);
 				});
 			});

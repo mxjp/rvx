@@ -3,7 +3,7 @@
 export function create({ e, ENV, WINDOW }) {
 	const tokens = Array(5).fill(0).map((_, i) => `token${i}`);
 	return () => {
-		ENV.inject(WINDOW, () => {
+		ENV.provide(WINDOW, () => {
 			e("div").class(tokens);
 		});
 	};

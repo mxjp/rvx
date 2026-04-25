@@ -7,7 +7,7 @@ export function create({ Context }) {
 	const b = new Context();
 	return () => {
 		for (let i = 0; i < multiplier; i++) {
-			Context.inject([
+			Context.provide([
 				a.with(1),
 				b.with(2),
 			], () => {

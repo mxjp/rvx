@@ -26,7 +26,7 @@ export function renderToString<P>(component: Component<P>, props: P): string;
 export function renderToString<P>(component: Component<P>, props?: P): string {
 	let html: string;
 	capture(() => {
-		ENV.inject(WINDOW, () => {
+		ENV.provide(WINDOW, () => {
 			const view = render(component(props!));
 			html = renderDetachedView(view);
 		});
@@ -37,7 +37,7 @@ export function renderToString<P>(component: Component<P>, props?: P): string {
 /**
  * Render a component to HTML using rvx dom.
  *
- * This injects a new {@link AsyncContext} to wait for rendering to complete.
+ * This provides a new {@link AsyncContext} to wait for rendering to complete.
  */
 export async function renderToStringAsync(component: Component): Promise<string>;
 export async function renderToStringAsync<P>(component: Component<P>, props: P): Promise<string>;
@@ -45,7 +45,7 @@ export async function renderToStringAsync<P>(component: Component<P>, props?: P)
 	const asyncCtx = new AsyncContext();
 	let view: View;
 	const dispose = capture(() => {
-		Context.inject([
+		Context.provide([
 			ENV.with(WINDOW),
 			ASYNC.with(asyncCtx),
 		], () => {
