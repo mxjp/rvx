@@ -542,39 +542,4 @@ await suite("element", async () => {
 		const props = <Component key={42} bar="baz" />;
 		deepStrictEqual(props, { key: 42, bar: "baz" });
 	});
-
-	await test("ref attribute", () => {
-		const events: unknown[] = [];
-		uncapture(() => <div
-			attr:data-a={() => {
-				events.push("a");
-			}}
-			ref={elem => {
-				if (isRvxDom()) {
-					strictEqual(elem instanceof ENV.current.Element, true);
-				} else {
-					strictEqual(elem instanceof ENV.current.HTMLDivElement, true);
-				}
-				events.push("ref");
-			}}
-			attr:data-b={() => {
-				events.push("b");
-			}}
-		>
-			{() => {
-				events.push("content");
-			}}
-		</div> as HTMLDivElement);
-		assertEvents(events, ["a", "ref", "b", "content"]);
-	});
-
-	await test("ref native attr", () => {
-		const elem = <div attr:ref="42" /> as HTMLDivElement;
-		strictEqual(elem.getAttribute("ref"), "42");
-	});
-
-	await test("ref native prop", () => {
-		const elem = <div prop:ref="42" /> as HTMLDivElement;
-		strictEqual((elem as any).ref, "42");
-	});
 });

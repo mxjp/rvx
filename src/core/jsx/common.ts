@@ -1,5 +1,5 @@
 import { Context } from "../context.js";
-import { Attributes, ClassValue, EventArgs, EventListener, RefFn, StyleValue, TagNameMap, XMLNS } from "../element-common.js";
+import { Attributes, ClassValue, EventArgs, EventListener, StyleValue, TagNameMap, XMLNS } from "../element-common.js";
 import { ENV } from "../env.js";
 import { appendContent } from "../internals/append-content.js";
 import { setAttr } from "../internals/set-attr.js";
@@ -58,16 +58,10 @@ export function applyElement<E extends Element>(elem: E, attrs: Attributes<E>): 
 				elem.addEventListener(name.slice(3), event => isolate(bound, event), options);
 			} else if (name.startsWith("prop:")) {
 				const prop = name.slice(5);
-				watch(value, value => (elem as any)[prop] = value);
+				watch(value as any, value => (elem as any)[prop] = value);
 			} else if (name.startsWith("attr:")) {
 				const attr = name.slice(5);
 				setAttr(elem, attr, value);
-			} else if (name === "ref") {
-				if (Array.isArray(value)) {
-					value.forEach(v => (v as RefFn<Element>)(elem));
-				} else {
-					(value as RefFn<Element>)(elem);
-				}
 			} else if (name === "style") {
 				setStyle(elem, value as StyleValue);
 			} else if (name === "class") {

@@ -64,23 +64,12 @@ export interface NodeTarget<T extends Node = Node> {
 }
 
 /**
- * A function that is called immediately when the `ref` jsx attribute is initialized.
- */
-export type RefFn<T> = (element: T) => void;
-
-/**
- * Value for the `ref` jsx attribute.
- */
-export type RefValue<T> = (RefFn<T>) | RefFn<T>[];
-
-/**
  * Represents an object with jsx element attributes.
  */
-export type Attributes<T extends Element> = {
+export type Attributes<_T extends Element> = {
 	children?: Content;
 	class?: ClassValue;
 	style?: StyleValue;
-	ref?: RefValue<T>;
 } & {
 	[K in keyof HTMLElementEventMap as `on:${K}`]?: EventListener<HTMLElementEventMap[K]> | EventArgs<HTMLElementEventMap[K]>;
 } & {

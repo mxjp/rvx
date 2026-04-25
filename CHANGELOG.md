@@ -9,6 +9,7 @@
 	+ `Context.window => Context.isolate`
 	+ `<Inject> => <Provide>`
 + **Breaking:** `ContextState` fields are now internal and no longer subject to semantic versioning.
++ **Breaking:** Remove jsx `ref` attribute.
 + Add `lazy` utility.
 
 ## 25.0

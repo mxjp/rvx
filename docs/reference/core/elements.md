@@ -214,27 +214,29 @@ Note, that properties that are no longer specified after a signal update are not
 ## References
 
 === "JSX"
-	To get the reference to an element, you can either use the JSX expression directly:
+	To get the reference to an element, use the JSX expression directly:
 
 	```jsx
 	const input = <input /> as HTMLInputElement;
-	```
 
-	Or use the special `ref` attribute:
-	```jsx
-	<input ref={input => { ... }} />;
-	```
-
-	All attributes (except `key`) are processed in the specified order. In the example below, the `ref` function is called after `data-a` is set, but before `data-b` is set:
-	```jsx
-	<input data-a ref={input => { ... }} data-b />;
+	// Or inside other elements:
+	let input: HTMLInputElement;
+	<div>
+		{input = <input /> as HTMLInputElement}
+	</div>
 	```
 
 === "No Build"
-	To get references to an element, you can reference the builder's `elem` property.
+	To get references to an element, use the builder's `elem` property.
 
 	```jsx
 	const input = e("input").elem;
+
+	// Or inside other elements:
+	let input;
+	e("div").append(
+		input = e("input").elem
+	)
 	```
 
 ## Content
