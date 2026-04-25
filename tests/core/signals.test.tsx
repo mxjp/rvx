@@ -1116,6 +1116,111 @@ await suite("signals", async () => {
 			strictEqual(b(), 79);
 			assertEvents(events, ["compute"]);
 		});
+
+		await test("direct reentry", () => {
+			const events: unknown[] = [];
+			const a = $(1);
+			let depth = 0;
+			const b: () => number = lazy(() => {
+				events.push(`d${depth}`);
+				try {
+					depth++;
+					if (depth > 2) {
+						return a.value;
+					} else {
+						return b();
+					}
+				} finally {
+					depth--;
+				}
+			});
+
+			uncapture(() => {
+				watch(b, value => {
+					events.push(value);
+				});
+			});
+			assertEvents(events, ["d0", "d1", "d2", 1]);
+
+			strictEqual(b(), 1);
+			assertEvents(events, []);
+
+			a.value++;
+			assertEvents(events, ["d0", "d1", "d2", 2]);
+
+			strictEqual(b(), 2);
+			assertEvents(events, []);
+		});
+
+		await test("indirect reentry", () => {
+			const events: unknown[] = [];
+			const a = $(0);
+			const b = $(0);
+			const c = lazy(() => {
+				events.push("c", `a${untrack(a)}`, `b${untrack(b)}`);
+				if (b.value === 1) {
+					a.value = untrack(a) + 1;
+				}
+				return b.value;
+			});
+			assertEvents(events, []);
+
+			uncapture(() => {
+				watch(() => {
+					events.push("d", `a${untrack(a)}`, `b${untrack(b)}`);
+					if (a.value === 1) {
+						b.value = untrack(b) + 1;
+					}
+				});
+			});
+			assertEvents(events, ["d", "a0", "b0"]);
+
+			uncapture(() => {
+				watch(c, value => {
+					events.push(`v${value}`);
+				});
+			});
+			assertEvents(events, ["c", "a0", "b0", "v0"]);
+
+			strictEqual(c(), 0);
+			assertEvents(events, []);
+
+			b.value++;
+			assertEvents(events, ["c", "a0", "b1", "d", "a1", "b1", "v2"]);
+
+			strictEqual(b.value, 2);
+			strictEqual(c(), 2);
+			assertEvents(events, []);
+		});
+
+		await test("batch behavior", () => {
+			const events: unknown[] = [];
+			const a = $(1);
+			const b = $(2);
+			const c = lazy(() => {
+				events.push("c");
+				return a.value + 1;
+			});
+			const d = lazy(() => {
+				events.push("d");
+				return b.value + c() + 1;
+			});
+			assertEvents(events, []);
+
+			uncapture(() => {
+				watch(d, value => events.push(`d${value}`));
+				assertEvents(events, ["d", "c", "d5"]);
+				watch(c, value => events.push(`c${value}`));
+				assertEvents(events, ["c2"]);
+			});
+
+			batch(() => {
+				a.value = 3;
+				b.value = 4;
+				assertEvents(events, []);
+			});
+			assertEvents(events, ["d", "c", "d9", "c4"]);
+		});
 	});
 
 	await suite("tracking", async () => {

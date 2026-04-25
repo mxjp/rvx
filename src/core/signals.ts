@@ -516,10 +516,6 @@ export function lazy<T>(expr: () => T): () => T {
 
 	return Context.bind(() => {
 		const observer = ACCESS_STACK[ACCESS_STACK.length - 1];
-		if (observer === access) {
-			// TODO: Document:
-			throw new Error("G5");
-		}
 		if (stale) {
 			try {
 				signals.forEach(s => s.delete(mark));
