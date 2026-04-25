@@ -1,3 +1,4 @@
+export * from "./context-jsx.js";
 export * from "./core.js";
 export { applyElement } from "./jsx/common.js";
 export * from "./override-jsx.js";
