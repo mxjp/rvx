@@ -1,4 +1,12 @@
-import { CONTEXT_WINDOWS } from "./internals/stacks.js";
+
+/**
+ * The current context window.
+ *
+ * Each context window is a stack of contexts where a value was provided within that window.
+ */
+let WINDOW: ContextWindow = [];
+
+type ContextWindow = Context<unknown>[];
 
 /**
  * Internal function to capture the current state of the specified context.
@@ -26,16 +34,14 @@ export class Context<T> {
 	}
 
 	/**
-	 * The stack of provided values.
+	 * The currently provided value.
 	 */
-	#stack: (T | null | undefined)[] = [];
+	#frame: T | null | undefined;
 
 	/**
-	 * The innermost context window id (index in the context window stack) in which a value has been provided.
-	 *
-	 * Provided values are ignored if this mismatches the current context window.
+	 * The innermost context window where a value is currently provided.
 	 */
-	#windowId = 0;
+	#window: Context<unknown>[] | undefined;
 
 	/**
 	 * Get or set the default value.
@@ -48,9 +54,8 @@ export class Context<T> {
 	 * Get the current value for this context.
 	 */
 	get current(): T {
-		if (this.#windowId === CONTEXT_WINDOWS.length) {
-			const stack = this.#stack;
-			return stack[stack.length - 1] ?? this.default;
+		if (this.#window === WINDOW) {
+			return this.#frame ?? this.default;
 		}
 		return this.default;
 	}
@@ -66,18 +71,18 @@ export class Context<T> {
 	 * @returns The function's return value.
 	 */
 	provide<F extends (...args: any) => any>(value: T | null | undefined, fn: F, ...args: Parameters<F>): ReturnType<F> {
-		const window = CONTEXT_WINDOWS[CONTEXT_WINDOWS.length - 1];
-		const stack = this.#stack;
-		const parent = this.#windowId;
+		const window = WINDOW;
+		const parentValue = this.#frame;
+		const parentWindow = this.#window;
 		try {
-			this.#windowId = CONTEXT_WINDOWS.length;
+			this.#window = window;
 			window.push(this);
-			stack.push(value);
+			this.#frame = value;
 			return fn(...args);
 		} finally {
-			stack.pop();
+			this.#frame = parentValue;
 			window.pop();
-			this.#windowId = parent;
+			this.#window = parentWindow;
 		}
 	}
 
@@ -97,11 +102,12 @@ export class Context<T> {
 	 * @returns The function's return value.
 	 */
 	static isolate<F extends (...args: any) => any>(states: ContextState<unknown>[], fn: F, ...args: Parameters<F>): ReturnType<F> {
+		const parent = WINDOW;
 		try {
-			CONTEXT_WINDOWS.push([]);
+			WINDOW = [];
 			return Context.provide<F>(states, fn, ...args);
 		} finally {
-			CONTEXT_WINDOWS.pop();
+			WINDOW = parent;
 		}
 	}
 
@@ -117,22 +123,21 @@ export class Context<T> {
 	 */
 	static provide<F extends (...args: any) => any>(states: ContextState<unknown>[], fn: F, ...args: Parameters<F>): ReturnType<F> {
 		const active: ActiveState<unknown>[] = [];
-		const windowId = CONTEXT_WINDOWS.length;
-		const window = CONTEXT_WINDOWS[windowId - 1];
+		const window = WINDOW;
 		for (let i = 0; i < states.length; i++) {
 			const { c: context, v: value } = states[i];
-			active.push({ c: context, p: context.#windowId });
-			context.#windowId = windowId;
-			context.#stack.push(value);
+			active.push({ c: context, p: context.#window, v: context.#frame });
+			context.#window = window;
+			context.#frame = value;
 			window.push(context);
 		}
 		try {
 			return fn(...args);
 		} finally {
 			for (let i = active.length - 1; i >= 0; i--) {
-				const { c: context, p: parent } = active[i];
-				context.#windowId = parent;
-				context.#stack.pop();
+				const { c: context, p: parent, v: parentValue } = active[i];
+				context.#window = parent;
+				context.#frame = parentValue;
 				window.pop();
 			}
 		}
@@ -142,7 +147,7 @@ export class Context<T> {
 	 * Capture all current context states.
 	 */
 	static capture(): ContextState<unknown>[] {
-		return CONTEXT_WINDOWS[CONTEXT_WINDOWS.length - 1].map(_capture);
+		return WINDOW.map(_capture);
 	}
 
 	/**
@@ -160,8 +165,10 @@ export class Context<T> {
 interface ActiveState<T> {
 	/** The active context. */
 	c: Context<T>;
-	/** The context window id before this state has been activated. */
-	p: number;
+	/** The parent context window. */
+	p: ContextWindow | undefined;
+	/** The parent value. */
+	v: T | null | undefined;
 }
 
 /**

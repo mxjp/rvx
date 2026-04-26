@@ -47,13 +47,6 @@ export const TEARDOWN_STACK: (TeardownFrame | undefined)[] = [THROW_ON_LEAK];
 export const ACCESS_STACK: (AccessHook | undefined)[] = [];
 
 /**
- * Stack of context windows.
- *
- * Each context window is a stack of contexts where a value was provided during that window.
- */
-export const CONTEXT_WINDOWS: Context<unknown>[][] = [[]];
-
-/**
  * Internal utility to call a function with a specific stack frame.
  */
 export function useStack<T, R>(stack: T[], frame: T, fn: () => R): R {
