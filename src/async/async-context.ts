@@ -41,13 +41,11 @@ export class AsyncContext {
 	 */
 	track(task: Promise<unknown>): void {
 		this.#parent?.track(task);
-		this.#tasks.update(tasks => {
-			tasks.add(task);
-		});
+		this.#tasks.inert.add(task);
+		this.#tasks.notify();
 		task.then(() => {
-			this.#tasks.update(tasks => {
-				tasks.delete(task);
-			});
+			this.#tasks.inert.delete(task);
+			this.#tasks.notify();
 		}, error => {
 			if (this.#errorHandlers.size > 0) {
 				for (const errorHandler of this.#errorHandlers) {
@@ -56,9 +54,8 @@ export class AsyncContext {
 			} else {
 				void Promise.reject(error);
 			}
-			this.#tasks.update(tasks => {
-				tasks.delete(task);
-			});
+			this.#tasks.inert.delete(task);
+			this.#tasks.notify();
 		});
 	}
 

@@ -66,9 +66,8 @@ class Stopwatch {
 	});
 
 	lap = () => {
-		this.#laps.update(laps => {
-			laps.push(this.#time.value);
-		});
+		this.#laps.inert.push(this.#time.value);
+		this.#laps.notify();
 	};
 }
 

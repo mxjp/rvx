@@ -74,12 +74,11 @@ export function createBenchmark({ $, capture, render, e, teardown, forEach, when
 				e("div").class("row").append(
 					TextInput({ value: name, class: "grow" }),
 					Button({ children: "Add", action: () => {
-						todos.update(todos => {
-							todos.push({
-								name: $(name.value),
-								done: $(false),
-							});
+						todos.inert.push({
+							name: $(name.value),
+							done: $(false),
 						});
+						todos.notify();
 						name.value = "";
 					} }),
 				),
@@ -100,9 +99,8 @@ export function createBenchmark({ $, capture, render, e, teardown, forEach, when
 									Button({
 										children: "Remove",
 										action: () => {
-											todos.update(todos => {
-												todos.splice(todos.indexOf(item), 1);
-											});
+											todos.inert.splice(todos.indexOf(item), 1);
+											todos.notify();
 										},
 									}),
 								], () => [

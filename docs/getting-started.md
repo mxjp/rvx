@@ -71,17 +71,15 @@ To replace a signal value, you can set the `value` property:
 count.value = 1;
 ```
 
-To update an object, you can use the `update` function.
+To deeply update an object, modify it directly and manually notify observers:
 ```jsx
 const values = $([7, 42]);
 
-// This will modify the inner value and then notify observers:
-values.update(values => {
-	values.push(77);
-});
+// This will modify the inner value without tracking:
+values.inert.push(77);
 
-// Note, that deeply modifying objects directly does nothing:
-values.value.push(77);
+// Manually notify observers:
+values.notify();
 ```
 
 ## Basic Rendering
@@ -152,7 +150,10 @@ const values = $<number[]>([]);
 mount(
 	document.body,
 	<>
-		<button on:click={() => { values.update(v => v.push(Date.now())) }}>
+		<button on:click={() => {
+			values.inert.push(Date.now());
+			values.notify();
+		}}>
 			Add current time
 		</button>
 

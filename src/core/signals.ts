@@ -1,6 +1,6 @@
 import { Context } from "./context.js";
 import { NOOP } from "./internals/noop.js";
-import { ACCESS_STACK, AccessHook, THROW_ON_LEAK, NotifyHook, TEARDOWN_STACK, useStack } from "./internals/stacks.js";
+import { ACCESS_STACK, AccessHook, NotifyHook, TEARDOWN_STACK, THROW_ON_LEAK, useStack } from "./internals/stacks.js";
 import { isolate } from "./isolate.js";
 import { capture, teardown, TeardownHook } from "./lifecycle.js";
 
@@ -84,6 +84,20 @@ export class Signal<T> {
 	}
 
 	/**
+	 * Get the current value without access tracking.
+	 */
+	get inert(): T {
+		return this.#value;
+	}
+
+	/**
+	 * Set the current value without notifying observers.
+	 */
+	set inert(value: T) {
+		this.#value = value;
+	}
+
+	/**
 	 * Reactively access the current value.
 	 */
 	get value(): T {
@@ -128,33 +142,6 @@ export class Signal<T> {
 	 */
 	get root(): Signal<unknown> {
 		return this.#root;
-	}
-
-	/**
-	 * Update the current value in place.
-	 *
-	 * @param fn A function to update the value. If false is returned, observers are not notified.
-	 *
-	 * @example
-	 * ```tsx
-	 * import { $, watch } from "rvx";
-	 *
-	 * const items = $([]);
-	 *
-	 * watch(items, items => {
-	 *   console.log("Items:", items);
-	 * });
-	 *
-	 * items.update(items => {
-	 *   items.push("foo");
-	 *   items.push("bar");
-	 * });
-	 * ```
-	 */
-	update(fn: (value: T) => void | boolean): void {
-		if (fn(this.#value) !== false) {
-			this.notify();
-		}
 	}
 
 	/**

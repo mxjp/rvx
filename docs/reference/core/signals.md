@@ -23,21 +23,24 @@ To create a signal, you can use the `Signal` constructor or the `$` shorthand:
 	const count = $(42);
 	```
 
-The current value can be accessed or updated using the `value` property:
+The current value can be accessed or updated using the `value` or `inert` properties:
 ```jsx
+// With access tracking:
 count.value++;
+
+// Without access tracking:
+count.inert++;
 ```
 
-To deeply change a value and then notify the signal observers, use the `update` function:
+To deeply change a value and then notify the signal observers, use the `inert` property and manually `notify` observers:
 ```jsx
 const items = $(["a", "b"]);
 
-items.update(items => {
-	items.push("c");
-});
+items.inert.push("c");
+items.notify();
 ```
 
-Signals can also be controlled manually:
+Signals can be controlled manually:
 ```jsx
 // Pretend that count was accessed:
 count.access();
@@ -570,11 +573,6 @@ const counter = $({ count: $(0) });
 
 When this isn't possible, you can use one of the following options:
 ```jsx
-// Use the update function:
-counter.update(value => {
-	value.count++;
-});
-
 // Replace the entire value:
 counter.value = { count: 1 };
 

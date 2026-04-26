@@ -14,9 +14,7 @@ await suite("signals", async () => {
 		const signal2 = $([1]);
 		deepStrictEqual(signal2.value, [1]);
 
-		signal2.update(value => {
-			value.push(2);
-		});
+		signal2.value.push(2);
 		deepStrictEqual(signal2.value, [1, 2]);
 
 		signal.access();
@@ -45,6 +43,39 @@ await suite("signals", async () => {
 			return 7;
 		});
 		strictEqual(c, 7);
+	});
+
+	await test("inert get", () => {
+		const events: unknown[] = [];
+		const a = $(1);
+		const b = $(1);
+		leak(() => {
+			watch(() => a.value + b.inert, value => {
+				events.push(value);
+			});
+		});
+		assertEvents(events, [2]);
+		b.value++;
+		assertEvents(events, []);
+		a.value++;
+		assertEvents(events, [4]);
+	});
+
+	await test("inert set", () => {
+		const events: unknown[] = [];
+		const signal = $(0);
+		leak(() => {
+			watch(signal, value => {
+				events.push(value);
+			});
+		});
+		assertEvents(events, [0]);
+		signal.value++;
+		assertEvents(events, [1]);
+		signal.inert++;
+		assertEvents(events, []);
+		signal.value++;
+		assertEvents(events, [3]);
 	});
 
 	await suite("immediate side effects", async () => {

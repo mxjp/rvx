@@ -15,6 +15,8 @@
 + **Breaking:** Remove jsx `ref` attribute.
 + **Breaking:** Remove `onLeak`.
 + **Breaking:** Unintentionally leaking teardown hooks now always throws an error.
++ **Breaking:** Remove `Signal.update`.
++ Add `Signal.inert` property.
 + Add `lazy` utility.
 
 ## 25.0
