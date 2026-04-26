@@ -49,9 +49,9 @@ export type SignalSource = Signal<unknown> | undefined;
  */
 export class Signal<T> {
 	/**
-	 * The current value.
+	 * The current value without access tracking or observer notifications when set.
 	 */
-	#value: T;
+	inert: T;
 
 	/**
 	 * A set of hooks that are called in iteration order by this signal to notify it's observers.
@@ -78,23 +78,9 @@ export class Signal<T> {
 	 * @param source The {@link SignalSource source} this signal has been derived from.
 	 */
 	constructor(value: T, source?: SignalSource) {
-		this.#value = value;
+		this.inert = value;
 		this.#source = source;
 		this.#root = source ? source.#root : this;
-	}
-
-	/**
-	 * Get the current value without access tracking.
-	 */
-	get inert(): T {
-		return this.#value;
-	}
-
-	/**
-	 * Set the current value without notifying observers.
-	 */
-	set inert(value: T) {
-		this.#value = value;
 	}
 
 	/**
@@ -102,7 +88,7 @@ export class Signal<T> {
 	 */
 	get value(): T {
 		this.access();
-		return this.#value;
+		return this.inert;
 	}
 
 	/**
@@ -124,8 +110,8 @@ export class Signal<T> {
 	 * ```
 	 */
 	set value(value: T) {
-		if (!Object.is(this.#value, value)) {
-			this.#value = value;
+		if (!Object.is(this.inert, value)) {
+			this.inert = value;
 			this.notify();
 		}
 	}
