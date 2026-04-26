@@ -1,6 +1,5 @@
 import type { ClassValue } from "../element-common.js";
-import { teardown } from "../lifecycle.js";
-import { watch } from "../signals.js";
+import { teardown, watch } from "../signals.js";
 
 class ClassBucket {
 	#target: Element;

@@ -1,4 +1,4 @@
-import { teardown } from "../core/lifecycle.js";
+import { teardown } from "../core/signals.js";
 
 export interface EventFn<T extends unknown[]> {
 	(...args: T): void;

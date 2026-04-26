@@ -3,7 +3,8 @@ import test, { suite } from "node:test";
 import { capture, Context, ENV, leak, mount, watch } from "rvx";
 import { isPending, isSelfPending, TASKS, Tasks } from "rvx/async";
 import { isRvxDom } from "rvx/dom";
-import { assertEvents, future, handleExplicitRejections, handleFinallyRejections, isIsolated } from "../common.js";
+import { isIsolated } from "../../dist/es/core/signals.js";
+import { assertEvents, future, handleExplicitRejections, handleFinallyRejections } from "../common.js";
 
 await suite("async/tasks", async () => {
 	for (const fn of [false, true]) {

@@ -1,5 +1,4 @@
-import { captureSelf, teardown } from "../core/lifecycle.js";
-import { Expression, watch } from "../core/signals.js";
+import { captureSelf, Expression, teardown, watch } from "../core/signals.js";
 import type { Falsy } from "../core/types.js";
 
 export type WatchGuardCondition<T, R extends T> = (value: T) => value is R;

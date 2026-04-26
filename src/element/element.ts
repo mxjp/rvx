@@ -1,6 +1,5 @@
 import { ENV } from "../core/env.js";
-import { capture, leak, TeardownHook } from "../core/lifecycle.js";
-import { $, Signal, watchUpdates } from "../core/signals.js";
+import { $, capture, leak, Signal, TeardownHook, watchUpdates } from "../core/signals.js";
 import { Content } from "../core/types.js";
 import { render } from "../core/view.js";
 

@@ -1,4 +1,4 @@
-import { isolate } from "../core/isolate.js";
+import { isolate } from "../core/signals.js";
 import { $ } from "../core/signals.js";
 import type { Component } from "../core/types.js";
 import { nest, View } from "../core/view.js";

@@ -1,8 +1,193 @@
 import { Context } from "./context.js";
 import { NOOP } from "./internals/noop.js";
-import { ACCESS_STACK, AccessHook, NotifyHook, TEARDOWN_STACK, THROW_ON_LEAK, useStack } from "./internals/stacks.js";
-import { isolate } from "./isolate.js";
-import { capture, teardown, TeardownHook } from "./lifecycle.js";
+
+/**
+ * Represents a stack frame that teardown hooks can be pushed into.
+ *
+ * Note that this may be an array.
+ */
+interface TeardownFrame {
+	push(hook: TeardownHook): void;
+}
+
+/**
+ * A function that is called by a signal or batch when updated.
+ */
+interface NotifyHook {
+	(): void;
+}
+
+/**
+ * A function that is called by a signal when accessed.
+ */
+interface AccessHook {
+	/**
+	 * @param hooks See `Signal.#hooks`.
+	 */
+	(hooks: Set<NotifyHook>): void;
+}
+
+const THROW_ON_LEAK: TeardownFrame = {
+	push(_hook) {
+		// Teardown hooks can not be registered outside of a lifecycle context.
+		throw new Error("G5");
+	},
+};
+
+/**
+ * A stack where the last item may be an object which teardown hooks are captured in.
+ *
+ * `undefined` indicates that hooks are intentionally not captured.
+ */
+const TEARDOWN_STACK: (TeardownFrame | undefined)[] = [THROW_ON_LEAK];
+
+/**
+ * A stack where the top value is called for each tracked signal access.
+ */
+const ACCESS_STACK: (AccessHook | undefined)[] = [];
+
+/**
+ * Internal utility to call a function with a specific stack frame.
+ */
+function useStack<T, R>(stack: T[], frame: T, fn: () => R): R {
+	try {
+		stack.push(frame);
+		return fn();
+	} finally {
+		stack.pop();
+	}
+}
+
+/**
+ * A function that is called to dispose something.
+ */
+export type TeardownHook = () => void;
+
+/**
+ * Internal utility to dispose the specified hooks in reverse order.
+ */
+function dispose(hooks: TeardownHook[]) {
+	for (let i = hooks.length - 1; i >= 0; i--) {
+		hooks[i]();
+	}
+}
+
+/**
+ * Run a function while capturing teardown hooks.
+ *
+ * + If an error is thrown by the specified function, teardown hooks are called in reverse registration order and the error is re-thrown.
+ * + If an error is thrown by a teardown hook, remaining ones are not called and the error is re-thrown.
+ *
+ * @param fn The function to run.
+ * @returns A function to run all captured teardown hooks in reverse registration order.
+ */
+export function capture(fn: () => void): TeardownHook {
+	const hooks: TeardownHook[] = [];
+	try {
+		useStack(TEARDOWN_STACK, hooks, fn);
+	} catch (error) {
+		isolate(dispose, hooks);
+		throw error;
+	}
+	return hooks.length === 0 ? NOOP : () => isolate(dispose, hooks);
+}
+
+/**
+ * Run a function while capturing teardown hooks.
+ *
+ * + When disposed before the specified function finishes, teardown hooks are called in reverse registration order immediately after the function finishes.
+ * + If an error is thrown by the specified function, teardown hooks are called in reverse registration order and the error is re-thrown.
+ * + If an error is thrown by a teardown hook, remaining ones are not called and the error is re-thrown.
+ *
+ * @param fn The function to run.
+ * @returns The function's return value.
+ */
+export function captureSelf<T>(fn: (dispose: TeardownHook) => T): T {
+	let disposed = false;
+	let dispose: TeardownHook = NOOP;
+	let value: T;
+	dispose = capture(() => {
+		value = fn(() => {
+			disposed = true;
+			dispose();
+		});
+	});
+	if (disposed) {
+		dispose();
+	}
+	return value!;
+}
+
+/**
+ * Run a function while intentionally leaking teardown hooks.
+ *
+ * @param fn The function to run.
+ * @returns The function's return value.
+ */
+export function leak<T>(fn: () => T): T {
+	return useStack(TEARDOWN_STACK, undefined, fn);
+}
+
+/**
+ * Run a function and immediately call teardown hooks if it throws an error.
+ *
+ * + If an error is thrown, teardown hooks are immediately called in reverse registration order and the error is re-thrown.
+ * + If no error is thrown, teardown hooks are registered in the outer context.
+ *
+ * @param fn The function to run.
+ * @returns The function's return value.
+ */
+export function teardownOnError<T>(fn: () => T): T {
+	let value!: T;
+	teardown(capture(() => {
+		value = fn();
+	}));
+	return value;
+}
+
+/**
+ * Register a teardown hook to be called when the current lifecycle is disposed.
+ *
+ * This has no effect if teardown hooks are not captured in the current context.
+ *
+ * @param hook The hook to register. This may be called multiple times.
+ */
+export function teardown(hook: TeardownHook): void {
+	const length = TEARDOWN_STACK.length;
+	if (length > 0) {
+		TEARDOWN_STACK[length - 1]?.push(hook);
+	}
+}
+
+/**
+ * Run a function in isolation from the following side effect causing APIs:
+ * + Teardown hooks are leaked. To isolate only teardown hooks, use {@link leak} instead.
+ * + Signal accesses are not tracked and the default tracking behavior is restored. To only isolate signal accesses, use {@link untrack} instead.
+ *
+ * Note, that batches and contexts are not isolated.
+ *
+ * @param fn The function to run.
+ * @param args The function arguments.
+ * @returns The function's return value.
+ */
+export function isolate<F extends (...args: any) => any>(fn: F, ...args: Parameters<F>): ReturnType<F> {
+	try {
+		TEARDOWN_STACK.push(THROW_ON_LEAK);
+		ACCESS_STACK.push(undefined);
+		return fn(...args);
+	} finally {
+		TEARDOWN_STACK.pop();
+		ACCESS_STACK.pop();
+	}
+}
+
+/**
+ * Internal test utility to check if lifecycle & access tracking is isolated in the current context.
+ */
+export function isIsolated() {
+	return TEARDOWN_STACK[TEARDOWN_STACK.length - 1] === THROW_ON_LEAK
+		&& ACCESS_STACK[ACCESS_STACK.length - 1] === undefined;
+}
 
 /**
  * During a {@link batch}, notify hooks are added to this set instead of being called.

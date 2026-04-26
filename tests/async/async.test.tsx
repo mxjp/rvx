@@ -2,7 +2,8 @@ import { strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 import { capture, leak, Provide } from "rvx";
 import { ASYNC, Async, AsyncContext } from "rvx/async";
-import { assertEvents, future, isIsolated, text } from "../common.js";
+import { assertEvents, future, text } from "../common.js";
+import { isIsolated } from "../../dist/es/core/signals.js";
 
 await suite("async/async", async () => {
 	await test("tracking", async () => {

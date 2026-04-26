@@ -5,8 +5,7 @@ import { appendContent } from "../internals/append-content.js";
 import { setAttr } from "../internals/set-attr.js";
 import { setClass } from "../internals/set-class.js";
 import { setStyle } from "../internals/set-style.js";
-import { isolate } from "../isolate.js";
-import { watch } from "../signals.js";
+import { isolate, watch } from "../signals.js";
 import { Content } from "../types.js";
 
 /**

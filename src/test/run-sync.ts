@@ -1,4 +1,4 @@
-import { captureSelf } from "../core/lifecycle.js";
+import { captureSelf } from "../core/signals.js";
 
 export type TestFn<T> = () => T;
 

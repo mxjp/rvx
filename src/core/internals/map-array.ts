@@ -1,6 +1,4 @@
-import { isolate } from "../isolate.js";
-import { capture, teardown, TeardownHook } from "../lifecycle.js";
-import { $, Signal } from "../signals.js";
+import { $, capture, isolate, Signal, teardown, TeardownHook } from "../signals.js";
 
 export type MapArrayFn<I, O> = (input: I, index: () => number) => O;
 

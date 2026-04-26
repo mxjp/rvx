@@ -2,9 +2,7 @@ import { NODE, NodeTarget } from "./element-common.js";
 import { ENV } from "./env.js";
 import { createText } from "./internals/create-text.js";
 import { createMapArrayState, MapArrayFn, mapArrayUpdate } from "./internals/map-array.js";
-import { isolate } from "./isolate.js";
-import { capture, teardown, TeardownHook } from "./lifecycle.js";
-import { $, Expression, get, memo, Signal, watch } from "./signals.js";
+import { $, capture, Expression, get, isolate, memo, Signal, teardown, TeardownHook, watch } from "./signals.js";
 import type { Component, Content, Falsy } from "./types.js";
 import type { Attach, For, Index, Nest, Show } from "./view-jsx.js";
 

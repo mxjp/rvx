@@ -1,6 +1,5 @@
 import { ENV } from "../core/env.js";
-import { teardown } from "../core/lifecycle.js";
-import { $, batch } from "../core/signals.js";
+import { $, batch, teardown } from "../core/signals.js";
 import { join, relative } from "./path.js";
 import { formatQuery, Query, QueryInit } from "./query.js";
 import { Router } from "./router.js";

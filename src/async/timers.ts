@@ -1,5 +1,5 @@
 import { Context } from "../core/context.js";
-import { capture, teardown, TeardownHook } from "../core/lifecycle.js";
+import { capture, teardown, TeardownHook } from "../core/signals.js";
 
 /**
  * The same as {@link queueMicrotask}, but with context & lifecycle support.
@@ -44,7 +44,7 @@ export function useTimeout(callback: () => void, timeout: number): void {
 	callback = Context.bind(callback);
 	let active = true;
 	let dispose: TeardownHook | undefined;
-	let handle: undefined | number;
+	let handle: any;
 	teardown(() => {
 		active = false;
 		clearTimeout(handle);
@@ -73,7 +73,7 @@ export function useInterval(callback: () => void, interval: number): void {
 	callback = Context.bind(callback);
 	let active = true;
 	let dispose: TeardownHook | undefined;
-	let handle: undefined | number;
+	let handle: any;
 	teardown(() => {
 		active = false;
 		clearInterval(handle);

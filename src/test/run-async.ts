@@ -1,5 +1,5 @@
 import { ASYNC, AsyncContext } from "../async/async-context.js";
-import { captureSelf, TeardownHook } from "../core/lifecycle.js";
+import { captureSelf, TeardownHook } from "../core/signals.js";
 
 export interface AsyncTestContext {
 	asyncCtx: AsyncContext;
