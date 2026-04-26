@@ -24,9 +24,8 @@ export function Example() {
 
 	function add() {
 		if (name.value) {
-			items.update(items => {
-				items.push({ name: $(name.value), done: $(false) });
-			});
+			items.inert.push({ name: $(name.value), done: $(false) });
+			items.notify();
 			name.value = "";
 		}
 	}
@@ -56,9 +55,8 @@ export function Example() {
 				when(item.done, () => [
 					e("button").on("click", () => { item.done.value = false }).append("Undone"),
 					e("button").on("click", () => {
-						items.update(items => {
-							items.splice(items.indexOf(item), 1);
-						});
+						items.inert.splice(items.inert.indexOf(item), 1);
+						items.notify();
 					}).append("Remove"),
 				], () => [
 					e("button").on("click", () => { item.done.value = true }).append("Done"),
