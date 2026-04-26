@@ -10,16 +10,13 @@ hide:
 Rvx is a signal based frontent framework.
 
 ```jsx
-import { $, mount } from "rvx";
+import { $ } from "rvx";
 
 const count = $(0);
 
-mount(
-	document.body,
-	<button on:click={() => { count.value++ }}>
-		Clicked {count} times
-	</button>
-);
+<button on:click={() => { count.value++ }}>
+	Clicked {count} times
+</button>
 ```
 
 <br><br>

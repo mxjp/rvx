@@ -24,14 +24,19 @@ npm start
 ## Entry Point
 After setting up the quick start template, you can find the main entry point in `src/main.tsx`:
 ```jsx
-import { mount } from "rvx";
+import { leak, mount } from "rvx";
 
-mount(
-	document.body,
-	<h1>Hello World!</h1>
-);
+leak(() => {
+	mount(
+		document.body,
+		<h1>Hello World!</h1>
+	);
+});
 ```
-The `<h1>Hello World!</h1>` expression directly creates an element and the `mount` function takes whatever content is supported by rvx and appends it to the specified element.
+
++ The `<h1>Hello World!</h1>` expression directly creates an element.
++ `mount` takes whatever content is supported by rvx and appends it to the specified element.
++ `leak` provides an infinitely long lifecycle.
 
 ## State & Reactivity
 Reactivity is entirely based on signals which are objects that hold an arbitrary value:
