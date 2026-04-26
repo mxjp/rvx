@@ -1,6 +1,8 @@
-import { mount } from "rvx";
+import { leak, mount } from "rvx";
 
-mount(
-	document.body,
-	<h1>Hello World!</h1>
-);
+leak(() => {
+	mount(
+		document.body,
+		<h1>Hello World!</h1>
+	);
+});

@@ -1,4 +1,4 @@
-import { Context, render, View } from "rvx";
+import { Context, leak, render, View } from "rvx";
 import { ASYNC, AsyncContext } from "rvx/async";
 import { HistoryRouter, ROUTER } from "rvx/router";
 import { App } from "./app.js";
@@ -6,10 +6,12 @@ import { App } from "./app.js";
 async function main() {
 	try {
 		const asyncCtx = new AsyncContext();
-		const app = render(Context.provide([
-			ROUTER.with(new HistoryRouter()),
-			ASYNC.with(asyncCtx),
-		], App));
+		const app = leak(() => {
+			return render(Context.provide([
+				ROUTER.with(new HistoryRouter()),
+				ASYNC.with(asyncCtx),
+			], App));
+		});
 
 		if (document.readyState === "loading") {
 			await new Promise(resolve => {
