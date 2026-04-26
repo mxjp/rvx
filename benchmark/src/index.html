@@ -17,7 +17,7 @@
 				const snapshot = await import(`./snapshots/${args.snapshot}`);
 
 				const multiplier = benchmark.multiplier ?? 1;
-				const cycle = benchmark.create(snapshot);
+				const cycle = snapshot.leak(() => benchmark.create(snapshot));
 				const samples = [];
 
 				let size = MIN_SIZE;
@@ -26,9 +26,11 @@
 				await idle();
 				while (samples.length < SAMPLES) {
 					const start = performance.now();
-					for (let i = 0; i < size; i++) {
-						cycle();
-					}
+					snapshot.leak(() => {
+						for (let i = 0; i < size; i++) {
+							cycle();
+						}
+					});
 					const end = performance.now();
 					const durationMs = end - start;
 					if (warmup) {

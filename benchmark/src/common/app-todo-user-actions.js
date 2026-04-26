@@ -99,7 +99,7 @@ export function createBenchmark({ $, capture, render, e, teardown, forEach, when
 									Button({
 										children: "Remove",
 										action: () => {
-											todos.inert.splice(todos.indexOf(item), 1);
+											todos.inert.splice(todos.inert.indexOf(item), 1);
 											todos.notify();
 										},
 									}),
