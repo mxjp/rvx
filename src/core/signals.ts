@@ -34,29 +34,19 @@ const THROW_ON_LEAK: TeardownFrame = {
 	},
 };
 
-/**
- * A stack where the last item may be an object which teardown hooks are captured in.
- *
- * `undefined` indicates that hooks are intentionally not captured.
- */
-const TEARDOWN_STACK: (TeardownFrame | undefined)[] = [THROW_ON_LEAK];
+const LEAK: TeardownFrame = {
+	push() {},
+};
 
 /**
- * A stack where the top value is called for each tracked signal access.
+ * The current frame for capturing teardown hooks.
  */
-const ACCESS_STACK: (AccessHook | undefined)[] = [];
+let TEARDOWN_FRAME: TeardownFrame = THROW_ON_LEAK;
 
 /**
- * Internal utility to call a function with a specific stack frame.
+ * The current access tracking frame.
  */
-function useStack<T, R>(stack: T[], frame: T, fn: () => R): R {
-	try {
-		stack.push(frame);
-		return fn();
-	} finally {
-		stack.pop();
-	}
-}
+let ACCESS_FRAME: AccessHook | undefined;
 
 /**
  * A function that is called to dispose something.
@@ -82,12 +72,16 @@ function dispose(hooks: TeardownHook[]) {
  * @returns A function to run all captured teardown hooks in reverse registration order.
  */
 export function capture(fn: () => void): TeardownHook {
+	const parent = TEARDOWN_FRAME;
 	const hooks: TeardownHook[] = [];
 	try {
-		useStack(TEARDOWN_STACK, hooks, fn);
+		TEARDOWN_FRAME = hooks;
+		fn();
 	} catch (error) {
 		isolate(dispose, hooks);
 		throw error;
+	} finally {
+		TEARDOWN_FRAME = parent;
 	}
 	return hooks.length === 0 ? NOOP : () => isolate(dispose, hooks);
 }
@@ -125,7 +119,13 @@ export function captureSelf<T>(fn: (dispose: TeardownHook) => T): T {
  * @returns The function's return value.
  */
 export function leak<T>(fn: () => T): T {
-	return useStack(TEARDOWN_STACK, undefined, fn);
+	const parent = TEARDOWN_FRAME;
+	try {
+		TEARDOWN_FRAME = LEAK;
+		return fn();
+	} finally {
+		TEARDOWN_FRAME = parent;
+	}
 }
 
 /**
@@ -153,10 +153,7 @@ export function teardownOnError<T>(fn: () => T): T {
  * @param hook The hook to register. This may be called multiple times.
  */
 export function teardown(hook: TeardownHook): void {
-	const length = TEARDOWN_STACK.length;
-	if (length > 0) {
-		TEARDOWN_STACK[length - 1]?.push(hook);
-	}
+	return TEARDOWN_FRAME.push(hook);
 }
 
 /**
@@ -171,13 +168,15 @@ export function teardown(hook: TeardownHook): void {
  * @returns The function's return value.
  */
 export function isolate<F extends (...args: any) => any>(fn: F, ...args: Parameters<F>): ReturnType<F> {
+	const parentTeardownFrame = TEARDOWN_FRAME;
+	const parentAccessFrame = ACCESS_FRAME;
 	try {
-		TEARDOWN_STACK.push(THROW_ON_LEAK);
-		ACCESS_STACK.push(undefined);
+		TEARDOWN_FRAME = THROW_ON_LEAK;
+		ACCESS_FRAME = undefined;
 		return fn(...args);
 	} finally {
-		TEARDOWN_STACK.pop();
-		ACCESS_STACK.pop();
+		TEARDOWN_FRAME = parentTeardownFrame;
+		ACCESS_FRAME = parentAccessFrame;
 	}
 }
 
@@ -185,8 +184,7 @@ export function isolate<F extends (...args: any) => any>(fn: F, ...args: Paramet
  * Internal test utility to check if lifecycle & access tracking is isolated in the current context.
  */
 export function isIsolated() {
-	return TEARDOWN_STACK[TEARDOWN_STACK.length - 1] === THROW_ON_LEAK
-		&& ACCESS_STACK[ACCESS_STACK.length - 1] === undefined;
+	return TEARDOWN_FRAME === THROW_ON_LEAK && ACCESS_FRAME === undefined;
 }
 
 /**
@@ -326,10 +324,7 @@ export class Signal<T> {
 	 * Manually access this signal.
 	 */
 	access(): void {
-		const length = ACCESS_STACK.length;
-		if (length > 0) {
-			ACCESS_STACK[length - 1]?.(this.#hooks);
-		}
+		ACCESS_FRAME?.(this.#hooks);
 	}
 
 	/**
@@ -492,22 +487,6 @@ const _observer = (hook: NotifyHook): Observer => {
 };
 
 /**
- * Internal utility to call a function while tracking signal accesses.
- *
- * @param frame The access hook.
- * @param fn The function to call.
- * @returns The function's return value.
- */
-const _access = <T>(frame: AccessHook | undefined, fn: () => T): T => {
-	try {
-		ACCESS_STACK.push(frame);
-		return fn();
-	} finally {
-		ACCESS_STACK.pop();
-	}
-};
-
-/**
  * Watch an expression until the current lifecycle is disposed.
  *
  * + Both the expression and effect are called at least once immediately.
@@ -594,9 +573,16 @@ export function watch<T>(expr: Expression<T>, effect?: (value: T) => void): void
 			clear();
 			isolate(dispose);
 			dispose = capture(() => {
-				value = _access(access, runExpr);
-				if (effect) {
-					_access(undefined, () => effect(value));
+				const parent = ACCESS_FRAME;
+				try {
+					ACCESS_FRAME = access;
+					value = runExpr();
+					if (effect) {
+						ACCESS_FRAME = undefined;
+						effect(value);
+					}
+				} finally {
+					ACCESS_FRAME = parent;
 				}
 			});
 		}));
@@ -673,18 +659,22 @@ export function lazy<T>(expr: () => T): () => T {
 	};
 
 	return Context.bind(() => {
-		const observer = ACCESS_STACK[ACCESS_STACK.length - 1];
+		const observer = ACCESS_FRAME;
 		if (stale) {
+			const parentTeardownFrame = TEARDOWN_FRAME;
 			try {
 				signals.forEach(s => s.delete(mark));
 				signals.clear();
-				ACCESS_STACK.push(access);
-				TEARDOWN_STACK.push(THROW_ON_LEAK);
+
+				ACCESS_FRAME = access;
+				TEARDOWN_FRAME = THROW_ON_LEAK;
+
 				value = expr();
 				stale = false;
 			} finally {
-				ACCESS_STACK.pop();
-				TEARDOWN_STACK.pop();
+				ACCESS_FRAME = observer;
+				TEARDOWN_FRAME = parentTeardownFrame;
+
 				if (observer) {
 					signals.forEach(observer);
 				}
@@ -865,14 +855,20 @@ export function untrack<T>(expr: Static<T>): T;
  */
 export function untrack<T>(expr: Expression<T>): T;
 export function untrack<T>(expr: Expression<T>): T {
-	return useStack(ACCESS_STACK, undefined, () => get(expr));
+	const parent = ACCESS_FRAME;
+	try {
+		ACCESS_FRAME = undefined;
+		return get(expr);
+	} finally {
+		ACCESS_FRAME = parent;
+	}
 }
 
 /**
  * Check if signal accesses are currently tracked.
  */
 export function isTracking(): boolean {
-	return ACCESS_STACK[ACCESS_STACK.length - 1] !== undefined;
+	return ACCESS_FRAME !== undefined;
 }
 
 /**
@@ -911,11 +907,12 @@ export function trigger(callback: () => void): TriggerPipe {
 	teardown(clear);
 	return <T>(expr: Expression<T>) => {
 		clear();
+		const parent = ACCESS_FRAME;
 		try {
-			const outerLength = ACCESS_STACK.length;
-			if (outerLength > 0) {
-				const outer = ACCESS_STACK[outerLength - 1];
-				ACCESS_STACK.push(hooks => {
+			if (parent === undefined) {
+				ACCESS_FRAME = access;
+			} else {
+				ACCESS_FRAME = hooks => {
 					/*
 						Tracking accesses using this observer before any outer ones also
 						guarantees the order in which observers are notified because:
@@ -923,14 +920,12 @@ export function trigger(callback: () => void): TriggerPipe {
 						+ Set iteration order matches the order in which observers add their hooks.
 					*/
 					access(hooks);
-					outer?.(hooks);
-				});
-			} else {
-				ACCESS_STACK.push(access);
+					parent?.(hooks);
+				};
 			}
 			return get(expr);
 		} finally {
-			ACCESS_STACK.pop();
+			ACCESS_FRAME = parent;
 		}
 	};
 }
