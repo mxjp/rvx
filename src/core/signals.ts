@@ -17,6 +17,20 @@ interface NotifyHook {
 	(): void;
 }
 
+interface SignalCore {
+	/**
+	 * A counter to identify if a signal as notified it's observers.
+	 */
+	c: number;
+
+	/**
+	 * A set of hooks that are called in iteration order by this signal to notify it's observers.
+	 *
+	 * This is cleared before hooks are called.
+	 */
+	h: Set<NotifyHook>;
+}
+
 /**
  * A function that is called by a signal when accessed.
  */
@@ -24,7 +38,7 @@ interface AccessHook {
 	/**
 	 * @param hooks See `Signal.#hooks`.
 	 */
-	(hooks: Set<NotifyHook>): void;
+	(hooks: SignalCore): void;
 }
 
 const THROW_ON_LEAK: TeardownFrame = {
@@ -237,12 +251,12 @@ export class Signal<T> {
 	inert: T;
 
 	/**
-	 * A set of hooks that are called in iteration order by this signal to notify it's observers.
-	 *
-	 * + This is cleared before hooks are called.
-	 * + Observers get a permanent reference to this set to manually add or remove themselves.
+	 * The signal core referenced by other observers.
 	 */
-	#hooks = new Set<NotifyHook>();
+	#core: SignalCore = {
+		c: 0,
+		h: new Set(),
+	};
 
 	/**
 	 * The {@link SignalSource source} this signal has been derived from.
@@ -317,14 +331,14 @@ export class Signal<T> {
 	 * Check if this signal has any active observers.
 	 */
 	get active(): boolean {
-		return this.#hooks.size > 0;
+		return this.#core.h.size > 0;
 	}
 
 	/**
 	 * Manually access this signal.
 	 */
 	access(): void {
-		ACCESS_FRAME?.(this.#hooks);
+		ACCESS_FRAME?.(this.#core);
 	}
 
 	/**
@@ -333,16 +347,17 @@ export class Signal<T> {
 	 * During batches, notifications are deferred.
 	 */
 	notify(): void {
-		const hooks = this.#hooks;
-		if (hooks.size === 0) {
+		const core = this.#core;
+		core.c++;
+		if (core.h.size === 0) {
 			return;
 		}
 		if (BATCH === undefined) {
-			const record = Array.from(hooks);
-			hooks.clear();
+			const record = Array.from(core.h);
+			core.h.clear();
 			record.forEach(_notify);
 		} else {
-			hooks.forEach(_queueBatch);
+			core.h.forEach(_queueBatch);
 			/*
 				Hooks are not cleared during batches to prevent breaking
 				other observers if an error is thrown during the batch.
@@ -471,17 +486,17 @@ interface Observer {
  */
 const _observer = (hook: NotifyHook): Observer => {
 	/** Array of the hook sets of currently accessed signals. This can contain duplicates. */
-	const signals: Set<NotifyHook>[] = [];
+	const signals: SignalCore[] = [];
 	return {
 		c: () => {
 			for (let i = 0; i < signals.length; i++) {
-				signals[i].delete(hook);
+				signals[i].h.delete(hook);
 			}
 			signals.length = 0;
 		},
-		a: (hooks: Set<NotifyHook>): void => {
+		a: (hooks: SignalCore): void => {
 			signals.push(hooks);
-			hooks.add(hook);
+			hooks.h.add(hook);
 		},
 	};
 };
@@ -635,10 +650,26 @@ export function watchUpdates<T>(expr: Expression<T>, effect: (value: T) => void)
 	return first!;
 }
 
+interface Dependency {
+	/**
+	 * The accessed signal.
+	 */
+	s: SignalCore;
+
+	/**
+	 * The signal cycle at the time it was accessed.
+	 */
+	c: number;
+}
+
+function _isStale(dep: Dependency) {
+	return dep.c !== dep.s.c;
+}
+
 /**
- * Wrap an expression to only be re-evaluated when any accessed signal has updated.
+ * Wrap an expression to re-run only when any accessed signal has been updated.
  *
- * + Lifecycle hooks from the expression are leaked.
+ * + Lifecycle hooks in the expression are not supported.
  * + The context from where `lazy` was called is available within the expression.
  *
  * @param expr The expression to wrap.
@@ -647,24 +678,21 @@ export function lazy<T>(expr: () => T): () => T {
 	let stale = true;
 	let value!: T;
 
-	const signals = new Set<Set<NotifyHook>>();
+	const deps: Dependency[] = [];
 
 	const access: AccessHook = signal => {
-		signals.add(signal);
-		signal.add(mark);
-	};
-
-	const mark = () => {
-		stale = true;
+		deps.push({
+			s: signal,
+			c: signal.c,
+		});
 	};
 
 	return Context.bind(() => {
 		const observer = ACCESS_FRAME;
-		if (stale) {
+		if (stale || (stale = deps.some(_isStale))) {
 			const parentTeardownFrame = TEARDOWN_FRAME;
 			try {
-				signals.forEach(s => s.delete(mark));
-				signals.clear();
+				deps.length = 0;
 
 				ACCESS_FRAME = access;
 				TEARDOWN_FRAME = THROW_ON_LEAK;
@@ -676,12 +704,12 @@ export function lazy<T>(expr: () => T): () => T {
 				TEARDOWN_FRAME = parentTeardownFrame;
 
 				if (observer) {
-					signals.forEach(observer);
+					deps.forEach(dep => observer(dep.s));
 				}
 			}
 		} else {
 			if (observer) {
-				signals.forEach(observer);
+				deps.forEach(dep => observer(dep.s));
 			}
 		}
 		return value;

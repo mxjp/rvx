@@ -188,8 +188,29 @@ This is the same as [`watch`](#watch) except that it returns a function to react
 	```
 
 + The current [context](context.md) is available in the expression.
++ Execution is deferred during [batches](#batch).
 + Execution is stopped when the current [lifecycle](lifecycle.md) is disposed.
 + Teardown hooks from the callback are called when the current [lifecycle](lifecycle.md) is disposed or before the next call.
+
+## `lazy`
+Wrap an expression to re-run only when any accessed signal has been updated.
+
+=== "JSX"
+	```jsx
+	import { lazy } from "rvx";
+
+	const getValue = lazy(() => a.value * b.value);
+	```
+
+=== "No Build"
+	```jsx
+	import { lazy } from "./rvx.js";
+
+	const getValue = lazy(() => a.value * b.value);
+	```
+
++ The [context](context.md) from where `lazy` was called is available in the expression.
++ Teardown hooks in the expression are not supported.
 
 ## `untrack`
 Evaluate an expression and isolate signal accesses from the current observer.
@@ -473,6 +494,8 @@ Observers like [`watch`](#watch) and [`trigger`](#trigger), signals and teardown
 + Observer registered teardown hooks reference their observers.
 + Observers reference all accessed signals from the latest expression until disposed.
 + Signals reference all current observers.
+
+Note that [`lazy`](#lazy) is not an observer and does not affect references even when in between an observer and a signal.
 
 !!! warning
 	Not cleaning up unused observers by calling their teardown hooks can result in memory leaks and other undefined behavior.

@@ -987,26 +987,42 @@ await suite("signals", async () => {
 
 			strictEqual(c(), 1);
 			assertEvents(events, ["compute"]);
+			strictEqual(a.active, false);
+			strictEqual(b.active, false);
 
-			leak(() => {
+			const dispose = capture(() => {
 				watch(c, value => events.push("a", value));
 				watch(c, value => events.push("b", value));
 			});
 			assertEvents(events, ["a", 1, "b", 1]);
+			strictEqual(a.active, true);
+			strictEqual(b.active, true);
 
 			a.value = 2;
 			assertEvents(events, ["compute", "a", 3, "b", 3]);
+			strictEqual(a.active, true);
+			strictEqual(b.active, true);
 
 			b.value = 3;
 			assertEvents(events, ["compute", "a", 5, "b", 5]);
+			strictEqual(a.active, true);
+			strictEqual(b.active, true);
 
 			batch(() => {
 				a.value = 4;
 				b.value = 5;
 				assertEvents(events, []);
 			});
+			strictEqual(a.active, true);
+			strictEqual(b.active, true);
 
 			assertEvents(events, ["compute", "a", 9, "b", 9]);
+			strictEqual(a.active, true);
+			strictEqual(b.active, true);
+
+			dispose();
+			strictEqual(a.active, false);
+			strictEqual(b.active, false);
 		});
 
 		await test("nesting", () => {
@@ -1020,21 +1036,34 @@ await suite("signals", async () => {
 				events.push("computeC");
 				return a.value + b() + 1;
 			});
+			strictEqual(a.active, false);
 
-			leak(() => {
+			const disposeC = capture(() => {
 				watch(c, value => events.push("c", value));
+			});
+
+			const disposeB = capture(() => {
 				watch(b, value => events.push("b", value));
 			});
+
 			assertEvents(events, ["computeC", "computeB", "c", 2, "b", 1]);
 			strictEqual(b(), 1);
 			strictEqual(c(), 2);
 			assertEvents(events, []);
+			strictEqual(a.active, true);
 
 			a.value++;
 			assertEvents(events, ["computeC", "computeB", "c", 4, "b", 2]);
 			strictEqual(b(), 2);
 			strictEqual(c(), 4);
 			assertEvents(events, []);
+			strictEqual(a.active, true);
+
+			disposeB();
+			strictEqual(a.active, true);
+
+			disposeC();
+			strictEqual(a.active, false);
 		});
 
 		await test("inert usage", () => {
@@ -1046,20 +1075,25 @@ await suite("signals", async () => {
 				return a.value + b;
 			});
 			assertEvents(events, []);
+			strictEqual(a.active, false);
 
 			strictEqual(c(), 1);
 			assertEvents(events, ["compute"]);
+			strictEqual(a.active, false);
 
 			strictEqual(c(), 1);
 			assertEvents(events, []);
+			strictEqual(a.active, false);
 
 			b = 2;
 			strictEqual(c(), 1);
 			assertEvents(events, []);
+			strictEqual(a.active, false);
 
 			a.value = 1;
 			strictEqual(c(), 3);
 			assertEvents(events, ["compute"]);
+			strictEqual(a.active, false);
 		});
 
 		await test("inert error handling", () => {
@@ -1070,14 +1104,16 @@ await suite("signals", async () => {
 				}
 				return a.value;
 			});
-
 			strictEqual(b(), 0);
-			a.value++;
+			strictEqual(a.active, false);
 
+			a.value++;
 			throws(b, withMsg("test"));
-			a.value++;
+			strictEqual(a.active, false);
 
+			a.value++;
 			strictEqual(b(), 2);
+			strictEqual(a.active, false);
 		});
 
 		await test("observer error handling", () => {
@@ -1089,8 +1125,9 @@ await suite("signals", async () => {
 				}
 				return a.value;
 			});
+			strictEqual(a.active, false);
 
-			leak(() => {
+			const dispose = capture(() => {
 				watch(a, value => {
 					events.push("pre", value);
 				});
@@ -1101,20 +1138,23 @@ await suite("signals", async () => {
 					events.push("post", value);
 				})
 			});
-
 			assertEvents(events, ["pre", 0, "b", 0, "post", 0]);
+			strictEqual(a.active, true);
 
 			causesRejection(() => a.value++, withMsg("test"));
 			assertEvents(events, ["pre", 1, "post", 1]);
 			strictEqual(a.value, 1);
+			strictEqual(a.active, true);
 
 			a.value++;
 			assertEvents(events, ["pre", 2, "b", 2, "post", 2]);
 			strictEqual(b(), 2);
+			strictEqual(a.active, true);
 
 			causesRejection(() => a.value--, withMsg("test"));
 			assertEvents(events, ["pre", 1, "post", 1]);
 			strictEqual(a.value, 1);
+			strictEqual(a.active, true);
 		});
 
 		await test("lifecycle", () => {
@@ -1135,17 +1175,21 @@ await suite("signals", async () => {
 				});
 			});
 			assertEvents(events, []);
+			strictEqual(a.active, false);
 
 			ctx.provide(13, () => {
 				strictEqual(b(), 78);
 			});
 			assertEvents(events, ["compute"]);
+			strictEqual(a.active, false);
 
 			a.value++;
 			assertEvents(events, []);
+			strictEqual(a.active, false);
 
 			strictEqual(b(), 79);
 			assertEvents(events, ["compute"]);
+			strictEqual(a.active, false);
 		});
 
 		await test("direct reentry", () => {
@@ -1165,63 +1209,130 @@ await suite("signals", async () => {
 					depth--;
 				}
 			});
+			strictEqual(a.active, false);
 
-			leak(() => {
+			const dispose = capture(() => {
 				watch(b, value => {
 					events.push(value);
 				});
 			});
 			assertEvents(events, ["d0", "d1", "d2", 1]);
+			strictEqual(a.active, true);
 
 			strictEqual(b(), 1);
 			assertEvents(events, []);
+			strictEqual(a.active, true);
 
 			a.value++;
 			assertEvents(events, ["d0", "d1", "d2", 2]);
+			strictEqual(a.active, true);
 
 			strictEqual(b(), 2);
 			assertEvents(events, []);
+			strictEqual(a.active, true);
+
+			dispose();
+			strictEqual(a.active, false);
 		});
 
-		await test("indirect reentry", () => {
-			const events: unknown[] = [];
-			const a = $(0);
-			const b = $(0);
-			const c = lazy(() => {
-				events.push("c", `a${untrack(a)}`, `b${untrack(b)}`);
-				if (b.value === 1) {
-					a.value = untrack(a) + 1;
-				}
-				return b.value;
-			});
-			assertEvents(events, []);
-
-			leak(() => {
-				watch(() => {
-					events.push("d", `a${untrack(a)}`, `b${untrack(b)}`);
-					if (a.value === 1) {
-						b.value = untrack(b) + 1;
+		for (const postUpdate of [false, true]) {
+			await test("indirect reentry", () => {
+				const events: unknown[] = [];
+				const a = $(0);
+				const b = $(0);
+				const c = lazy(() => {
+					events.push("c", `a${untrack(a)}`, `b${untrack(b)}`);
+					const bValue = b.value;
+					if (bValue === 1) {
+						a.value = untrack(a) + 1;
 					}
+					return postUpdate ? b.value : bValue;
 				});
-			});
-			assertEvents(events, ["d", "a0", "b0"]);
+				assertEvents(events, []);
+				strictEqual(a.active, false);
+				strictEqual(b.active, false);
 
-			leak(() => {
-				watch(c, value => {
-					events.push(`v${value}`);
+				const disposeD = capture(() => {
+					watch(() => {
+						events.push("d", `a${untrack(a)}`, `b${untrack(b)}`);
+						if (a.value === 1) {
+							b.value = untrack(b) + 1;
+						}
+					});
 				});
-			});
-			assertEvents(events, ["c", "a0", "b0", "v0"]);
+				assertEvents(events, ["d", "a0", "b0"]);
+				strictEqual(a.active, true);
+				strictEqual(b.active, false);
 
-			strictEqual(c(), 0);
-			assertEvents(events, []);
+				const disposeC = capture(() => {
+					watch(c, value => {
+						events.push(`v${value}`);
+					});
+				});
+				assertEvents(events, ["c", "a0", "b0", "v0"]);
+				strictEqual(a.active, true);
+				strictEqual(b.active, true);
+
+				strictEqual(c(), 0);
+				strictEqual(a.active, true);
+				strictEqual(b.active, true);
+				assertEvents(events, []);
+
+				b.value++;
+				assertEvents(events, ["c", "a0", "b1", "d", "a1", "b1", postUpdate ? "v2" : "v1"]);
+				strictEqual(a.active, true);
+				strictEqual(b.active, true);
+
+				strictEqual(b.value, 2);
+				strictEqual(c(), 2);
+				assertEvents(events, ["c", "a1", "b2"]);
+				strictEqual(a.active, true);
+				strictEqual(b.active, true);
+
+				strictEqual(c(), 2);
+				assertEvents(events, []);
+				strictEqual(a.active, true);
+				strictEqual(b.active, true);
+
+				disposeD();
+				strictEqual(a.active, false);
+				strictEqual(b.active, true);
+
+				disposeC();
+				strictEqual(a.active, false);
+				strictEqual(b.active, false);
+			});
+		}
+
+		await test("swap dependencies", () => {
+			const events: unknown[] = [];
+			const a = $(false);
+			const b = $(1);
+			const c = $(7);
+			const d = lazy(() => a.value ? c.value : b.value);
+
+			const dispose = capture(() => {
+				watch(d, value => events.push(value));
+			});
+
+			assertEvents(events, [1]);
+			strictEqual(a.active, true);
+			strictEqual(b.active, true);
+			strictEqual(c.active, false);
 
 			b.value++;
-			assertEvents(events, ["c", "a0", "b1", "d", "a1", "b1", "v2"]);
+			assertEvents(events, [2]);
 
-			strictEqual(b.value, 2);
-			strictEqual(c(), 2);
-			assertEvents(events, []);
+			a.value = true;
+			assertEvents(events, [7]);
+			strictEqual(a.active, true);
+			strictEqual(b.active, false);
+			strictEqual(c.active, true);
+
+			dispose();
+			strictEqual(a.active, false);
+			strictEqual(b.active, false);
+			strictEqual(c.active, false);
 		});
 
 		await test("batch behavior", () => {
@@ -1237,13 +1348,17 @@ await suite("signals", async () => {
 				return b.value + c() + 1;
 			});
 			assertEvents(events, []);
+			strictEqual(a.active, false);
+			strictEqual(b.active, false);
 
-			leak(() => {
+			const dispose = capture(() => {
 				watch(d, value => events.push(`d${value}`));
 				assertEvents(events, ["d", "c", "d5"]);
 				watch(c, value => events.push(`c${value}`));
 				assertEvents(events, ["c2"]);
 			});
+			strictEqual(a.active, true);
+			strictEqual(b.active, true);
 
 			batch(() => {
 				a.value = 3;
@@ -1251,6 +1366,12 @@ await suite("signals", async () => {
 				assertEvents(events, []);
 			});
 			assertEvents(events, ["d", "c", "d9", "c4"]);
+			strictEqual(a.active, true);
+			strictEqual(b.active, true);
+
+			dispose();
+			strictEqual(a.active, false);
+			strictEqual(b.active, false);
 		});
 	});
 
