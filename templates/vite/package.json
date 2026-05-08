@@ -1,5 +1,6 @@
 {
 	"name": "rvx-quick-start",
+	"license": "AGPL-3.0",
 	"type": "module",
 	"scripts": {
 		"start": "vite --open",

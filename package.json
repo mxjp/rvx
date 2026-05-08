@@ -16,7 +16,7 @@
 		"synchronous",
 		"web-components"
 	],
-	"license": "MIT",
+	"license": "AGPL-3.0",
 	"version": "26.0.2",
 	"type": "module",
 	"main": "./dist/es/core/index.js",
