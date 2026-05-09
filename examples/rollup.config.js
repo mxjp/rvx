@@ -54,10 +54,6 @@ export default defineConfig({
 						};
 
 						class ExampleElement extends RvxElement {
-							connectedCallback() {
-								super.connectedCallback();
-							}
-
 							render() {
 								return [
 									e("link").set("rel", "stylesheet").set("href", "/rvx/stylesheets/examples.css"),
