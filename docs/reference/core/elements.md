@@ -209,7 +209,7 @@ The **style** attribute can be any combination of arrays, objects and [expressio
 	e("div").set("style", "color: red;");
 	```
 
-Note, that properties that are no longer specified after a signal update are not reset automatically to keep the current implementation simple. When properties are specified multiple times, the last one has priority used.
+Note, that properties that are no longer specified after a signal update are not reset automatically to keep the current implementation simple. When properties are specified multiple times, the last one specified takes priority.
 
 ## References
 

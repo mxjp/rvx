@@ -23,7 +23,7 @@ Testing rvx based applications is usually very simple because all of its signal 
 	assert(element.innerText === "Current count: 42");
 	```
 
-Note, that the `assert` function used on this page is not included in rvx.
+Note that the `assert` function used on this page is not included in rvx.
 
 ## Synchronous Tests
 Rvx provides a lightweight wrapper for running small synchronous tests that takes care of calling [teardown hooks](./core/lifecycle.md) after the test.
@@ -61,7 +61,7 @@ Rvx provides a lightweight wrapper for running small synchronous tests that take
 	```
 
 ## Asynchronous Tests
-There is a wrapper for async tests that allows you to run small synchronous parts of your test with a shared [async context](./async-utilities/async.md#tracking-completion). After the test, this will run [teardown hooks](./core/lifecycle.md) registered during any **"use(..)"** calls and wait for any pending tasks tracked in the async context.
+There is a wrapper for async tests that allows you to run small synchronous parts of your test with a shared [async context](./async-utilities/async.md#tracking-completion). After the test, this will run [teardown hooks](./core/lifecycle.md) registered during any `use(..)` calls and wait for any pending tasks tracked in the async context.
 
 The example below shows a test that asserts that asynchronously loaded content is displayed correctly:
 
@@ -227,4 +227,4 @@ It is generally possible to run tests for rvx based applications concurrently. H
 	});
 	```
 
-Using symbols as keys that are in some common place in your test setup is recommended as it prevents any typos in the key, but you can also use anything alse that can be a `Map` key.
+Using symbols as keys that are in some common place in your test setup is recommended as it prevents any typos in the key, but you can also use anything else that can be a `Map` key.

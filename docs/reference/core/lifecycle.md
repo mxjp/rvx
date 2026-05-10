@@ -95,7 +95,7 @@ When `dispose` is called while the callback is still running, it has no effect a
 If the specified function throws an error, teardown hooks are called in reverse registration order and the error is re-thrown.
 
 ## `leak`
-To explicitly leak teardown hooks, the `leak` function can be used. Code running during the call has an infinitly long lifecycle.
+To explicitly leak teardown hooks, the `leak` function can be used. Code running during the call has an infinitely long lifecycle.
 
 === "JSX"
 	```jsx

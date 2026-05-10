@@ -13,7 +13,7 @@ The task system keeps track of pending tasks in a specific context. This is mean
 				disabled={isPending}
 				on:click={() => {
 					// Block user interactions while some operation is running:
-					TAKS.current!.waitFor(new Promise(resolve => {
+					TASKS.current!.waitFor(new Promise(resolve => {
 						setTimeout(resolve, 1000);
 					}));
 				}}

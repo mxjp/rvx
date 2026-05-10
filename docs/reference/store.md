@@ -107,7 +107,7 @@ The `reflect` utility can be used to create a [signal](./core/signals.md) that r
 	const done = reflect(item, "done");
 	```
 
-The target object doens't need to be a reactive wrapper. Any arbitrary object with reactive properties works.
+The target object does not need to be a reactive wrapper. Any arbitrary object with reactive properties works.
 
 ## Classes
 By default, arbitrary class instances are not reactive unless you specify, how to wrap them:

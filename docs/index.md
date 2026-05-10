@@ -7,7 +7,7 @@ hide:
 
 # ![rvx](./assets/banner.svg)
 
-Rvx is a signal based frontent framework.
+Rvx is a signal based frontend framework.
 
 ```jsx
 import { $ } from "rvx";

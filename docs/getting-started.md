@@ -124,7 +124,7 @@ Attributes prefixed with `on:` are added as event listeners.
 ```
 
 ## Conditional Rendering
-To render conditional or repeated content rvx uses so called **Views** which are sequences of DOM nodes that can change over time.
+To render conditional or repeated content rvx uses so-called **Views** which are sequences of DOM nodes that can change over time.
 
 The `Show` component renders content when a condition is met:
 ```jsx

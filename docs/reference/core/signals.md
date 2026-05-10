@@ -486,8 +486,6 @@ Count: 2
 Final count: 2
 ```
 
-
-
 ## Memory References
 Observers like [`watch`](#watch) and [`trigger`](#trigger), signals and teardown hooks reference each other in the ways described below.
 

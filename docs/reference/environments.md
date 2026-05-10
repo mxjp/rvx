@@ -53,7 +53,7 @@ The [lifecycle](./core/lifecycle.md) of rendered components is disposed immediat
 !!! danger
 	In order to be fast, this implementation skips some validations that a browser would usually perform:
 
-	+ DOM node hierachy is not validated. This can be used to create cyclically nested nodes.
+	+ DOM node hierarchy is not validated. This can be used to create cyclically nested nodes.
 	+ Class list tokens and inline css properties are not validated. This can be used to create invalid `class` or `style` attributes.
 
 ### Replacing Pre-Rendered HTML

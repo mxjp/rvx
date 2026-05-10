@@ -263,7 +263,7 @@ Routers implement a **push** function for regular navigation and a **replace** f
 	}
 	```
 
-Note, that the router instance is replaced with a [child router](#nested-routing) inside of routed content. In this case, the **root** property always provides access to the history router from above.
+Note that the router instance is replaced with a [child router](#nested-routing) inside of routed content. In this case, the **root** property always provides access to the history router from above.
 
 ## Nested Routing
 Routes can be arbitrarily nested with content in between.
@@ -345,7 +345,7 @@ Query parameters can be reactively accessed via router instances.
 	ROUTER.current.query?.params;
 	```
 
-Note, that the `query` property is undefined if the current URL doesn't contain a query.
+Note that the `query` property is undefined if the current URL doesn't contain a query.
 
 ## Async Content
 You can use the [`<Async>`](./async-utilities/async.md) component to dynamically import & render components.
