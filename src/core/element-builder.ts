@@ -123,7 +123,7 @@ export class ElementBuilder<E extends Element> implements NodeTarget<E> {
 	}
 
 	/**
-	 * Set a prpoerty.
+	 * Set a property.
 	 *
 	 * @param name The name.
 	 * @param value An expression for the value.

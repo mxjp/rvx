@@ -146,7 +146,7 @@ export const TASKS = new Context<Tasks | undefined>();
 /**
  * Check if there are any pending tasks in the current tasks instance.
  *
- * This can be used in conjuction with {@link Tasks.prototype.waitFor `TASKS.current.waitFor`} to indicate if there are any pending tasks.
+ * This can be used in conjunction with {@link Tasks.prototype.waitFor `TASKS.current.waitFor`} to indicate if there are any pending tasks.
  *
  * This is meant to be used for preventing concurrent user interaction in a specific context.
  *

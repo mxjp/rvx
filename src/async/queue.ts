@@ -22,7 +22,7 @@ type Task = SideEffect | Blocking;
 export class Queue {
 	#queue: Task[] = [];
 	/**
-	 * Number of tasks that need to be dequeued until this queue isn't blocked or any negative number. Zero indicates, that the last blocking task is currently running.
+	 * Number of tasks that need to be dequeued until this queue isn't blocked or any negative number. Zero indicates that the last blocking task is currently running.
 	 */
 	#blocked = -1;
 	#controller: AbortController | undefined = undefined;

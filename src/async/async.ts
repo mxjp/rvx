@@ -9,7 +9,7 @@ import { ASYNC } from "./async-context.js";
  *
  * See {@link Async `<Async>`} when using JSX or when named properties are preferred.
  *
- * This task is tracked using the current {@link ASYNC async context} if any. It is guaranteed, that the view is updated before the tracked task completes.
+ * This task is tracked using the current {@link ASYNC async context} if any. It is guaranteed that the view is updated before the tracked task completes.
  *
  * @param source The async function or promise.
  * + If this is a function, it runs {@link isolate isolated}.
@@ -76,7 +76,7 @@ export function Async<T>(props: {
 	children?: Component<T>;
 
 	/**
-	 * A component render content while pending.
+	 * A component to render content while pending.
 	 *
 	 * + Nothing is rendered by default.
 	 */

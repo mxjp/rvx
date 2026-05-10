@@ -1,6 +1,6 @@
 import { Expression, map } from "../core/signals.js";
 
-/**w
+/**
  * Map expression values to strings except `null` or `undefined`.
  *
  * See {@link map}.
