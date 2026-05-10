@@ -3,7 +3,7 @@
 # Stopwatch
 A stopwatch that doesn't drift over time.
 
-This example also demonstrates how state and logic can be separated from it's representation if needed.
+This example also demonstrates how state and logic can be separated from its representation if needed.
 
 */
 

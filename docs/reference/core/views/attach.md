@@ -18,6 +18,6 @@ Attach [content](../elements.md#content) when an [expression](../signals.md#expr
 	```
 
 !!! note
-	This view has no effect on the context or lifecycle of it's content.
+	This view has no effect on the context or lifecycle of its content.
 
 	If you need access to truthy condition results, use [`<Show>`](./show.md) instead.

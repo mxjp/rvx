@@ -81,7 +81,7 @@ export class Tasks {
 	}
 
 	/**
-	 * True if this instance or any of it's parents has any pending tasks.
+	 * True if this instance or any of its parents has any pending tasks.
 	 *
 	 * @example
 	 * ```tsx
@@ -160,7 +160,7 @@ export function isSelfPending(): boolean {
 }
 
 /**
- * Check if there are any {@link Tasks.prototype.pending pending} tasks in the current tasks instance or any of it's parents.
+ * Check if there are any {@link Tasks.prototype.pending pending} tasks in the current tasks instance or any of its parents.
  *
  * This can be used in conjunction with {@link Tasks.prototype.waitFor `TASKS.current.waitFor`} to disable inputs and buttons while there are any pending tasks.
  *

@@ -9,7 +9,7 @@ import { isolate, watch } from "../signals.js";
 import { Content } from "../types.js";
 
 /**
- * The jsx fragment component that returns it's children as is.
+ * The jsx fragment component that returns its children as is.
  */
 export function Fragment(props: { children?: Content }): Content {
 	return props.children;

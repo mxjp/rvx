@@ -29,7 +29,7 @@ export interface Barrier {
 }
 
 /**
- * Symbol for storing functions for wrapping an instance on it's constructor.
+ * Symbol for storing functions for wrapping an instance on its constructor.
  */
 const WRAP_INSTANCE = Symbol.for("rvx:store:wrap_instance");
 

@@ -184,7 +184,7 @@ class ExampleElement extends RvxElement {
 ```
 
 ## Manual Implementation
-Due to it's simple lifecycle system, you can also implement web components manually:
+Due to its simple lifecycle system, you can also implement web components manually:
 
 === "JSX"
 	```jsx

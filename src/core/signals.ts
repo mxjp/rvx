@@ -19,12 +19,12 @@ interface NotifyHook {
 
 interface SignalCore {
 	/**
-	 * A counter to identify if a signal as notified it's observers.
+	 * A counter to identify if a signal has notified its observers.
 	 */
 	c: number;
 
 	/**
-	 * A set of hooks that are called in iteration order by this signal to notify it's observers.
+	 * A set of hooks that are called in iteration order by this signal to notify its observers.
 	 *
 	 * This is cleared before hooks are called.
 	 */
@@ -368,7 +368,7 @@ export class Signal<T> {
 	}
 
 	/**
-	 * Pass this signal to a function and get it's result.
+	 * Pass this signal to a function and get its result.
 	 *
 	 * @example
 	 * ```tsx
@@ -773,7 +773,7 @@ export function batch<T>(fn: () => T): T {
 }
 
 /**
- * {@link watch Watch} an expression and get a function to reactively access it's result.
+ * {@link watch Watch} an expression and get a function to reactively access its result.
  *
  * @param expr The expression to watch.
  * @returns A function to reactively access the latest result.
@@ -800,7 +800,7 @@ export function memo<T>(expr: Reactive<T>): () => T;
 export function memo<T>(expr: Static<T>): () => T;
 
 /**
- * {@link watch Watch} an expression and get a function to reactively access it's result.
+ * {@link watch Watch} an expression and get a function to reactively access its result.
  *
  * @param expr The expression to watch.
  * @returns A function to reactively access the latest result.

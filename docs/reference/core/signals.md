@@ -50,7 +50,7 @@ count.notify();
 ```
 
 ## Equality
-By default, setting a signal's `value` property only notifies it's observers if the value is not the same.
+By default, setting a signal's `value` property only notifies its observers if the value is not the same.
 ```jsx
 const count = $(42);
 // This does nothing since the value is already 42:
@@ -576,7 +576,7 @@ Note that [`lazy`](#lazy) is not an observer and does not affect references even
 ## Troubleshooting
 For signal based reactivity to work, the following is required:
 
-+ The value in a signal must be replaced, or the signal must notify observers using `notify` or `update`.
++ The value of a signal is replaced via the `value` property or `notify` is called.
 + The place where the value is used must be able to access the signal by calling a function.
 
 ### Deep Updates
@@ -627,7 +627,7 @@ The value of signals or expressions can always be used in a non reactive ways:
 	get(count);
 	```
 
-For accesses to be reactive, you need to use a signal directly or access it's value in a function:
+For accesses to be reactive, you need to use a signal directly or ensure that its value is accessed through a function call:
 
 === "JSX"
 	```jsx

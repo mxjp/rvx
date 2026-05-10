@@ -1,5 +1,5 @@
 # `<Nest> / nest`
-Watch an [expression](../signals.md#expressions) and render dynamic content from it's result.
+Watch an [expression](../signals.md#expressions) and render dynamic content from its result.
 
 === "JSX"
 	```jsx

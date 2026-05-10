@@ -1,5 +1,5 @@
 # `watchFor`
-This is a utility for watching an expression until it's output satisfies a condition.
+This is a utility for watching an expression until its output satisfies a condition.
 
 === "JSX"
 	```jsx

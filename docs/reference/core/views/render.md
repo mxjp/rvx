@@ -43,7 +43,7 @@ In addition to being the entry point of your application, the `mount` function a
 	```jsx
 	import { mount, capture } from "rvx";
 
-	// Mount some content and capture it's lifecycle:
+	// Mount some content and capture its lifecycle:
 	const unmount = capture(() => {
 		mount(document.body, <>Hello World!</>);
 	});
@@ -56,7 +56,7 @@ In addition to being the entry point of your application, the `mount` function a
 	```jsx
 	import { mount, capture } from "./rvx.js";
 
-	// Mount some content and capture it's lifecycle:
+	// Mount some content and capture its lifecycle:
 	const unmount = capture(() => {
 		mount(document.body, "Hello World!");
 	});

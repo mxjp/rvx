@@ -283,7 +283,7 @@ Any DOM nodes are moved into the parent element.
 	)
 	```
 
-Note, that nodes are removed from their parent depending on when the content is actually used in an element. E.g. when returning a document fragment from a [component](components.md), it's children are removed from the fragment as soon as the components return value is used in an element expression.
+Note, that nodes are removed from their parent depending on when the content is actually used in an element. E.g. when returning a document fragment from a [component](components.md), its children are removed from the fragment as soon as the components return value is used in an element expression.
 
 !!! warning
 	Reusing DOM nodes may result in undefined behavior. Consider using [`movable`](./views/movable.md) for safely reusing & moving arbitrary content or read more about [external mutations](../external-mutations.md).

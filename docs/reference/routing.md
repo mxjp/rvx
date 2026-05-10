@@ -5,7 +5,7 @@ You can either implement your own router using the `Router` interface or use one
 
 + `HistoryRouter` - Uses the location and history API for navigation.
 + `HashRouter` - Uses the location hash.
-+ `MemoryRouter` - Keeps it's state in memory instead of the actual browser location. This can be useful for testing purposes.
++ `MemoryRouter` - Keeps state in memory instead of the browser location. This can be useful for testing purposes.
 
 === "JSX"
 	```jsx

@@ -1,7 +1,7 @@
 /*
 
 # Async Loading Signal
-This is an example component that displays a loading indicator until it's content is ready.
+This is an example component that displays a loading indicator until its content is ready.
 
 */
 

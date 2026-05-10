@@ -51,7 +51,7 @@ function use(setBoundary: ViewSetBoundaryFn, node: Node, env: typeof globalThis)
  * + Anything else is displayed as text.
  *
  * @param content The content to render.
- * @returns A view instance or the content itself if it's already a view.
+ * @returns A view instance or the `content` parameter itself if its already a view.
  *
  * @example
  * ```tsx
@@ -275,7 +275,7 @@ export class View {
 	 * Create a new view.
 	 *
 	 * View implementations need to guarantee that:
-	 * + The view doesn't break when the parent node is replaced or when a view consisting of only a single node is detached from it's parent.
+	 * + The view doesn't break when the parent node is replaced or when a view consisting of only a single node is detached from its parent.
 	 * + The boundary is updated immediately after the first or last node has been updated.
 	 * + If there are multiple nodes, all nodes remain in the current parent.
 	 * + If there are multiple nodes, the initial nodes must have a common parent.
@@ -432,7 +432,7 @@ export function * viewNodes(view: View): IterableIterator<Node> {
 const _nestDefault = ((component: Component | null | undefined) => component?.()) as Component<unknown>;
 
 /**
- * Watch an expression and render content from it's result.
+ * Watch an expression and render content from its result.
  *
  * + If an error is thrown during initialization, the error is re-thrown.
  * + If an error is thrown during a signal update, the previously rendered content is kept in place and the error is re-thrown.
@@ -685,7 +685,7 @@ export class MovableView {
 	/**
 	 * Create a new view that contains the wrapped view until it is moved again or detached.
 	 *
-	 * If the lifecycle in which `move` is called is disposed, the created view no longer updates it's boundary and nodes may be silently removed.
+	 * If the lifecycle in which `move` is called is disposed, the created view no longer updates its boundary and nodes may be silently removed.
 	 */
 	move: Component<void, View> = () => {
 		this.#target.value = undefined;

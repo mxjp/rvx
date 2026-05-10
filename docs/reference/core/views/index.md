@@ -57,7 +57,7 @@ view.appendTo(someElement);
 // Insert all nodes of the view before a reference node:
 view.insertBefore(parent, someChild);
 
-// Detach the view from it's current position:
+// Detach the view from its current position:
 view.detach();
 ```
 
@@ -69,13 +69,13 @@ view.detach();
 !!! danger
 	When implementing your own view, you need to guarantee the following:
 
-	+ The view doesn't break when the parent node is replaced or when a view consisting of only a single node is detached from it's parent.
+	+ The view doesn't break when the parent node is replaced or when a view consisting of only a single node is detached from its parent.
 	+ The boundary is updated immediately after the first or last node has been updated.
 	+ There is at least one node at all time.
 	+ If there are multiple nodes, all nodes remain in the current parent.
 	+ If there are multiple nodes, the initial nodes must have a common parent.
-	+ When changing nodes, the view must remain in it's current position.
-	+ When the [lifecycle](../lifecycle.md) the view was created in is disposed, it's content is no longer updated in any way and no nodes are removed.
+	+ When changing nodes, the view must remain in its current position.
+	+ When the [lifecycle](../lifecycle.md) the view was created in is disposed, its content is no longer updated in any way and no nodes are removed.
 
 	You can use `assertViewState` in development to validate the current view state:
 
@@ -257,7 +257,7 @@ You can find more complex view implementation examples here:
 	+ [Push](../../../examples/view-push.md)
 
 ## Lifecycle Conventions
-When the [lifecycle](../lifecycle.md) in which a view was created is disposed, all of it's nodes should remain in place by convention.
+When the [lifecycle](../lifecycle.md) in which a view was created is disposed, all of its nodes should remain in place by convention.
 
 + This results in much better performance when disposing large amounts of nested views.
 + Users of that view have the ability to keep displaying remaining content for animation purposes.

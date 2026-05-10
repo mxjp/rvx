@@ -101,7 +101,7 @@ To keep the runtime as small as possible, rvx uses the error codes below instead
 ### `G1`
 **View boundary was not completely initialized.**
 
-This is thrown when a [`View`](./core/views/index.md#implementing-views) did not complete boundary initialization during it's construction. This is always a bug in the view implementation and the author of that view should ensure, that all the view implementation requirements are met.
+This is thrown when a [`View`](./core/views/index.md#implementing-views) did not complete boundary initialization during its construction. This is always a bug in the view implementation and the author of that view should ensure, that all the view implementation requirements are met.
 
 The stack trace will point to the place where the wrongly implemented view was instantiated, but the actual problem originates from within that view's implementation.
 

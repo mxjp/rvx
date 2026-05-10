@@ -1,7 +1,7 @@
 # Movable Views
 Using views in multiple places at once is not supported and will result in undefined behavior.
 
-When you want to safely reuse, keep alive or move content, you can wrap content as a movable view to automatically remove it from it's previous place when used concurrently.
+When you want to safely reuse, keep alive or move content, you can wrap content as a movable view to automatically remove it from its previous place when used concurrently.
 
 === "JSX"
 	```jsx

@@ -47,7 +47,7 @@ import { $ } from "rvx";
 const count = $(0);
 ```
 
-When a signal is used directly or it's value is accessed through a function call, the signal can notify it's observers when the value changes:
+When a signal is used directly or its value is accessed through a function call, the signal can notify its observers when the value changes:
 ```jsx
 import { $, mount } from "rvx";
 
@@ -59,7 +59,7 @@ mount(
 		{/* Using the signal directly is reactive: */}
 		Current count: {count}
 
-		{/* Accessing it's value through a function is reactive: */}
+		{/* Accessing its value through a function is reactive: */}
 		Is even count: {() => (count.value & 1) === 0}
 
 		{/*

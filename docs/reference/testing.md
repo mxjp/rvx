@@ -1,5 +1,5 @@
 # Testing
-Testing rvx based applications is usually very simple because all of it's signal based rendering is synchronous. E.g. when updating a signal, all resulting changes are reflected in the DOM immediately:
+Testing rvx based applications is usually very simple because all of its signal based rendering is synchronous. E.g. when updating a signal, all resulting changes are reflected in the DOM immediately:
 
 === "JSX"
 	```jsx

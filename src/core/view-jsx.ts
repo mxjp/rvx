@@ -3,7 +3,7 @@ import { Component, Content, Falsy } from "./types.js";
 import { attachWhen, ForContentFn, forEach, IndexContentFn, indexEach, nest, View, when } from "./view.js";
 
 /**
- * Watch an expression and render content from it's result.
+ * Watch an expression and render content from its result.
  *
  * + If an error is thrown during initialization, the error is re-thrown.
  * + If an error is thrown during a signal update, the previously rendered content is kept in place and the error is re-thrown.

@@ -17,7 +17,7 @@ export function uniqueId(): string {
 }
 
 /**
- * A component that provides a unique id in the form `rvx_123` to it's children.
+ * A component that provides a unique id in the form `rvx_123` to its children.
  *
  * See {@link UseUniqueId `<UseUniqueId>`} when using JSX.
  *
@@ -36,7 +36,7 @@ export function useUniqueId<T = Content>(component: Component<string, T>): T {
 }
 
 /**
- * A component that provides a unique id in the form `rvx_123` to it's children.
+ * A component that provides a unique id in the form `rvx_123` to its children.
  *
  * See {@link useUniqueId} when not using JSX.
  *

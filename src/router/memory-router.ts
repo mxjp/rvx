@@ -18,7 +18,7 @@ export interface MemoryRouterOptions {
 }
 
 /**
- * A router that keeps it's state in memory instead of the actual browser location.
+ * A router that keeps its state in memory instead of the browser location.
  */
 export class MemoryRouter implements Router {
 	#parent: Router | undefined;

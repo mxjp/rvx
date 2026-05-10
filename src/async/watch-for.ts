@@ -7,7 +7,7 @@ export type WatchCondition<T> = (value: T) => boolean;
 export class WatchForTimeoutError extends Error {}
 
 /**
- * Utility to watch an expression until it's output satisfies a condition.
+ * Utility to watch an expression until its output satisfies a condition.
  *
  * @param expr The expression to watch.
  * @param condition The condition to test. By default, all truthy values are matched.

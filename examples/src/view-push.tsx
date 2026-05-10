@@ -63,7 +63,7 @@ function PushView<T>(props: {
 				parent.appendChild(anchor);
 			}
 
-			// Render the item into a view & capture it's lifecycle:
+			// Render the item into a view & capture its lifecycle:
 			let view!: View;
 			dispose.push(capture(() => {
 				view = render(props.children(item));
