@@ -1,9 +1,5 @@
-# Contributing
-Contributions are generally welcome. If you have any questions, suggestions or find a bug, feel free to [file an issue](https://github.com/mxjp/rvx/issues).
-
-## Project Structure
+# Project Structure
 ```bash
-
 # Benchmark utilities
 benchmark/
 
@@ -42,7 +38,7 @@ templates/
 tests/
 ```
 
-## Building Rvx
+# Build
 ```bash
 # Install dependencies:
 npm ci
@@ -54,7 +50,7 @@ npm start
 npm run build
 ```
 
-## Running Tests
+# Tests
 ```bash
 # Build rvx & tests:
 npm run build
@@ -65,8 +61,9 @@ npm start
 npm test
 ```
 
-## Building the Documentation
+# Documentation
 Building the docs also requires python and [mkdocs-material](https://squidfunk.github.io/mkdocs-material/)
+
 ```bash
 # Build examples:
 npm run build --prefix examples
@@ -75,7 +72,7 @@ npm run build --prefix examples
 docker compose -f mkdocs-compose.yml up
 ```
 
-## Running benchmarks
+# Benchmarks
 The benchmark setup runs a set of benchmarks from `benchmark/src/benchmarks` against one or more bundled snapshots of rvx in the same browsing context.
 
 ```bash
