@@ -22,7 +22,7 @@ The same as `queueMicrotask`, but with context & lifecycle support.
 	```
 
 ## `useTimeout`
-The same as `useTimeout`, but with context & lifecycle support.
+The same as `setTimeout`, but with context & lifecycle support.
 
 + If the current lifecycle is disposed, the timeout is cleared.
 + The lifecycle within the callback is treated as the current lifecycle.

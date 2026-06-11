@@ -57,7 +57,7 @@ export function nestAsync<T>(source: (() => Promise<T>) | Promise<T>, component?
  *
  * See {@link nestAsync} when not using JSX or when positional arguments are preferred.
  *
- * This task is tracked using the current {@link ASYNC async context} if any. It is guaranteed, that the view is updated before the tracked task completes.
+ * This task is tracked using the current {@link ASYNC async context} if any. It is guaranteed that the view is updated before the tracked task completes.
  */
 export function Async<T>(props: {
 	/**
