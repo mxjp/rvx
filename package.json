@@ -19,12 +19,12 @@
 	"license": "AGPL-3.0",
 	"version": "26.0.5",
 	"type": "module",
-	"main": "./dist/es/core/index.js",
+	"main": "./dist/es/core/index-jsx.js",
 	"sideEffects": false,
 	"exports": {
 		".": {
-			"types": "./dist/es/core/index.d.ts",
-			"default": "./dist/es/core/index.js"
+			"types": "./dist/es/core/index-jsx.d.ts",
+			"default": "./dist/es/core/index-jsx.js"
 		},
 		"./jsx": {
 			"types": "./dist/es/core/jsx/legacy.d.ts",
