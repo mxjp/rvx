@@ -39,8 +39,8 @@
 			"default": "./dist/es/core/jsx/r17.js"
 		},
 		"./async": {
-			"types": "./dist/es/async/index.d.ts",
-			"default": "./dist/es/async/index.js"
+			"types": "./dist/es/async/index-jsx.d.ts",
+			"default": "./dist/es/async/index-jsx.js"
 		},
 		"./convert": {
 			"types": "./dist/es/convert/index.d.ts",
