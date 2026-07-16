@@ -1,6 +1,6 @@
+import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { bundleName, importName, moduleNames, root } from "./common.js";
-import { readFile, writeFile } from "node:fs/promises";
 
 const filename = join(root, "docs/installation.md");
 const markdown = await readFile(filename, "utf-8");
@@ -15,12 +15,12 @@ if (start < 0 || end < 0) {
 }
 
 function * createBundleTable(getUrl) {
-	yield `| Npm Module | Human Readable | Minified | Types |`;
-	yield `|-|-|-|-|`;
+	yield `| Npm Module | Human Readable | Minified |`;
+	yield `|-|-|-|`;
 
 	for (const moduleName of moduleNames) {
 		const name = bundleName(moduleName);
-		yield `| ${importName(moduleName)} | [${name}.js](${getUrl(name + ".js")}) | [${name}.min.js](${getUrl(name + ".min.js")}) | [${name}.d.ts](${getUrl(name + ".d.ts")}) |`;
+		yield `| ${importName(moduleName)} | [${name}.js](${getUrl(name + ".js")}) | [${name}.min.js](${getUrl(name + ".min.js")}) |`;
 	}
 }
 

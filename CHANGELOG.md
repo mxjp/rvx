@@ -16,6 +16,7 @@
 + **Breaking:** Remove `onLeak`.
 + **Breaking:** Unintentionally leaking teardown hooks now always throws an error.
 + **Breaking:** Remove `Signal.update`.
++ **Deprecated:** Type definition bundles will be removed in the next major version.
 + Add `Signal.inert` property.
 + Add `lazy` utility.
 

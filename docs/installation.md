@@ -15,7 +15,7 @@ npm ls rvx
 ```
 
 ## Buildless Options
-Rvx can be used without any build system by directly using one of the es module bundles listed below. Note, that these bundles don't include any JSX related code.
+Rvx can be used without any build system by directly using one of the es module bundles listed below. Note that these bundles don't include any JSX related code.
 
 You can find all of these bundles in the [npm package's](#npm) `dist/` directory or use one of the CDNs below:
 
@@ -23,7 +23,13 @@ You can find all of these bundles in the [npm package's](#npm) `dist/` directory
 _This table is created when building the docs._
 <!-- RVX:MODULES:END -->
 
-Note, that the bundles above depend on each other in different ways. Any additional dependencies that may be introduced in the future are considered breaking changes.
+Note that the bundles above depend on each other in different ways. Any additional dependencies that may be introduced in the future are considered breaking changes.
+
+For type definitions, you can install the [npm package](#npm) & manually create `.d.ts` files alongside the bundles you use:
+```ts
+// rvx.async.d.ts
+export * from "rvx/async";
+```
 
 ## JSX
 Rvx provides a React 17 and a legacy JSX runtime.
