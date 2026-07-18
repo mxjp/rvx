@@ -1,4 +1,4 @@
-import { $, batch } from "../core/signals.js";
+import { $, batch } from "../core/index.js";
 import type { Barrier } from "./barrier.js";
 import { ProbeMap } from "./probes.js";
 

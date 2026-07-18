@@ -1,6 +1,5 @@
-import { $, isolate } from "../core/signals.js";
-import type { Component } from "../core/types.js";
-import { nest, View } from "../core/view.js";
+import type { Component } from "../core/index.js";
+import { $, isolate, nest, View } from "../core/index.js";
 import { ASYNC } from "./async-context.js";
 
 /**

@@ -1,4 +1,4 @@
-import { Expression, map } from "../core/signals.js";
+import { Expression, map } from "../core/index.js";
 
 /**
  * Map expression values to strings except `null` or `undefined`.

@@ -1,4 +1,4 @@
-import type { Falsy } from "../core/types.js";
+import type { Falsy } from "../core/index.js";
 
 export interface PollFn<T> {
 	(abort: AbortSignal): T | Falsy | Promise<T | Falsy>;

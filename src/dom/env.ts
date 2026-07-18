@@ -1,4 +1,4 @@
-import { ENV } from "../core/env.js";
+import { ENV } from "../core/index.js";
 import { WINDOW_MARKER } from "./internals/window-marker.js";
 
 /**

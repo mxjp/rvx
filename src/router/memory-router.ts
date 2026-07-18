@@ -1,4 +1,4 @@
-import { $, batch } from "../core/signals.js";
+import { $, batch } from "../core/index.js";
 import { normalize } from "./path.js";
 import { Query, QueryInit } from "./query.js";
 import { Router } from "./router.js";

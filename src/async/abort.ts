@@ -1,4 +1,4 @@
-import { teardown } from "../core/signals.js";
+import { teardown } from "../core/index.js";
 
 /**
  * Create a new abort controller that aborts when the current lifecycle is disposed.

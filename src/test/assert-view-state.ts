@@ -1,5 +1,4 @@
-import { ENV } from "../core/env.js";
-import { UninitView, View } from "../core/view.js";
+import { ENV, UninitView, View } from "../core/index.js";
 
 /**
  * Assert that the specified view is in a valid state.

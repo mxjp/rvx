@@ -1,4 +1,4 @@
-import { Context } from "../core/context.js";
+import { Context } from "../core/index.js";
 import { Query, QueryInit } from "./query.js";
 
 /**

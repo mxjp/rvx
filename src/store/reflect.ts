@@ -1,4 +1,4 @@
-import { $, Signal, watchUpdates } from "../core/signals.js";
+import { $, Signal, watchUpdates } from "../core/index.js";
 
 /**
  * Create a signal that reflects a property of an arbitrary object.

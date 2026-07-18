@@ -1,4 +1,4 @@
-import { teardown } from "../core/signals.js";
+import { teardown } from "../core/index.js";
 
 interface SideEffect {
 	blocking: false;

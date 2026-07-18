@@ -88,13 +88,11 @@
 	},
 	"devDependencies": {
 		"@mxjp/parallel": "^1.0.2",
-		"@rollup/plugin-terser": "^1.0.0",
 		"@types/jsdom": "^28.0.1",
 		"@types/node": "^24.12.0",
 		"jsdom": "^29.0.1",
-		"rollup": "^4.60.0",
-		"rollup-plugin-dts": "^6.4.1",
+		"rolldown": "^1.1.4",
 		"rvx": "file:.",
-		"typescript": "^6.0.2"
+		"typescript": "^7.0.2"
 	}
 }

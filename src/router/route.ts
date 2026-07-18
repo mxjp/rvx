@@ -1,6 +1,4 @@
-import { $, batch, Expression, get, watch } from "../core/signals.js";
-import { Component } from "../core/types.js";
-import { nest, View } from "../core/view.js";
+import { $, batch, Component, Expression, get, nest, View, watch } from "../core/index.js";
 import { ChildRouter } from "./child-router.js";
 import { normalize } from "./path.js";
 import { Router, ROUTER } from "./router.js";

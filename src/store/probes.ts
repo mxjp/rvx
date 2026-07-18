@@ -1,4 +1,4 @@
-import { isTracking, Signal } from "../core/signals.js";
+import { isTracking, Signal } from "../core/index.js";
 
 /**
  * A signal for tracking accesses to values that may not exist.

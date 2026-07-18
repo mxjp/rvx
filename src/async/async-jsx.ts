@@ -1,5 +1,4 @@
-import type { Component } from "../core/types.js";
-import type { View } from "../core/view.js";
+import type { Component, View } from "../core/index.js";
 import { nestAsync } from "./async.js";
 
 /**

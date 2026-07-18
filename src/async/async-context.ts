@@ -1,5 +1,4 @@
-import { Context } from "../core/context.js";
-import { $ } from "../core/signals.js";
+import { $, Context } from "../core/index.js";
 
 export interface AsyncContextParent {
 	/**

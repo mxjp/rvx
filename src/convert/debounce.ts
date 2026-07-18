@@ -1,4 +1,4 @@
-import { $, Signal, teardown, watchUpdates } from "../core/signals.js";
+import { $, Signal, teardown, watchUpdates } from "../core/index.js";
 
 /**
  * Create a derived signal for debouncing user input updates.

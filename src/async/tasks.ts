@@ -1,6 +1,4 @@
-import { Context } from "../core/context.js";
-import { ENV } from "../core/env.js";
-import { $, isolate, teardown, watch } from "../core/signals.js";
+import { $, Context, ENV, isolate, teardown, watch } from "../core/index.js";
 
 export type TaskSource = (() => unknown) | Promise<unknown> | null | undefined;
 

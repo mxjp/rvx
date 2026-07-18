@@ -1,9 +1,5 @@
-import { ASYNC, AsyncContext } from "../async/async-context.js";
-import { Context } from "../core/context.js";
-import { ENV } from "../core/env.js";
-import { capture } from "../core/signals.js";
-import type { Component } from "../core/types.js";
-import { render, View } from "../core/view.js";
+import { ASYNC, AsyncContext } from "../async/index.js";
+import { capture, Context, ENV, render, View, type Component } from "../core/index.js";
 import { Node, WINDOW } from "./model.js";
 
 function renderDetachedView(view: View) {

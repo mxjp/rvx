@@ -1,5 +1,4 @@
-import { Context } from "../core/context.js";
-import { capture, teardown, TeardownHook } from "../core/signals.js";
+import { capture, Context, teardown, TeardownHook } from "../core/index.js";
 
 /**
  * The same as {@link queueMicrotask}, but with context & lifecycle support.

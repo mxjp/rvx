@@ -1,4 +1,4 @@
-import { HTML, MATHML, SVG } from "../../core/element-common.js";
+import { HTML, MATHML, SVG } from "../../core/index.js";
 
 export const XMLNS_HTML = 0;
 export const XMLNS_SVG = 1;

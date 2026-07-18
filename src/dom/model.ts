@@ -1,5 +1,4 @@
-import { Context } from "../core/context.js";
-import { HTML } from "../core/element-common.js";
+import { Context, HTML } from "../core/index.js";
 import { isVoidTag, resolveNamespaceURI, XMLNS, XMLNS_HTML } from "./internals/element-info.js";
 import { htmlEscapeAppendTo } from "./internals/html-escape.js";
 import { WINDOW_MARKER } from "./internals/window-marker.js";

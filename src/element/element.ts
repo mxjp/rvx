@@ -1,7 +1,4 @@
-import { ENV } from "../core/env.js";
-import { $, capture, leak, Signal, TeardownHook, watchUpdates } from "../core/signals.js";
-import { Content } from "../core/types.js";
-import { render } from "../core/view.js";
+import { $, capture, Content, ENV, leak, render, Signal, TeardownHook, watchUpdates } from "../core/index.js";
 
 export type StartTrigger = "on-connect" | "manual";
 export type DisposeTrigger = "on-disconnect" | "manual";

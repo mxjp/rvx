@@ -1,9 +1,7 @@
-import terser from "@rollup/plugin-terser";
-import { dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { join, relative } from "node:path";
 import { brotliCompressSync, gzipSync } from "node:zlib";
-import { rollup } from "rollup";
-import { dts } from "rollup-plugin-dts";
-import { bundleName, dist, moduleNames, root, tscOut } from "./common.js";
+import { rolldown } from "rolldown";
+import { bundleName, dist, moduleNames, tscOut } from "./common.js";
 
 const license = `
 This program is free software: you can redistribute it and/or modify
@@ -20,128 +18,58 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 `;
 
-const bannerPlugin = {
-	banner: `/*!${license}*/`,
-};
-
-const formatPlugin = {
-	generateBundle(_options, bundle) {
-		for (const name in bundle) {
-			const asset = bundle[name];
-			if (asset.type === "chunk") {
-				let code = asset.code;
-				code = code.replace(/^( {4})+/gm, c => "\t".repeat(c.length / 4));
-				if (/\t (?!\*)/m.test(code)) {
-					throw new Error("output indentation is broken");
-				}
-				asset.code = code.trimStart();
-			}
-		}
-	},
-};
-
-/**
- * @param {import("rollup").RollupLog} warn
- * @param {(log: import("rollup").RollupLog) => void} fallback
- */
-function onwarn(warn, fallback) {
-	if (warn.code === "CIRCULAR_DEPENDENCY") {
-		process.exitCode = 1;
-	}
-	fallback(warn);
+const entries = new Map();
+for (const moduleName of moduleNames) {
+	const moduleDir = join(tscOut, moduleName);
+	entries.set(join(moduleDir, "index.js"), { moduleDir, moduleName });
 }
 
-const MODULE_PREFIX = "rvx-module:";
-
-for (const moduleName of moduleNames) {
+for (const [input, { moduleDir, moduleName }] of entries) {
 	console.group("bundle:", moduleName);
 
-	/**
-	 * @param {string} id
-	 * @param {string | undefined} parentId
-	 */
-	function resolveId(id, parentId) {
-		if (parentId === undefined) {
-			if (!isAbsolute(id)) {
-				throw new Error(`relative id without parent: ${id}`);
-			}
-		} else {
-			id = resolve(dirname(parentId), id);
-		}
-		const target = relative(tscOut, id);
-		const targetModuleName = /^([^\\\/]+)[\\\/]/.exec(target)?.[1];
-		if (!moduleNames.includes(targetModuleName)) {
-			throw new Error(`invalid module name: ${targetModuleName}`);
-		}
-		if (targetModuleName !== moduleName) {
-			return MODULE_PREFIX + targetModuleName;
-		}
-	}
-
-	const esBundle = await rollup({
-		input: join(tscOut, moduleName, "index.js"),
-		onwarn,
-		external: id => {
-			return id.startsWith("rvx-module:");
+	const input = join(tscOut, moduleName);
+	const bundle = await rolldown({
+		input: input,
+		logLevel: "info",
+		checks: {
+			circularDependency: true,
 		},
 		plugins: [
-			{ resolveId },
+			{
+				async resolveId(source, importer, options) {
+					if (importer) {
+						const target = await this.resolve(source, importer, options);
+						const rel = relative(moduleDir, target.id);
+						if (/^\.\.[\\\/]/.test(rel)) {
+							const external = entries.get(target.id);
+							if (external) {
+								return {
+									external: true,
+									id: `./${bundleName(external.moduleName)}.js`,
+								};
+							} else {
+								throw new Error(`${JSON.stringify(importer)} imports from internal: ${JSON.stringify(source)}`);
+							}
+						}
+					}
+				},
+			}
 		],
 	});
 
-	logOutputStats(await esBundle.write({
+	await bundle.write({
 		format: "es",
 		file: join(dist, bundleName(moduleName) + ".js"),
-		paths: id => {
-			if (id.startsWith(MODULE_PREFIX)) {
-				return `./${bundleName(id.slice(MODULE_PREFIX.length))}.js`;
-			}
-		},
-		plugins: [
-			bannerPlugin,
-			formatPlugin,
-		],
-	}));
+		postBanner: `/*!${license}*/`,
+		sourcemap: true,
+	});
 
-	logOutputStats(await esBundle.write({
+	logOutputStats(await bundle.write({
 		format: "es",
 		file: join(dist, bundleName(moduleName) + ".min.js"),
-		paths: id => {
-			if (id.startsWith(MODULE_PREFIX)) {
-				return `./${bundleName(id.slice(MODULE_PREFIX.length))}.min.js`;
-			}
-		},
-		plugins: [
-			terser(),
-		],
+		minify: true,
+		sourcemap: true,
 	}));
-
-	const typesBundle = await rollup({
-		logLevel: "silent",
-		input: join(tscOut, moduleName, "index.d.ts"),
-		external: (id, parentId) => {
-			return resolveId(id, parentId)?.startsWith("rvx-module:") ?? false;
-		},
-		plugins: [
-			dts({
-				tsconfig: join(root, "tsconfig-types.json"),
-				respectExternal: true,
-			}),
-			bannerPlugin,
-			formatPlugin,
-		],
-		onwarn,
-	});
-
-	await typesBundle.write({
-		file: join(dist, bundleName(moduleName) + ".d.ts"),
-		paths: (id) => {
-			id = resolveId(id) ?? id;
-			if (id.startsWith(MODULE_PREFIX)) {
-				return `./${bundleName(id.slice(MODULE_PREFIX.length))}.js`;
-			}
-		},
-	});
 
 	console.groupEnd();
 }
@@ -150,13 +78,14 @@ function logOutputStats({ output }) {
 	function kb(bytes) {
 		return (bytes / 1000).toFixed(1) + "kb";
 	}
-
-	for (const entry of output) {
-		console.group(`${entry.fileName}: ${kb(entry.code.length)}`);
-		if (entry.fileName.endsWith(".min.js")) {
-			console.log("  gzip:", kb(gzipSync(entry.code).length));
-			console.log("brotli:", kb(brotliCompressSync(entry.code).length));
+	for (const chunk of output) {
+		if (chunk.code) {
+			console.group(`${chunk.fileName}: ${kb(chunk.code.length)}`);
+			if (chunk.fileName.endsWith(".min.js")) {
+				console.log("  gzip:", kb(gzipSync(chunk.code).length));
+				console.log("brotli:", kb(brotliCompressSync(chunk.code).length));
+			}
+			console.groupEnd();
 		}
-		console.groupEnd();
 	}
 }

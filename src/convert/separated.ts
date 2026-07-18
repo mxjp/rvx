@@ -1,4 +1,4 @@
-import { Expression, map } from "../core/signals.js";
+import { Expression, map } from "../core/index.js";
 
 /**
  * Map an expression to join array elements using the specified separator.

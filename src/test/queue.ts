@@ -1,5 +1,5 @@
-import { Queue } from "../async/queue.js";
-import { leak } from "../core/signals.js";
+import { Queue } from "../async/index.js";
+import { leak } from "../core/index.js";
 
 const KEY = Symbol.for("rvx:test:queues");
 const QUEUES: Map<unknown, Queue> = (globalThis as any)[KEY] ?? ((globalThis as any)[KEY] = new Map());

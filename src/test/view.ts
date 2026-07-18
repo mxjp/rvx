@@ -1,5 +1,4 @@
-import { TagNameMap } from "../core/element-common.js";
-import { View, viewNodes } from "../core/view.js";
+import { TagNameMap, View, viewNodes } from "../core/index.js";
 
 /**
  * The same as **querySelector**, but for {@link View views}.
