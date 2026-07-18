@@ -1,10 +1,7 @@
-import nodeResolve from "@rollup/plugin-node-resolve";
-import terser from "@rollup/plugin-terser";
-import typescript from "@rollup/plugin-typescript";
-import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { defineConfig } from "rollup";
+import { defineConfig } from "rolldown";
 
 const context = join(fileURLToPath(import.meta.url), "..");
 const root = join(context, "..");
@@ -19,8 +16,8 @@ export default defineConfig({
 	output: {
 		format: "es",
 		file: join(outDir, "bundle.js"),
+		minify: true,
 	},
-	external: [],
 	plugins: [
 		{
 			name: "rvx-examples",
@@ -42,7 +39,6 @@ export default defineConfig({
 							examples.push(`${JSON.stringify(name)}: example_${i},`);
 						}
 					}
-
 					return `
 						import { teardown, e } from "rvx";
 						import { RvxElement } from "rvx/element";
@@ -89,8 +85,5 @@ export default defineConfig({
 				}
 			},
 		},
-		nodeResolve(),
-		typescript(),
-		terser(),
 	],
 });
