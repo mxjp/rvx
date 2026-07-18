@@ -4,7 +4,7 @@ import { access, mkdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { rollup } from "rollup";
+import { rolldown } from "rolldown";
 import { tscOut } from "../scripts/common.js";
 
 const ctx = dirname(fileURLToPath(import.meta.url));
@@ -37,7 +37,7 @@ if (args.build) {
 
 const MAIN = "rvx:benchmark:main";
 
-const bundle = await rollup({
+const bundle = await rolldown({
 	input: MAIN,
 	plugins: [
 		{
