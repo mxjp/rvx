@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.1
++ Add custom keys to `mapArray`, `<For>` and `forEach`.
++ Remove type definition bundles from npm package.
+
 ## 26.0
 + **Breaking:** Signal update errors now cause unhalded rejections instead of throwing at the notify site.
 + **Breaking:** Rename:
@@ -16,7 +20,6 @@
 + **Breaking:** Remove `onLeak`.
 + **Breaking:** Unintentionally leaking teardown hooks now always throws an error.
 + **Breaking:** Remove `Signal.update`.
-+ **Deprecated:** Type definition bundles will be removed in the next major version.
 + Add `Signal.inert` property.
 + Add `lazy` utility.
 

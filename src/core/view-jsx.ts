@@ -1,3 +1,4 @@
+import { MapArrayKeyFn } from "./map-array.js";
 import { Expression, ExpressionResult } from "./signals.js";
 import { Component, Content, Falsy } from "./types.js";
 import { attachWhen, ForContentFn, forEach, IndexContentFn, indexEach, nest, View, when } from "./view.js";
@@ -124,8 +125,13 @@ export function For<T>(props: {
 	 * The component to render for each value.
 	 */
 	children: ForContentFn<T>;
+
+	/**
+	 * A function to get the key for a given value. If not specified, the value is used as key.
+	 */
+	key?: MapArrayKeyFn<unknown, T>;
 }): View {
-	return forEach(props.each, props.children);
+	return forEach(props.each, props.children, props.key);
 }
 
 /**

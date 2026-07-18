@@ -1,7 +1,7 @@
 import { NODE, NodeTarget } from "./element-common.js";
 import { ENV } from "./env.js";
 import { createText } from "./internals/create-text.js";
-import { createMapArrayState, MapArrayFn, mapArrayUpdate } from "./internals/map-array.js";
+import { createMapArrayState, MapArrayFn, MapArrayKeyFn, mapArrayUpdate } from "./internals/map-array.js";
 import { $, capture, Expression, get, isolate, memo, Signal, teardown, TeardownHook, watch } from "./signals.js";
 import type { Component, Content, Falsy } from "./types.js";
 import type { Attach, For, Index, Nest, Show } from "./view-jsx.js";
@@ -524,14 +524,15 @@ export interface ForContentFn<T> {
 }
 
 /**
- * Render content for each value in an iterable.
+ * Render content for each entry in an iterable.
  *
  * Errors thrown by the component or while updating an index result in undefined behavior.
  *
  * See {@link For `<For>`} for use with JSX.
  *
  * @param each The expression to watch. Note, that signals accessed during iteration will also trigger updates.
- * @param component The component to render for each value.
+ * @param component The component to render for each entry.
+ * @param keyFn A function to get the key for a given value. If not specified, the value is used as key.
  *
  * @example
  * ```tsx
@@ -542,15 +543,15 @@ export interface ForContentFn<T> {
  * forEach(items, value => e("li").append(value))
  * ```
  */
-export function forEach<T>(each: Expression<Iterable<T>>, component: ForContentFn<T>): View {
+export function forEach<T>(each: Expression<Iterable<T>>, component: ForContentFn<T>, keyFn?: MapArrayKeyFn<unknown, T>): View {
 	return new View(setBoundary => {
 		const env = ENV.current;
 		const first = createPlaceholder(env);
 		setBoundary(first, first);
 		const mapFn: MapArrayFn<T, View> = (input, index) => render(component(input, index));
-		const state = createMapArrayState<T, View>();
+		const state = createMapArrayState<unknown, T, View>();
 		watch(() => {
-			const update = mapArrayUpdate<T, View>(state, get(each), mapFn);
+			const update = mapArrayUpdate(state, get(each), mapFn, keyFn);
 			if (update !== null) {
 				let parent = first.parentNode as Node | null;
 				if (parent === null) {
