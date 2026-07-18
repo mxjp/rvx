@@ -157,4 +157,27 @@ await suite("mapArray", async () => {
 		signal.value = 2;
 		deepStrictEqual(output(), [1]);
 	});
+
+	await test("custom key", () => {
+		const events: unknown[] = [];
+		const signal = $<[number, string][]>([
+			[0, "a"],
+		]);
+		const output = leak(() => mapArray(signal, pair => {
+			lifecycleEvent(events, pair[0]);
+			return pair[1];
+		}, pair => pair[0]));
+		assertEvents(events, ["s:0"]);
+		deepStrictEqual(output(), ["a"]);
+		signal.value = [
+			[1, "b"],
+			[0, "d"],
+			[2, "c"],
+		];
+		assertEvents(events, ["s:1", "s:2"]);
+		deepStrictEqual(output(), ["b", "a", "c"]);
+		signal.value = [];
+		assertEvents(events, ["e:1", "e:0", "e:2"]);
+		deepStrictEqual(output(), []);
+	});
 });
