@@ -1,13 +1,11 @@
 import { strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-
 import { ENV, map, teardown } from "rvx";
-import { RvxElement, RvxElementOptions } from "rvx/element";
-
+import { RvxElement } from "rvx/element";
 import { assertEvents } from "../common.js";
 
 await suite("element/element", async () => {
-	let options: RvxElementOptions | undefined;
+	let shadow = false;
 
 	class TestElement extends RvxElement {
 		static observedAttributes = ["name"];
@@ -16,7 +14,10 @@ await suite("element/element", async () => {
 		#name = this.reflect("name");
 
 		constructor() {
-			super(options);
+			super();
+			if (shadow) {
+				this.attachShadow({ mode: "open" });
+			}
 		}
 
 		render() {
@@ -30,84 +31,82 @@ await suite("element/element", async () => {
 
 	ENV.current.customElements.define("test-element", TestElement);
 
-	await test("default lifecycle & attributes", async () => {
-		options = undefined;
+	await test("element parent", () => {
+		shadow = false;
+
 		const elem = <test-element /> as TestElement;
 		strictEqual(elem instanceof TestElement, true);
 		assertEvents(elem.events, []);
-		for (let i = 0; i < 3; i++) {
-			ENV.current.document.body.appendChild(elem);
-			assertEvents(elem.events, ["render"]);
-			strictEqual(elem.shadowRoot!.innerHTML, "Hello World!");
 
-			elem.setAttribute("name", "Test");
-			strictEqual(elem.shadowRoot!.innerHTML, "Hello Test!");
+		elem.start();
+		assertEvents(elem.events, ["render"]);
+		strictEqual(elem.innerHTML, "Hello World!");
 
-			elem.removeAttribute("name");
-			strictEqual(elem.shadowRoot!.innerHTML, "Hello World!");
+		elem.setAttribute("name", "Test");
+		strictEqual(elem.innerHTML, "Hello Test!");
 
-			assertEvents(elem.events, []);
-			elem.remove();
-			assertEvents(elem.events, ["teardown"]);
-			strictEqual(elem.shadowRoot!.innerHTML, "Hello World!");
-		}
+		elem.removeAttribute("name");
+		strictEqual(elem.innerHTML, "Hello World!");
+
+		assertEvents(elem.events, []);
+		elem.dispose();
+		assertEvents(elem.events, ["teardown"]);
+		strictEqual(elem.innerHTML, "Hello World!");
+
+		elem.setAttribute("name", "Test2");
+		elem.start();
+		assertEvents(elem.events, ["render"]);
+		strictEqual(elem.innerHTML, "Hello Test2!");
 	});
 
-	await test("manual lifecycle & attributes", async () => {
-		options = {
-			start: "manual",
-			dispose: "manual",
-		};
+	await test("shadow root", () => {
+		shadow = true;
+
 		const elem = <test-element /> as TestElement;
 		strictEqual(elem instanceof TestElement, true);
 		assertEvents(elem.events, []);
 
-		for (let i = 0; i < 3; i++) {
-			elem.start();
-			assertEvents(elem.events, ["render"]);
-			strictEqual(elem.shadowRoot!.innerHTML, "Hello World!");
+		elem.start();
+		assertEvents(elem.events, ["render"]);
+		strictEqual(elem.shadowRoot!.innerHTML, "Hello World!");
 
-			ENV.current.document.body.appendChild(elem);
-			strictEqual(elem.shadowRoot!.innerHTML, "Hello World!");
+		elem.setAttribute("name", "Test");
+		strictEqual(elem.shadowRoot!.innerHTML, "Hello Test!");
 
-			elem.setAttribute("name", "Test");
-			strictEqual(elem.shadowRoot!.innerHTML, "Hello Test!");
+		elem.removeAttribute("name");
+		strictEqual(elem.shadowRoot!.innerHTML, "Hello World!");
 
-			elem.removeAttribute("name");
-			strictEqual(elem.shadowRoot!.innerHTML, "Hello World!");
+		assertEvents(elem.events, []);
+		elem.dispose();
+		assertEvents(elem.events, ["teardown"]);
+		strictEqual(elem.shadowRoot!.innerHTML, "Hello World!");
 
-			elem.remove();
-			assertEvents(elem.events, []);
-
-			elem.dispose();
-			assertEvents(elem.events, ["teardown"]);
-			strictEqual(elem.shadowRoot!.innerHTML, "Hello World!");
-		}
+		elem.setAttribute("name", "Test2");
+		elem.start();
+		assertEvents(elem.events, ["render"]);
+		strictEqual(elem.shadowRoot!.innerHTML, "Hello Test2!");
 	});
 
-	await test("no shadow root", async () => {
-		options = {
-			shadow: false,
-		};
+	await test("automatic lifecycle", () => {
+		shadow = false;
+
 		const elem = <test-element /> as TestElement;
 		strictEqual(elem instanceof TestElement, true);
 		assertEvents(elem.events, []);
-		strictEqual(elem.shadowRoot, null);
-		for (let i = 0; i < 3; i++) {
-			ENV.current.document.body.appendChild(elem);
-			assertEvents(elem.events, ["render"]);
-			strictEqual(elem.innerHTML, "Hello World!");
 
-			elem.setAttribute("name", "Test");
-			strictEqual(elem.innerHTML, "Hello Test!");
+		ENV.current.document.body.appendChild(elem);
+		assertEvents(elem.events, ["render"]);
+		strictEqual(elem.innerHTML, "Hello World!");
 
-			elem.removeAttribute("name");
-			strictEqual(elem.innerHTML, "Hello World!");
+		elem.setAttribute("name", "Test");
+		strictEqual(elem.innerHTML, "Hello Test!");
 
-			assertEvents(elem.events, []);
-			elem.remove();
-			assertEvents(elem.events, ["teardown"]);
-			strictEqual(elem.innerHTML, "Hello World!");
-		}
+		elem.removeAttribute("name");
+		strictEqual(elem.innerHTML, "Hello World!");
+
+		assertEvents(elem.events, []);
+		elem.remove();
+		assertEvents(elem.events, ["teardown"]);
+		strictEqual(elem.innerHTML, "Hello World!");
 	});
 });

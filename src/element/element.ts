@@ -1,55 +1,12 @@
 import { $, capture, Content, ENV, leak, render, Signal, TeardownHook, watchUpdates } from "../core/index.js";
 
-export type StartTrigger = "on-connect" | "manual";
-export type DisposeTrigger = "on-disconnect" | "manual";
-
-export interface RvxElementOptions {
-	/**
-	 * Shadow root options to use or false to attach content to the element directly.
-	 *
-	 * By default and when `true`, an open shadow root is attached immediately.
-	 */
-	shadow?: boolean | ShadowRootInit;
-
-	/**
-	 * When to render this element's content.
-	 *
-	 * + `on-connect` - Default. Render when this element is connected.
-	 * + `manual` - Render only when `.start()` is called.
-	 */
-	start?: StartTrigger;
-
-	/**
-	 * When to dispose this element's content.
-	 *
-	 * + `on-disconnect` - Default. Dispose when this element is disconnected or when `.dispose()` is called.
-	 * + `manual` - Dispose only when `.dispose()` is called.
-	 */
-	dispose?: DisposeTrigger;
-}
-
 const moduleEnv = ENV.current;
 
 export abstract class RvxElement extends moduleEnv.HTMLElement {
 	static observedAttributes?: string[];
 
 	#signals = new Map<string, Signal<string | null>>();
-	#startTrigger: StartTrigger;
-	#disposeTrigger: DisposeTrigger;
-	#shadow?: ShadowRoot;
 	#dispose?: TeardownHook;
-
-	constructor(options?: RvxElementOptions) {
-		super();
-
-		this.#startTrigger = options?.start ?? "on-connect";
-		this.#disposeTrigger = options?.dispose ?? "on-disconnect";
-
-		const shadowInit = (options?.shadow === true ? undefined : options?.shadow) ?? { mode: "open" };
-		if (shadowInit !== false) {
-			this.#shadow = this.attachShadow(shadowInit);
-		}
-	}
 
 	/**
 	 * Called to render the content of this element.
@@ -96,9 +53,10 @@ export abstract class RvxElement extends moduleEnv.HTMLElement {
 		if (this.#dispose === undefined) {
 			this.#dispose = capture(() => {
 				ENV.provide(moduleEnv, () => {
-					const parent = this.#shadow ?? this;
+					const view = render(this.render());
+					const parent = this.shadowRoot ?? this;
 					parent.innerHTML = "";
-					render(this.render()).appendTo(parent);
+					view.appendTo(parent);
 				});
 			});
 		}
@@ -114,16 +72,12 @@ export abstract class RvxElement extends moduleEnv.HTMLElement {
 		this.#dispose = undefined;
 	}
 
-	connectedCallback(): void {
-		if (this.#startTrigger === "on-connect") {
-			this.start();
-		}
+	connectedCallback() {
+		this.start();
 	}
 
-	disconnectedCallback(): void {
-		if (this.#disposeTrigger === "on-disconnect") {
-			this.dispose();
-		}
+	disconnectedCallback() {
+		this.dispose();
 	}
 
 	attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
