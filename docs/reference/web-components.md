@@ -121,19 +121,13 @@ The `reflect` function can be used to get a signal that reflects an attribute va
 	```
 
 ## Lifecycle
-By default, the content is rendered when the component is connected to the DOM and disposed when it's disconnected.
+By default, the component starts rendering in `connectedCallback` and disposes in `disconnectedCallback`.
 
-This default behavior can be disabled:
+You can skip this default behavior by overriding the respecitve methods:
 ```jsx
 class ExampleElement extends RvxElement {
-	constructor() {
-		super({
-			// Disable automatic rendering when connected:
-			start: "manual",
-			// Disable automatic disposal when disconnected:
-			dispose: "manual",
-		});
-	}
+	connectedCallback() {}
+	disconnectedCallback() {}
 }
 ```
 
@@ -161,91 +155,15 @@ You can always start or dispose the component manually:
 	elem.dispose();
 	```
 
-Note, that components can be started and disposed multiple times.
+Note that components can be started and disposed multiple times.
 
 ## Shadow DOM
-By default, content returned from the `render` function is attached to an open shadow root.
-
-This behavior can be changed with the following options:
+If an open shadow root is attached before rendering, content is attached to that shadow root or the element itself otherwise.
 ```jsx
 class ExampleElement extends RvxElement {
 	constructor() {
-		super({
-			// Don't create a shadow root and attach content to the element directly:
-			shadow: false,
-
-			// Specify options for creating the shadow root:
-			shadow: {
-				mode: "open",
-			},
-		});
+		super();
+		this.attachShadow({ mode: "open" });
 	}
 }
 ```
-
-## Manual Implementation
-Due to its simple lifecycle system, you can also implement web components manually:
-
-=== "JSX"
-	```jsx
-	import { mount, capture, teardown, TeardownHook } from "rvx";
-
-	class ExampleComponent extends HTMLElement {
-		#dispose?: TeardownHook;
-
-		constructor() {
-			super();
-			this.attachShadow({ mode: "open" });
-		}
-
-		connectedCallback() {
-			this.#dispose = capture(() => {
-				// Create and append content to the shadow root until disposed:
-				mount(
-					this.shadowRoot,
-					<h1>Hello World!</h1>,
-				);
-			});
-		}
-
-		disconnectedCallback() {
-			// Run teardown hooks:
-			this.#dispose?.();
-			this.#dispose = undefined;
-		}
-	}
-	```
-
-=== "No Build"
-	```jsx
-	import { mount, capture, teardown, e } from "./rvx.js";
-
-	class ExampleComponent extends HTMLElement {
-		/** @type {import("./rvx.js").TeardownHook} */
-		#dispose;
-
-		constructor() {
-			super();
-			this.attachShadow({ mode: "open" });
-		}
-
-		connectedCallback() {
-			this.#dispose = capture(() => {
-				// Create and append content to the shadow root:
-				const view = mount(
-					this.shadowRoot,
-					e("h1").append("Hello World!"),
-				);
-
-				// Remove content from the shadow root when disposed:
-				teardown(() => view.detach());
-			});
-		}
-
-		disconnectedCallback() {
-			// Run teardown hooks:
-			this.#dispose?.();
-			this.#dispose = undefined;
-		}
-	}
-	```

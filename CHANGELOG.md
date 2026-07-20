@@ -1,6 +1,7 @@
 # Changelog
 
-## 26.1
+## 27.0
++ **Breaking:** Remove `RvxElement` constructor options & default shadow root.
 + Add custom keys to `mapArray`, `<For>` and `forEach`.
 + Remove type definition bundles from npm package.
 
