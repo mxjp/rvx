@@ -123,7 +123,7 @@ The `reflect` function can be used to get a signal that reflects an attribute va
 ## Lifecycle
 By default, the component starts rendering in `connectedCallback` and disposes in `disconnectedCallback`.
 
-You can skip this default behavior by overriding the respecitve methods:
+You can skip this default behavior by overriding the respective methods:
 ```jsx
 class ExampleElement extends RvxElement {
 	connectedCallback() {}
