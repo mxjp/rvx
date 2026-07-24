@@ -5,7 +5,11 @@ import { ProbeMap } from "./probes.js";
 /**
  * A reactive wrapper for a map.
  */
-export class ReactiveMap<K, V> extends Map<K, V> {
+export class ReactiveMap<K, V> implements Map<K, V> {
+	static {
+		Object.setPrototypeOf(this.prototype, Map.prototype);
+	}
+
 	#target: Map<K, V>;
 	#barrier: Barrier;
 	#size: Signal<number>;
@@ -20,7 +24,6 @@ export class ReactiveMap<K, V> extends Map<K, V> {
 	 * @param barrier The barrier to convert values. Keys are not reactive.
 	 */
 	constructor(target: Map<K, V>, barrier: Barrier) {
-		super();
 		this.#target = target;
 		this.#barrier = barrier;
 		this.#size = $(target.size);
@@ -39,39 +42,55 @@ export class ReactiveMap<K, V> extends Map<K, V> {
 		return this.#barrier.wrap(this.#target.get(key));
 	}
 
+	getOrInsert(key: K, defaultValue: V): V {
+		return this.getOrInsertComputed(key, () => defaultValue);
+	}
+
+	getOrInsertComputed(key: K, callback: (key: K) => V): V {
+		this.#getProbes.access(key);
+		let inserted = false;
+		const value = this.#target.getOrInsertComputed(key, key => {
+			inserted = true;
+			return callback(key);
+		});
+		if (inserted) {
+			this.#notify(key, value, true);
+		}
+		return value;
+	}
+
 	has(key: K): boolean {
 		this.#hasProbes.access(key);
 		return this.#target.has(key);
 	}
 
 	set(key: K, value: V): this {
-		batch(() => {
-			value = this.#barrier.unwrap(value);
-			this.#target.set(key, value);
-			this.#size.value = this.#target.size;
-			this.#iterators.notify();
-			this.#getProbes.update(key, value);
-			this.#hasProbes.update(key, true);
-		});
+		value = this.#barrier.unwrap(value);
+		this.#target.set(key, value);
+		this.#notify(key, value, true);
 		return this;
 	}
 
-	delete(key: K): boolean {
-		return batch(() => {
-			const deleted = this.#target.delete(key);
-			if (deleted) {
-				this.#size.value = this.#target.size;
-				this.#iterators.notify();
-				this.#getProbes.update(key, undefined);
-				this.#hasProbes.update(key, false);
-			}
-			return deleted;
+	#notify(key: K, value: V | undefined, has: boolean): void {
+		batch(() => {
+			this.#size.value = this.#target.size;
+			this.#iterators.notify();
+			this.#getProbes.update(key, value);
+			this.#hasProbes.update(key, has);
 		});
 	}
 
+	delete(key: K): boolean {
+		const deleted = this.#target.delete(key);
+		if (deleted) {
+			this.#notify(key, undefined, false);
+		}
+		return deleted;
+	}
+
 	clear(): void {
+		this.#target.clear();
 		batch(() => {
-			this.#target.clear();
 			this.#size.value = 0;
 			this.#iterators.notify();
 			this.#getProbes.fill(undefined);

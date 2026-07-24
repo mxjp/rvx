@@ -78,7 +78,7 @@ await suite("store/reactive-map", async () => {
 		]);
 
 		map.set("bar", 42);
-		assertEntries([inner], [["foo", 7], ["bar", 42]]);
+		assertEntries([inner, map], [["foo", 7], ["bar", 42]]);
 		assertEvents(events, [
 			size(2),
 			...iterators([["foo", 7], ["bar", 42]]),
@@ -86,14 +86,14 @@ await suite("store/reactive-map", async () => {
 		]);
 
 		map.set("bar", 144);
-		assertEntries([inner], [["foo", 7], ["bar", 144]]);
+		assertEntries([inner, map], [["foo", 7], ["bar", 144]]);
 		assertEvents(events, [
 			...iterators([["foo", 7], ["bar", 144]]),
 			value("bar", 144),
 		]);
 
 		map.delete("foo");
-		assertEntries([inner], [["bar", 144]]);
+		assertEntries([inner, map], [["bar", 144]]);
 		assertEvents(events, [
 			size(1),
 			...iterators([["bar", 144]]),
@@ -104,7 +104,7 @@ await suite("store/reactive-map", async () => {
 		assertEvents(events, []);
 
 		map.clear();
-		assertEntries([inner], []);
+		assertEntries([inner, map], []);
 		assertEvents(events, [
 			size(0),
 			...iterators([]),
@@ -112,8 +112,56 @@ await suite("store/reactive-map", async () => {
 		]);
 
 		map.clear();
-		assertEntries([inner], []);
+		assertEntries([inner, map], []);
 		assertEvents(events, iterators([]));
+
+		strictEqual(map.getOrInsert("foo", 1), 1);
+		assertEntries([inner, map], [["foo", 1]]);
+		assertEvents(events, [
+			size(1),
+			...iterators([["foo", 1]]),
+			...added("foo", 1),
+		]);
+
+		strictEqual(map.getOrInsertComputed("bar", () => {
+			events.push("compute");
+			return 2;
+		}), 2);
+		assertEntries([inner, map], [["foo", 1], ["bar", 2]]);
+		assertEvents(events, [
+			"compute",
+			size(2),
+			...iterators([["foo", 1], ["bar", 2]]),
+			...added("bar", 2),
+		]);
+
+		strictEqual(map.getOrInsertComputed("bar", () => {
+			throw new Error();
+		}), 2);
+		assertEntries([inner, map], [["foo", 1], ["bar", 2]]);
+		assertEvents(events, []);
+	});
+
+	await test("getOrInsert feedback", () => {
+		const events: unknown[] = [];
+		const map = wrap(new Map<string, number>());
+
+		leak(() => {
+			watch(() => {
+				events.push(map.getOrInsertComputed("test", () => {
+					events.push("compute");
+					return 0;
+				}));
+			});
+		});
+
+		assertEvents(events, ["compute", 0, 0]);
+
+		map.set("test", 1);
+		assertEvents(events, [1]);
+
+		map.delete("test");
+		assertEvents(events, ["compute", 0, 0]);
 	});
 
 	await test("conversion", () => {
