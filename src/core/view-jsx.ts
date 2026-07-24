@@ -98,7 +98,7 @@ export function Show<T>(props: {
 }
 
 /**
- * Render content for each value in an iterable.
+ * Render content for each entry in an iterable.
  *
  * Errors thrown by the component or while updating an index result in undefined behavior.
  *
@@ -117,12 +117,14 @@ export function Show<T>(props: {
  */
 export function For<T>(props: {
 	/**
-	 * The expression to watch. Note, that signals accessed during iteration will also trigger updates.
+	 * The expression to watch.
+	 *
+	 * Note that signals accessed during iteration will also trigger updates.
 	 */
 	each: Expression<Iterable<T>>;
 
 	/**
-	 * The component to render for each value.
+	 * The component to render for each entry.
 	 */
 	children: ForContentFn<T>;
 
@@ -156,7 +158,7 @@ export function Index<T>(props: {
 	/**
 	 * The expression to watch.
 	 *
-	 * Note, that signals accessed during iteration will also trigger updates.
+	 * Note that signals accessed during iteration will also trigger updates.
 	 */
 	each: Expression<Iterable<T>>;
 

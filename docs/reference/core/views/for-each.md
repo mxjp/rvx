@@ -1,5 +1,5 @@
 # `<For> / forEach`
-Render [content](../elements.md#content) for each value in an iterable [expression](../signals.md#expressions) keyed by value.
+Render [content](../elements.md#content) for each entry in an iterable [expression](../signals.md#expressions).
 
 === "JSX"
 	```jsx
@@ -31,6 +31,25 @@ A function to reactively access the current index is passed as the second argume
 	```jsx
 	forEach(someIterable, (value, index) => e("li").append(() => index() + 1, ": ", value))
 	```
+
+## Keys
+By default, entries are keyed by value.
+
+You can specify a function to get a custom key for a given value:
+
+=== "JSX"
+	```jsx
+	<For each={someMap} key={entry => `${entry[0]}/${entry[1]}`}>
+		{entry => <li>{entry[0]} = {entry[1]}</li>}
+	</For>
+	```
+
+=== "No Build"
+	```jsx
+	forEach(someMap, entry => e("li").append(entry[0], " = ", entry[1]), entry => `${entry[0]}/${entry[1]}`)
+	```
+
+Note that updates to anything other than the computed key are ignored.
 
 ## Error Handling
 Errors thrown by the component or while updating an index result in undefined behavior.
