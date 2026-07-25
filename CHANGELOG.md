@@ -2,8 +2,9 @@
 
 ## 27.0
 + **Breaking:** Remove `RvxElement` constructor options & default shadow root.
-+ Fix: Unsupported methods `ReactiveMap` no longer silently fail.
++ Fix: Unsupported methods on `ReactiveMap` and `ReactiveSet` no longer silently fail.
 + Add `getOrInsert` & `getOrInsertComputed` support to `ReactiveMap`.
++ Add `difference`, `intersection`, `isDisjointFrom`, `isSubsetOf`, `isSupersetOf`, `symmetricDifference` and `union`, support to `ReactiveSet`.
 + Add custom keys to `mapArray`, `<For>` and `forEach`.
 + Remove type definition bundles from npm package.
 

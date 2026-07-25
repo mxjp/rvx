@@ -57,6 +57,13 @@ await suite("store/reactive-set", async () => {
 			}, value => {
 				events.push(["forEach", value]);
 			});
+			watch(() => set.difference(new Set()), () => events.push("difference"));
+			watch(() => set.intersection(new Set()), () => events.push("intersection"));
+			watch(() => set.isDisjointFrom(new Set()), () => events.push("isDisjointFrom"));
+			watch(() => set.isSubsetOf(new Set()), () => events.push("isSubsetOf"));
+			watch(() => set.isSupersetOf(new Set()), () => events.push("isSupersetOf"));
+			watch(() => set.symmetricDifference(new Set()), () => events.push("symmetricDifference"));
+			watch(() => set.union(new Set()), () => events.push("union"));
 			for (const value of ["foo", "bar", "baz"]) {
 				watch(() => set.has(value), has => {
 					events.push(["has", value, has]);
@@ -179,6 +186,13 @@ await suite("store/reactive-set", async () => {
 			["values", value],
 			["iterator", value],
 			["forEach", value],
+			"difference",
+			"intersection",
+			"isDisjointFrom",
+			"isSubsetOf",
+			"isSupersetOf",
+			"symmetricDifference",
+			"union",
 		];
 	}
 });
