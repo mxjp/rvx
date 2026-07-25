@@ -51,7 +51,7 @@ All signals accessed from the `watch` expression will trigger a full re-render w
 
 To avoid re-rendering the component when the same values are returned, you can wrap the expression using [`memo`](../signals.md#memo) or use [`<Show>`](./show.md) instead.
 
-## Component expresions
+## Component expressions
 The component can be omitted if the expression itself returns a component, `null` or `undefined`:
 
 === "JSX"
