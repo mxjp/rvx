@@ -3,15 +3,15 @@ import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "rolldown";
 
-const context = join(fileURLToPath(import.meta.url), "..");
-const root = join(context, "..");
-const src = join(context, "src");
+const cwd = join(fileURLToPath(import.meta.url), "..");
+const root = join(cwd, "..");
+const src = join(cwd, "src");
 const outDir = join(root, "docs/examples");
 
 await mkdir(outDir, { recursive: true });
 
 export default defineConfig({
-	context,
+	cwd,
 	input: "virtual:main",
 	output: {
 		format: "es",
@@ -50,6 +50,11 @@ export default defineConfig({
 						};
 
 						class ExampleElement extends RvxElement {
+							constructor() {
+								super();
+								this.attachShadow({ mode: "open" });
+							}
+
 							render() {
 								return [
 									e("link").set("rel", "stylesheet").set("href", "/rvx/stylesheets/examples.css"),
