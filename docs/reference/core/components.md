@@ -355,7 +355,7 @@ In case of the `class` and `style` attributes, you can use an array as value to 
 For components that always return a top level element, you can override properties that are not explicitly supported by that component.
 
 !!! warning
-	Note, that styles, classes, attributes and properties that are already set by the component may cause conflicts.
+	Note that styles, classes, attributes and properties that are already set by the component may cause conflicts.
 
 === "JSX"
 	```jsx

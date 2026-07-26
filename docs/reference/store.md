@@ -64,7 +64,7 @@ To update a reactive object, you can directly modify the wrapper.
 	todos.push({ name: "Baz", done: true });
 	```
 
-Note, that every individual update is processed immediately. To prevent this, you can use [batches](./core/signals.md#batch):
+Note that every individual update is processed immediately. To prevent this, you can use [batches](./core/signals.md#batch):
 
 === "JSX"
 	```jsx

@@ -85,4 +85,4 @@ The examples below show some common mistakes and how they could be exploited.
 	e("a").set("href", "javascript:alert(location.origin)").append("Click me!");
 	```
 
-Note, that this is only a small fraction of things that can go wrong.
+Note that this is only a small fraction of things that can go wrong.

@@ -96,7 +96,7 @@ Attribute values can be [expressions](signals.md#expressions).
 	e("div").set("title", () => someSignal.value)
 	```
 
-Note, that the rules specified above apply to all attributes including aria attributes. To set an attribute to the literal `"true"` and `"false"` strings, you can convert an arbitrary [expression](signals.md#expressions) using `string` or `optionalString`:
+Note that the rules specified above apply to all attributes including aria attributes. To set an attribute to the literal `"true"` and `"false"` strings, you can convert an arbitrary [expression](signals.md#expressions) using `string` or `optionalString`:
 
 === "JSX"
 	```jsx
@@ -209,7 +209,7 @@ The **style** attribute can be any combination of arrays, objects and [expressio
 	e("div").set("style", "color: red;");
 	```
 
-Note, that properties that are no longer specified after a signal update are not reset automatically to keep the current implementation simple. When properties are specified multiple times, the last one specified takes priority.
+Note that properties that are no longer specified after a signal update are not reset automatically to keep the current implementation simple. When properties are specified multiple times, the last one specified takes priority.
 
 ## References
 
@@ -283,7 +283,7 @@ Any DOM nodes are moved into the parent element.
 	)
 	```
 
-Note, that nodes are removed from their parent depending on when the content is actually used in an element. E.g. when returning a document fragment from a [component](components.md), its children are removed from the fragment as soon as the components return value is used in an element expression.
+Note that nodes are removed from their parent depending on when the content is actually used in an element. E.g. when returning a document fragment from a [component](components.md), its children are removed from the fragment as soon as the components return value is used in an element expression.
 
 !!! warning
 	Reusing DOM nodes may result in undefined behavior. Consider using [`movable`](./views/movable.md) for safely reusing & moving arbitrary content or read more about [external mutations](../external-mutations.md).
@@ -352,7 +352,7 @@ Content can be wrapped in arbitrarily nested arrays and JSX fragments.
 	</div>
 	```
 
-	Note, that JSX fragments in rvx return their children as is. The return type of single-child or empty fragments may depend on your JSX transpiler.
+	Note that JSX fragments in rvx return their children as is. The return type of single-child or empty fragments may depend on your JSX transpiler.
 	```jsx
 	<></> // undefined
 	<>42</> // 42
