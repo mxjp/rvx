@@ -575,9 +575,6 @@ Note that [`lazy`](#lazy) is not an observer and does not affect references even
 
 	This prevents any signal related memory leaks and also isolates everything inside `showNotification` from the outside lifecycle context.
 
-!!! tip
-	In a development or testing environment, you can set up [leak detection](../testing.md#leak-detection) to automatically detect leaked teardown hooks.
-
 
 
 ## Troubleshooting

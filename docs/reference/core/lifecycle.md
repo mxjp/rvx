@@ -202,12 +202,10 @@ const dispose = capture(async () => {
 
 	await something;
 
-	// This will be leaked:
+	// This will cause an error:
 	teardown(() => { ... });
 });
 ```
-
-In a test or development environment, you can configure [how leaked teardown hooks behave](../testing.md#leak-detection).
 
 To dispose things that are initialized later, you manually need to capture its teardown hooks:
 ```jsx
