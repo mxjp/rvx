@@ -1,9 +1,9 @@
 /.cache
 /build
 /dist
-/docs_out
 /docs/examples
 /examples/node_modules
 /node_modules
+/site
 /tests_out
 /venv
