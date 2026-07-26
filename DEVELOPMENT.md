@@ -62,14 +62,14 @@ npm test
 ```
 
 # Documentation
-Building the docs also requires python and [mkdocs-material](https://squidfunk.github.io/mkdocs-material/)
+Building the docs also requires python and [zensical](https://zensical.org/)
 
 ```bash
 # Build examples:
 npm run build --prefix examples
 
 # Run & serve the docs locally:
-docker compose -f mkdocs-compose.yml up
+zensical serve
 ```
 
 # Benchmarks
