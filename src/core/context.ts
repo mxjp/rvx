@@ -178,5 +178,5 @@ interface ActiveState<T> {
  */
 export interface ContextState<T> {
 	c: Context<T>;
-	v: T | null | undefined;
+	v: NoInfer<T> | null | undefined;
 }

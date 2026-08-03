@@ -20,7 +20,7 @@ import { ASYNC } from "./async-context.js";
  * + The rejected error is passed as the first argument.
  * + Nothing is rendered by default.
  */
-export function nestAsync<T>(source: (() => Promise<T>) | Promise<T>, component?: Component<T>, pending?: Component, rejected?: Component<unknown>): View {
+export function nestAsync<T>(source: (() => Promise<T>) | Promise<T>, component?: Component<NoInfer<T>>, pending?: Component, rejected?: Component<unknown>): View {
 	const state = $({ type: 0, value: undefined as unknown });
 
 	let promise: Promise<T>;

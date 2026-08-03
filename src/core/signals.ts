@@ -426,7 +426,7 @@ export function $(value?: unknown, source?: SignalSource): Signal<unknown> {
  * message.value = "Hello World!";
  * ```
  */
-export type Expression<T> = T | Signal<T> | (() => T);
+export type Expression<T> = Signal<T> | (() => T) | T;
 
 /**
  * Utility to get the result type of an expression.
@@ -532,13 +532,13 @@ const _observer = (hook: NotifyHook): Observer => {
  * count.value = 2;
  * ```
  */
-export function watch<T>(expr: Reactive<T>, effect: (value: T) => void): void;
+export function watch<T>(expr: Reactive<T>, effect: (value: NoInfer<T>) => void): void;
 
 /**
  * @deprecated
  * This call can be removed because the expression is always static. You can call the effect directly.
  */
-export function watch<T>(expr: Static<T>, effect: (value: T) => void): void;
+export function watch<T>(expr: Static<T>, effect: (value: NoInfer<T>) => void): void;
 
 /**
  * Watch an expression until the current lifecycle is disposed.
@@ -572,8 +572,8 @@ export function watch<T>(expr: Static<T>, effect: (value: T) => void): void;
  * ```
  */
 export function watch(expr: () => void): void;
-export function watch<T>(expr: Expression<T>, effect: (value: T) => void): void;
-export function watch<T>(expr: Expression<T>, effect?: (value: T) => void): void {
+export function watch<T>(expr: Expression<T>, effect: (value: NoInfer<T>) => void): void;
+export function watch<T>(expr: Expression<T>, effect?: (value: NoInfer<T>) => void): void {
 	const isSignal = expr instanceof Signal;
 	if (isSignal || typeof expr === "function") {
 		let value: T;
@@ -620,13 +620,13 @@ export function watch<T>(expr: Expression<T>, effect?: (value: T) => void): void
  * @param effect A function to call with each subsequent expression result without tracking signal accesses.
  * @returns The first expression result.
  */
-export function watchUpdates<T>(expr: Reactive<T>, effect: (value: T) => void): T;
+export function watchUpdates<T>(expr: Reactive<T>, effect: (value: NoInfer<T>) => void): T;
 
 /**
  * @deprecated
  * This call can be removed because the expression is always static.
  */
-export function watchUpdates<T>(expr: Static<T>, effect: (value: T) => void): T;
+export function watchUpdates<T>(expr: Static<T>, effect: (value: NoInfer<T>) => void): T;
 
 /**
  * Watch an expression until the current lifecycle is disposed.
@@ -635,8 +635,8 @@ export function watchUpdates<T>(expr: Static<T>, effect: (value: T) => void): T;
  * @param effect A function to call with each subsequent expression result without tracking signal accesses.
  * @returns The first expression result.
  */
-export function watchUpdates<T>(expr: Expression<T>, effect: (value: T) => void): T;
-export function watchUpdates<T>(expr: Expression<T>, effect: (value: T) => void): T {
+export function watchUpdates<T>(expr: Expression<T>, effect: (value: NoInfer<T>) => void): T;
+export function watchUpdates<T>(expr: Expression<T>, effect: (value: NoInfer<T>) => void): T {
 	let first: T;
 	let update = false;
 	watch(expr, value => {
@@ -1030,13 +1030,13 @@ export type MapFn<I, O> = (input: I) => O;
  * get(doubleCount) // 84
  * ```
  */
-export function map<I, O>(input: Reactive<I>, mapFn: MapFn<I, O>): Expression<O>;
+export function map<I, O>(input: Reactive<I>, mapFn: MapFn<NoInfer<I>, O>): Expression<O>;
 
 /**
  * @deprecated
  * This call can be removed because the input is always static. You can call the map function directly.
  */
-export function map<I, O>(input: Static<I>, mapFn: MapFn<I, O>): Expression<O>;
+export function map<I, O>(input: Static<I>, mapFn: MapFn<NoInfer<I>, O>): Expression<O>;
 
 /**
  * Map an expression value while preserving if the expression is static or not.
@@ -1051,8 +1051,8 @@ export function map<I, O>(input: Static<I>, mapFn: MapFn<I, O>): Expression<O>;
  * get(doubleCount) // 84
  * ```
  */
-export function map<I, O>(input: Expression<I>, mapFn: MapFn<I, O>): Expression<O>;
-export function map<I, O>(input: Expression<I>, mapFn: MapFn<I, O>): Expression<O> {
+export function map<I, O>(input: Expression<I>, mapFn: MapFn<NoInfer<I>, O>): Expression<O>;
+export function map<I, O>(input: Expression<I>, mapFn: MapFn<NoInfer<I>, O>): Expression<O> {
 	if (input instanceof Signal) {
 		return () => mapFn(input.value);
 	}

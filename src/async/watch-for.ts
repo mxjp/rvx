@@ -14,9 +14,9 @@ export class WatchForTimeoutError extends Error {}
  * @returns A promise that resolves with the first matched output or rejects with a {@link WatchForTimeoutError}.
  */
 export function watchFor<T>(expr: Expression<T | Falsy>, timeout?: number): Promise<T>;
-export function watchFor<T, R extends T>(expr: Expression<T>, condition?: WatchGuardCondition<T, R>, timeout?: number): Promise<R>;
-export function watchFor<T>(expr: Expression<T>, condition?: WatchCondition<T>, timeout?: number): Promise<T>;
-export function watchFor<T>(expr: Expression<T>, condition?: WatchCondition<T> | number, timeout?: number): Promise<T> {
+export function watchFor<T, R extends T>(expr: Expression<T>, condition?: WatchGuardCondition<NoInfer<T>, R>, timeout?: number): Promise<R>;
+export function watchFor<T>(expr: Expression<T>, condition?: WatchCondition<NoInfer<T>>, timeout?: number): Promise<T>;
+export function watchFor<T>(expr: Expression<T>, condition?: WatchCondition<NoInfer<T>> | number, timeout?: number): Promise<T> {
 	if (typeof condition === "number") {
 		timeout = condition;
 		condition = Boolean as unknown as WatchCondition<T>;

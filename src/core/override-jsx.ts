@@ -1,6 +1,7 @@
 import type { ElementBuilder } from "./element-builder.js";
 import { Attributes, NODE, NodeTarget } from "./element-common.js";
 import { applyElement } from "./jsx/common.js";
+import { Content } from "./types.js";
 
 /**
  * Utility for modifying an existing element or {@link ElementBuilder element builder} returned from a component.
@@ -16,7 +17,7 @@ import { applyElement } from "./jsx/common.js";
  * </Override>
  * ```
  */
-export function Override<E extends Element>(props: { children: unknown } & Attributes<E>): unknown {
+export function Override<E extends Element>(props: { children: unknown } & Attributes<E>): Content {
 	const { children } = props as { children: NodeTarget<Element> | Element };
 	delete props.children;
 	applyElement<Element>(NODE in children ? children[NODE] : children, props as Attributes<Element>);

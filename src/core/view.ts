@@ -467,7 +467,7 @@ const _nestDefault = ((component: Component | null | undefined) => component?.()
  * ```
  */
 export function nest(expr: Expression<Component | null | undefined>): View;
-export function nest<T>(expr: Expression<T>, component: Component<T>): View;
+export function nest<T>(expr: Expression<T>, component: Component<NoInfer<T>>): View;
 export function nest(expr: Expression<unknown>, component: Component<unknown> = _nestDefault): View {
 	return new View((setBoundary, self) => {
 		watch(expr, value => {
@@ -510,7 +510,7 @@ export function nest(expr: Expression<unknown>, component: Component<unknown> = 
  * when(message, value => e("h1").append(value), () => "No message...")
  * ```
  */
-export function when<T>(condition: Expression<T | Falsy>, truthy: Component<T>, falsy?: Component): View {
+export function when<T>(condition: Expression<T | Falsy>, truthy: Component<NoInfer<T>>, falsy?: Component): View {
 	return nest(memo(condition), value => value ? truthy(value) : falsy?.());
 }
 
@@ -543,7 +543,7 @@ export interface ForContentFn<T> {
  * forEach(items, value => e("li").append(value))
  * ```
  */
-export function forEach<T>(each: Expression<Iterable<T>>, component: ForContentFn<T>, keyFn?: MapArrayKeyFn<unknown, T>): View {
+export function forEach<T>(each: Expression<Iterable<T>>, component: ForContentFn<NoInfer<T>>, keyFn?: MapArrayKeyFn<unknown, NoInfer<T>>): View {
 	return new View(setBoundary => {
 		const env = ENV.current;
 		const first = createPlaceholder(env);
@@ -608,7 +608,7 @@ export interface IndexContentFn<T> {
  * indexEach(items, value => e("li").append(value))
  * ```
  */
-export function indexEach<T>(each: Expression<Iterable<T>>, component: IndexContentFn<T>): View {
+export function indexEach<T>(each: Expression<Iterable<T>>, component: IndexContentFn<NoInfer<T>>): View {
 	return new View((setBoundary, self) => {
 		interface Instance {
 			/** input value */

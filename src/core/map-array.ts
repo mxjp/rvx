@@ -13,7 +13,7 @@ export { MapArrayFn, MapArrayKeyFn } from "./internals/map-array.js";
  *
  * @param keyFn A function to get the key for a given value. If not specified, the value is used as key.
  */
-export function mapArray<I, O>(inputs: Expression<Iterable<I>>, fn: MapArrayFn<I, O>, keyFn?: MapArrayKeyFn<unknown, I>): () => O[] {
+export function mapArray<I, O>(inputs: Expression<Iterable<I>>, fn: MapArrayFn<NoInfer<I>, O>, keyFn?: MapArrayKeyFn<unknown, NoInfer<I>>): () => O[] {
 	const state = createMapArrayState<unknown, I, O>();
 	const output = $<O[]>([]);
 	watch(() => {

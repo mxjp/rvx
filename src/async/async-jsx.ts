@@ -22,7 +22,7 @@ export function Async<T>(props: {
 	 * + The resolved value is passed as the first argument.
 	 * + Nothing is rendered by default.
 	 */
-	children?: Component<T>;
+	children?: Component<NoInfer<T>>;
 
 	/**
 	 * A component to render content while pending.

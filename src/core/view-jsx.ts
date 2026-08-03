@@ -1,5 +1,5 @@
 import { MapArrayKeyFn } from "./map-array.js";
-import { Expression, ExpressionResult } from "./signals.js";
+import { Expression } from "./signals.js";
 import { Component, Content, Falsy } from "./types.js";
 import { attachWhen, ForContentFn, forEach, IndexContentFn, indexEach, nest, View, when } from "./view.js";
 
@@ -41,14 +41,14 @@ export function Nest<T>(props: {
 	/**
 	 * The expression to watch.
 	 */
-	watch: T;
+	watch: Expression<T>;
 
 	/**
 	 * The component to render with the expression result.
 	 *
 	 * If the expression returns a component, null or undefined, this can be omitted.
 	 */
-	children: Component<ExpressionResult<T>>;
+	children: Component<NoInfer<T>>;
 } | {
 	/**
 	 * The expression to watch.
@@ -87,7 +87,7 @@ export function Show<T>(props: {
 	/**
 	 * The component to render when the condition result is truthy.
 	 */
-	children: Component<T>;
+	children: Component<NoInfer<T>>;
 
 	/**
 	 * An optional component to render when the condition result is falsy.
@@ -126,12 +126,12 @@ export function For<T>(props: {
 	/**
 	 * The component to render for each entry.
 	 */
-	children: ForContentFn<T>;
+	children: ForContentFn<NoInfer<T>>;
 
 	/**
 	 * A function to get the key for a given value. If not specified, the value is used as key.
 	 */
-	key?: MapArrayKeyFn<unknown, T>;
+	key?: MapArrayKeyFn<unknown, NoInfer<T>>;
 }): View {
 	return forEach(props.each, props.children, props.key);
 }
@@ -165,7 +165,7 @@ export function Index<T>(props: {
 	/**
 	 * The component to render for each index pair.
 	 */
-	children: IndexContentFn<T>;
+	children: IndexContentFn<NoInfer<T>>;
 }): View {
 	return indexEach(props.each, props.children);
 }
