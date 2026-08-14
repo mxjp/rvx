@@ -6,4 +6,4 @@
 /node_modules
 /site
 /tests_out
-/venv
+/.venv
