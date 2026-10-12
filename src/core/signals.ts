@@ -1,5 +1,14 @@
-import { Context } from "./context.js";
 import { NOOP } from "./internals/noop.js";
+
+/**
+ * A function that is called to dispose something.
+ */
+export type TeardownHook = () => void;
+
+/**
+ * A function to check if two values are considered equal.
+ */
+export type EqualsFn<T> = (prev: T, next: T) => boolean;
 
 /**
  * Represents a stack frame that teardown hooks can be pushed into.
@@ -10,35 +19,39 @@ interface TeardownFrame {
 	push(hook: TeardownHook): void;
 }
 
-/**
- * A function that is called by a signal or batch when updated.
- */
-interface NotifyHook {
+export interface Effect {
 	(): void;
 }
 
-interface SignalCore {
-	/**
-	 * A counter to identify if a signal has notified its observers.
-	 */
-	c: number;
-
-	/**
-	 * A set of hooks that are called in iteration order by this signal to notify its observers.
-	 *
-	 * This is cleared before hooks are called.
-	 */
-	h: Set<NotifyHook>;
+/**
+ * Represents something that can produce a value that changes over time.
+ */
+interface Observable<T> {
+	/** The equals function for values produced by this observable. */
+	e: EqualsFn<T>;
+	/** Subscribe to this observable. */
+	s(effect: Effect): void;
+	/** Unsubscribe from this observable. */
+	u(effect: Effect): void;
+	/** Get the latest or produce an updated value of needed. */
+	p(): T;
 }
 
 /**
- * A function that is called by a signal when accessed.
+ * Represents a dependency used in a computation.
  */
-interface AccessHook {
-	/**
-	 * @param hooks See `Signal.#hooks`.
-	 */
-	(hooks: SignalCore): void;
+interface Dependency<T> {
+	/** The target observable. */
+	o: Observable<T>;
+	/** The latest used value. */
+	v: T;
+}
+
+/**
+ * A function that is called by an observable when accessed.
+ */
+interface AccessFrame {
+	(observable: Observable<any>): void;
 }
 
 const THROW_ON_LEAK: TeardownFrame = {
@@ -60,17 +73,23 @@ let TEARDOWN_FRAME: TeardownFrame = THROW_ON_LEAK;
 /**
  * The current access tracking frame.
  */
-let ACCESS_FRAME: AccessHook | undefined;
+let ACCESS_FRAME: AccessFrame | undefined;
 
 /**
- * A function that is called to dispose something.
+ * Queue of effects to dispatch starting at {@link QUEUE_OFFSET}.
  */
-export type TeardownHook = () => void;
+const QUEUE: Effect[] = [];
+let QUEUE_OFFSET = 0;
+
+/**
+ * True to indicate that a dispatch microtask has been scheduled.
+ */
+let SCHEDULED = false;
 
 /**
  * Internal utility to dispose the specified hooks in reverse order.
  */
-function dispose(hooks: TeardownHook[]) {
+function unwind(hooks: TeardownHook[]) {
 	for (let i = hooks.length - 1; i >= 0; i--) {
 		hooks[i]();
 	}
@@ -92,12 +111,12 @@ export function capture(fn: () => void): TeardownHook {
 		TEARDOWN_FRAME = hooks;
 		fn();
 	} catch (error) {
-		isolate(dispose, hooks);
+		isolate(unwind, hooks);
 		throw error;
 	} finally {
 		TEARDOWN_FRAME = parent;
 	}
-	return hooks.length === 0 ? NOOP : () => isolate(dispose, hooks);
+	return hooks.length === 0 ? NOOP : () => isolate(unwind, hooks);
 }
 
 /**
@@ -175,13 +194,13 @@ export function teardown(hook: TeardownHook): void {
  * + Teardown hooks are leaked. To isolate only teardown hooks, use {@link leak} instead.
  * + Signal accesses are not tracked and the default tracking behavior is restored. To only isolate signal accesses, use {@link untrack} instead.
  *
- * Note, that batches and contexts are not isolated.
+ * Note, that contexts are not isolated.
  *
  * @param fn The function to run.
  * @param args The function arguments.
  * @returns The function's return value.
  */
-export function isolate<F extends (...args: any) => any>(fn: F, ...args: Parameters<F>): ReturnType<F> {
+export function isolate<F extends (...args: any[]) => any>(fn: F, ...args: Parameters<F>): ReturnType<F> {
 	const parentTeardownFrame = TEARDOWN_FRAME;
 	const parentAccessFrame = ACCESS_FRAME;
 	try {
@@ -202,96 +221,16 @@ export function isIsolated() {
 }
 
 /**
- * During a {@link batch}, notify hooks are added to this set instead of being called.
- *
- * Outside of a batch, this is undefined.
+ * Represents a writable value.
  */
-let BATCH: Set<NotifyHook> | undefined;
-
-/**
- * Internal function to call the specified hook.
- */
-const _notify = (fn: NotifyHook) => {
-	try {
-		fn();
-	} catch (error) {
-		Promise.reject(error);
-	}
-};
-
-/**
- * Internal function to add the specified hook to the current batch.
- */
-const _queueBatch = (fn: NotifyHook) => BATCH!.add(fn);
-
-/**
- * Represents the source that a signal has been derived from.
- *
- * When deriving a signal, the source should be passed via the signal constructor or shorthand.
- * This has no impact on how a signal behaves, but allows other APIs to locate metadata about a signal's source.
- *
- * @example
- * ```js
- * function trim(source: Signal<string>) {
- *   const input = $(source.value, source);
- *   ...
- *   return input;
- * }
- * ```
- */
-export type SignalSource = Signal<unknown> | undefined;
-
-/**
- * Represents a value that changes over time.
- */
-export class Signal<T> {
+export interface Writable<T> {
 	/**
-	 * The current value without access tracking or observer notifications when set.
+	 * Get the current value.
 	 */
-	inert: T;
-
-	/**
-	 * The signal core referenced by other observers.
-	 */
-	#core: SignalCore = {
-		c: 0,
-		h: new Set(),
-	};
-
-	/**
-	 * The {@link SignalSource source} this signal has been derived from.
-	 */
-	#source: SignalSource;
-
-	/**
-	 * The {@link SignalSource source root}.
-	 */
-	#root: Signal<unknown>;
-
-	/**
-	 * Create a new signal.
-	 *
-	 * @param value The initial value.
-	 * @param source The {@link SignalSource source} this signal has been derived from.
-	 */
-	constructor(value: T, source?: SignalSource) {
-		this.inert = value;
-		this.#source = source;
-		this.#root = source ? source.#root : this;
-	}
-
-	/**
-	 * Reactively access the current value.
-	 */
-	get value(): T {
-		this.access();
-		return this.inert;
-	}
+	(): T;
 
 	/**
 	 * Set the current value.
-	 *
-	 * If the new value is the same as the previous one, no observers are notified.
 	 *
 	 * @example
 	 * ```tsx
@@ -303,86 +242,66 @@ export class Signal<T> {
 	 *   console.log("Count:", count);
 	 * });
 	 *
-	 * count.value++;
+	 * count.set(count() + 1);
 	 * ```
 	 */
-	set value(value: T) {
-		if (!Object.is(this.inert, value)) {
-			this.inert = value;
-			this.notify();
-		}
-	}
+	set: (next: T) => void;
+}
+
+export interface SignalFn<T> extends Writable<T> {
+	$: Signal<T>;
+}
+
+/**
+ * Represents a value that changes over time.
+ */
+export class Signal<T> {
+	inert: T;
+	$: SignalFn<T>;
+	#effects: Set<Effect>;
 
 	/**
-	 * The {@link SignalSource source}, this signal has been derived from.
+	 * Create a new signal.
+	 *
+	 * @param value The initial value.1
+	 * @param eq A function to check if two values are equal. Default is `Object.is`.
 	 */
-	get source(): SignalSource {
-		return this.#source;
-	}
+	constructor(value: T, eq: EqualsFn<T> = Object.is) {
+		this.inert = value;
 
-	/**
-	 * The root {@link SignalSource source}, this signal has been derived from or this signal itself if it hasn't been derived.
-	 */
-	get root(): Signal<unknown> {
-		return this.#root;
+		const effects = this.#effects = new Set<Effect>();
+		const self: Observable<T> = {
+			e: eq,
+			s(effect) {
+				effects.add(effect);
+			},
+			u(effect) {
+				effects.delete(effect);
+			},
+			p: () => this.inert,
+		};
+
+		this.$ = (() => {
+			ACCESS_FRAME?.(self);
+			return this.inert;
+		}) as SignalFn<T>;
+
+		this.$.set = (next: T) => {
+			const prev = this.inert;
+			this.inert = next;
+			if (!eq(prev, next)) {
+				effects.forEach(e => e());
+			}
+		};
+
+		this.$.$ = this;
 	}
 
 	/**
 	 * Check if this signal has any active observers.
 	 */
 	get active(): boolean {
-		return this.#core.h.size > 0;
-	}
-
-	/**
-	 * Manually access this signal.
-	 */
-	access(): void {
-		ACCESS_FRAME?.(this.#core);
-	}
-
-	/**
-	 * Manually notify observers.
-	 *
-	 * During batches, notifications are deferred.
-	 */
-	notify(): void {
-		const core = this.#core;
-		core.c++;
-		if (core.h.size === 0) {
-			return;
-		}
-		if (BATCH === undefined) {
-			const record = Array.from(core.h);
-			core.h.clear();
-			record.forEach(_notify);
-		} else {
-			core.h.forEach(_queueBatch);
-			/*
-				Hooks are not cleared during batches to prevent breaking
-				other observers if an error is thrown during the batch.
-
-				Calls are deduplicated within the batch.
-			*/
-		}
-	}
-
-	/**
-	 * Pass this signal to a function and get its result.
-	 *
-	 * @example
-	 * ```tsx
-	 * const value = $(42);
-	 *
-	 * <TextInput value={
-	 *   value
-	 *     .pipe(parseInt)
-	 *     .pipe(trim)
-	 * } />
-	 * ```
-	 */
-	pipe<A extends any[], R>(fn: (self: this, ...args: A) => R, ...args: A): R {
-		return fn(this, ...args);
+		return this.#effects.size > 0;
 	}
 }
 
@@ -390,17 +309,15 @@ export class Signal<T> {
  * Create a new signal.
  *
  * @param value The initial value.
- * @param source The {@link SignalSource source} this signal has been derived from.
+ * @param eq A function to check if two values are equal. Default is `Object.is`.
  * @returns The signal.
  */
-export function $(): Signal<void>;
-export function $<T>(value: T, source?: SignalSource): Signal<T>;
-export function $(value?: unknown, source?: SignalSource): Signal<unknown> {
-	return new Signal(value, source);
+export function $<T>(value: T, eq?: EqualsFn<T>): SignalFn<T> {
+	return new Signal(value, eq).$;
 }
 
 /**
- * A value, signal or function to get a value.
+ * A value or function to reactively get a value.
  *
  * @example
  * ```tsx
@@ -409,7 +326,7 @@ export function $(value?: unknown, source?: SignalSource): Signal<unknown> {
  * const message = $("Example");
  *
  * // Not reactive:
- * watch(message.value, message => {
+ * watch(message(), message => {
  *   console.log("A:", message);
  * });
  *
@@ -419,14 +336,14 @@ export function $(value?: unknown, source?: SignalSource): Signal<unknown> {
  * });
  *
  * // Reactive:
- * watch(() => message.value, message => {
+ * watch(() => message() + ..., message => {
  *   console.log("C:", message);
  * });
  *
  * message.value = "Hello World!";
  * ```
  */
-export type Expression<T> = Signal<T> | (() => T) | T;
+export type Expression<T> = T | (() => T);
 
 /**
  * Utility to get the result type of an expression.
@@ -438,7 +355,7 @@ export type ExpressionResult<T> = T extends Expression<infer R> ? R : never;
  *
  * This can be used instead of the {@link Expression} type in places where accepting static values doesn't make sense.
  */
-export type Reactive<T> = Signal<T> | (() => T);
+export type Reactive<T> = () => T;
 
 /**
  * Utility type to require `T` to not be reactive.
@@ -448,7 +365,7 @@ export type Static<T> = unknown extends T ? never : Exclude<T, Reactive<any>>;
 /**
  * Internal utility to unfold potential recursion into a sequence.
  */
-const _unfold = (hook: NotifyHook): NotifyHook => {
+const _unfold = (hook: Effect): Effect => {
 	let depth = 0;
 	return () => {
 		if (depth < 2) {
@@ -467,71 +384,29 @@ const _unfold = (hook: NotifyHook): NotifyHook => {
 	};
 };
 
-interface Observer {
-	/**
-	 * The access hook that can be pushed to the {@link ACCESS_STACK} to track signal accesses using this observer.
-	 */
-	a: AccessHook;
-
-	/**
-	 * Detach this observer from all currently accessed signals.
-	 */
-	c: () => void;
+export function schedule(effect: Effect) {
+	QUEUE.push(effect);
+	if (!SCHEDULED) {
+		SCHEDULED = true;
+		queueMicrotask(dispatch);
+	}
 }
 
-/**
- * Internal utility to create an observer for tracking signal accesses.
- *
- * @param hook The notify hook to add to all accessed signals.
- */
-const _observer = (hook: NotifyHook): Observer => {
-	/** Array of the hook sets of currently accessed signals. This can contain duplicates. */
-	const signals: SignalCore[] = [];
-	return {
-		c: () => {
-			for (let i = 0; i < signals.length; i++) {
-				signals[i].h.delete(hook);
-			}
-			signals.length = 0;
-		},
-		a: (hooks: SignalCore): void => {
-			signals.push(hooks);
-			hooks.h.add(hook);
-		},
-	};
-};
+export function dispatch() {
+	SCHEDULED = false;
+	let offset = 0;
+	while (offset < QUEUE.length) {
+		try {
+			QUEUE[offset++]();
+		} catch (error) {
+			void Promise.reject(error);
+		}
+	}
+	QUEUE.length = 0;
+	offset = 0;
+}
 
-/**
- * Watch an expression until the current lifecycle is disposed.
- *
- * + Both the expression and effect are called at least once immediately.
- * + Lifecycle hooks from the expression or effect are called before a signal update is processed or when the current lifecycle is disposed.
- *
- * @param expr The expression to watch.
- * @param effect An optional function to call with each expression result without tracking signal accesses.
- *
- * @example
- * ```tsx
- * import { $, watch } from "rvx";
- *
- * const count = $(0);
- *
- * // Capture teardown hooks registered by "watch":
- * const dispose = capture(() => {
- *   // Start watching:
- *   watch(count, count => {
- *     console.log("Count:", count);
- *   });
- * });
- *
- * count.value = 1;
- *
- * // Stop watching:
- * dispose();
- *
- * count.value = 2;
- * ```
- */
+// TODO: docs.
 export function watch<T>(expr: Reactive<T>, effect: (value: NoInfer<T>) => void): void;
 
 /**
@@ -540,76 +415,63 @@ export function watch<T>(expr: Reactive<T>, effect: (value: NoInfer<T>) => void)
  */
 export function watch<T>(expr: Static<T>, effect: (value: NoInfer<T>) => void): void;
 
-/**
- * Watch an expression until the current lifecycle is disposed.
- *
- * + Both the expression and effect are called at least once immediately.
- * + Lifecycle hooks from the expression or effect are called before a signal update is processed or when the current lifecycle is disposed.
- *
- * @param expr The expression to watch.
- * @param effect An optional function to call with each expression result without tracking signal accesses.
- *
- * @example
- * ```tsx
- * import { $, watch } from "rvx";
- *
- * const count = $(0);
- *
- * // Capture teardown hooks registered by "watch":
- * const dispose = capture(() => {
- *   // Start watching:
- *   watch(count, count => {
- *     console.log("Count:", count);
- *   });
- * });
- *
- * count.value = 1;
- *
- * // Stop watching:
- * dispose();
- *
- * count.value = 2;
- * ```
- */
+// TODO: docs.
 export function watch(expr: () => void): void;
 export function watch<T>(expr: Expression<T>, effect: (value: NoInfer<T>) => void): void;
 export function watch<T>(expr: Expression<T>, effect?: (value: NoInfer<T>) => void): void {
-	const isSignal = expr instanceof Signal;
-	if (isSignal || typeof expr === "function") {
-		let value: T;
-		let disposed = false;
-		let dispose: TeardownHook = NOOP;
-		const runExpr = isSignal ? () => (expr as Signal<T>).value : (expr as () => T);
-		const entry = _unfold(Context.bind(() => {
-			if (disposed) {
-				// This covers an edge case where this observer is notified during a batch and then disposed immediately.
-				return;
-			}
-			clear();
-			isolate(dispose);
-			dispose = capture(() => {
-				const parent = ACCESS_FRAME;
-				try {
-					ACCESS_FRAME = access;
-					value = runExpr();
-					if (effect) {
-						ACCESS_FRAME = undefined;
-						effect(value);
-					}
-				} finally {
-					ACCESS_FRAME = parent;
-				}
-			});
-		}));
-		const { c: clear, a: access } = _observer(entry);
-		teardown(() => {
-			disposed = true;
-			clear();
-			dispose();
+	if (typeof expr !== "function") {
+		effect?.(expr);
+		return;
+	}
+
+	teardown(() => {
+		_unsubscribe(deps, invalidate);
+		disposed = true;
+		dispose();
+	});
+
+	let disposed = false;
+	let dispose: TeardownHook = NOOP;
+	const deps: Dependency<unknown>[] = [];
+
+	const invalidate = () => schedule(() => {
+		if (deps.some(d => !d.o.e(d.v, d.o.p()))) {
+			_unsubscribe(deps, invalidate);
+			deps.length = 0;
+			run();
+		}
+	});
+
+	const access: AccessFrame = observable => {
+		deps.push({
+			o: observable,
+			v: observable.p(),
 		});
-		entry();
-	} else {
-		effect!(expr);
+	};
+
+	const run = _unfold(() => {
+		if (disposed) {
+			return;
+		}
+		dispose();
+		dispose = capture(() => {
+			const parent = ACCESS_FRAME;
+			try {
+				ACCESS_FRAME = access;
+				const value = (expr as Reactive<T>)();
+				ACCESS_FRAME = undefined;
+				effect?.(value);
+			} finally {
+				ACCESS_FRAME = parent;
+			}
+		});
+	});
+}
+
+// TODO: docs.
+function _unsubscribe(deps: Dependency<unknown>[], effect: Effect) {
+	for (let i = 0; i < deps.length; i++) {
+		deps[i].o.u(effect);
 	}
 }
 
@@ -650,212 +512,7 @@ export function watchUpdates<T>(expr: Expression<T>, effect: (value: NoInfer<T>)
 	return first!;
 }
 
-interface Dependency {
-	/**
-	 * The accessed signal.
-	 */
-	s: SignalCore;
-
-	/**
-	 * The signal cycle at the time it was accessed.
-	 */
-	c: number;
-}
-
-function _isStale(dep: Dependency) {
-	return dep.c !== dep.s.c;
-}
-
-/**
- * Wrap an expression to re-run only when any accessed signal has been updated.
- *
- * + Lifecycle hooks in the expression are not supported.
- * + The context from where `lazy` was called is available within the expression.
- *
- * @param expr The expression to wrap.
- */
-export function lazy<T>(expr: () => T): () => T {
-	let stale = true;
-	let value!: T;
-
-	const deps: Dependency[] = [];
-
-	const access: AccessHook = signal => {
-		deps.push({
-			s: signal,
-			c: signal.c,
-		});
-	};
-
-	return Context.bind(() => {
-		const observer = ACCESS_FRAME;
-		if (stale || (stale = deps.some(_isStale))) {
-			const parentTeardownFrame = TEARDOWN_FRAME;
-			try {
-				deps.length = 0;
-
-				ACCESS_FRAME = access;
-				TEARDOWN_FRAME = THROW_ON_LEAK;
-
-				value = expr();
-				stale = false;
-			} finally {
-				ACCESS_FRAME = observer;
-				TEARDOWN_FRAME = parentTeardownFrame;
-
-				if (observer) {
-					deps.forEach(dep => observer(dep.s));
-				}
-			}
-		} else {
-			if (observer) {
-				deps.forEach(dep => observer(dep.s));
-			}
-		}
-		return value;
-	});
-}
-
-function _dispatch(batch: Set<NotifyHook>): void {
-	while (batch.size > 0) {
-		batch.forEach(notify => {
-			/*
-				Notify hooks are deleted individually to ensure the correct behavior if calling
-				the hooks adds itself to the batch again due to an immediate side effect.
-			*/
-			batch.delete(notify);
-			_notify(notify);
-		});
-	}
-}
-
-/**
- * Defer signal updates until a function finishes.
- *
- * + When nesting batches, updates are processed after the most outer batch has completed.
- * + When updates cause immediate side effects, these side effects will run as part of the batch.
- *
- * @param fn The function to run.
- * @returns The function's return value.
- *
- * @example
- * The example below outputs `5` and `9` once. Without batching the output would be `5, 7, 9`.
- * ```tsx
- * import { batch, $, watch } from "rvx";
- *
- * const a = $(2);
- * const b = $(3);
- *
- * watch(() => a.value + b.value, value => {
- *   console.log("Sum:", value);
- * });
- *
- * batch(() => {
- *   a.value = 4;
- *   b.value = 5;
- * });
- * ```
- */
-export function batch<T>(fn: () => T): T {
-	if (BATCH === undefined) {
-		const batch = new Set<NotifyHook>();
-		let value: T;
-		try {
-			BATCH = batch;
-			value = fn();
-			_dispatch(batch);
-		} finally {
-			BATCH = undefined;
-		}
-		return value;
-	}
-	return fn();
-}
-
-/**
- * {@link watch Watch} an expression and get a function to reactively access its result.
- *
- * @param expr The expression to watch.
- * @returns A function to reactively access the latest result.
- *
- * @example
- * ```tsx
- * import { $, memo, watch } from "rvx";
- *
- * const count = $(42);
- *
- * const computed = memo(() => someExpensiveComputation(count.value));
- *
- * watch(computed, count => {
- *   console.log("Count:", count);
- * });
- * ```
- */
-export function memo<T>(expr: Reactive<T>): () => T;
-
-/**
- * @deprecated
- * This call can be removed because the expression is always static. You can use the value directly.
- */
-export function memo<T>(expr: Static<T>): () => T;
-
-/**
- * {@link watch Watch} an expression and get a function to reactively access its result.
- *
- * @param expr The expression to watch.
- * @returns A function to reactively access the latest result.
- *
- * @example
- * ```tsx
- * import { $, memo, watch } from "rvx";
- *
- * const count = $(42);
- *
- * const computed = memo(() => someExpensiveComputation(count.value));
- *
- * watch(computed, count => {
- *   console.log("Count:", count);
- * });
- * ```
- */
-export function memo<T>(expr: Expression<T>): () => T;
-export function memo<T>(expr: Expression<T>): () => T {
-	const signal = $<T>(undefined!);
-	watch(() => signal.value = get(expr));
-	return () => signal.value;
-}
-
-/**
- * {@link get Evaluate an expression} without tracking signal accesses.
- *
- * @param expr The expression to evaluate.
- * @returns The function's return value.
- *
- * @example
- * ```tsx
- * import { $, untrack, watch } from "rvx";
- *
- * const a = $(2);
- * const b = $(3);
- *
- * watch(() => a.value + untrack(b), sum => {
- *   console.log("Sum:", sum);
- * });
- *
- * // This causes an update:
- * a.value = 4;
- *
- * // This has no effect:
- * b.value = 5;
- * ```
- */
-export function untrack<T>(expr: Reactive<T>): T;
-
-/**
- * @deprecated
- * This call can be removed because the expression is always static. You can use the value directly.
- */
-export function untrack<T>(expr: Static<T>): T;
+// TODO: computed
 
 /**
  * {@link get Evaluate an expression} without tracking signal accesses.
@@ -899,64 +556,7 @@ export function isTracking(): boolean {
 	return ACCESS_FRAME !== undefined;
 }
 
-/**
- * Run a function while tracking signal accesses to invoke the trigger callback when updated.
- *
- * See {@link trigger}.
- */
-export interface TriggerPipe {
-	<T>(expr: Reactive<T>): T;
-
-	/**
-	 * @deprecated
-	 * This call can be removed because the expression is always static. You can use the value directly.
-	 */
-	<T>(expr: Static<T>): T;
-
-	<T>(expr: Expression<T>): T;
-}
-
-/**
- * Create an expression evaluator pipe that calls a function once when any accessed signals from the latest evaluated expression are updated.
- *
- * + When the lifecycle at which the pipe was created is disposed, the callback function will not be called anymore.
- * + It is guaranteed that the function is called before any other observers like {@link watch} or {@link effect} are notified.
- * + If pipes are nested, the callback for the most inner one is called first.
- *
- * @param callback The callback to invoke when a signal is updated.
- * @returns The pipe to evaluate expressions.
- */
-export function trigger(callback: () => void): TriggerPipe {
-	const hookFn = Context.bind(() => {
-		clear();
-		isolate(_notify, callback);
-	});
-	const { c: clear, a: access } = _observer(hookFn);
-	teardown(clear);
-	return <T>(expr: Expression<T>) => {
-		clear();
-		const parent = ACCESS_FRAME;
-		try {
-			if (parent === undefined) {
-				ACCESS_FRAME = access;
-			} else {
-				ACCESS_FRAME = hooks => {
-					/*
-						Tracking accesses using this observer before any outer ones also
-						guarantees the order in which observers are notified because:
-						+ Hooks in Signal.#hooks are called in iteration order.
-						+ Set iteration order matches the order in which observers add their hooks.
-					*/
-					access(hooks);
-					parent?.(hooks);
-				};
-			}
-			return get(expr);
-		} finally {
-			ACCESS_FRAME = parent;
-		}
-	};
-}
+// TODO: trigger
 
 /**
  * Manually evaluate an expression in the current context.
@@ -1006,9 +606,6 @@ export function get<T>(expr: Static<T>): T;
  */
 export function get<T>(expr: Expression<T>): T;
 export function get<T>(expr: Expression<T>): T {
-	if (expr instanceof Signal) {
-		return expr.value;
-	}
 	if (typeof expr === "function") {
 		return (expr as () => T)();
 	}
@@ -1016,6 +613,8 @@ export function get<T>(expr: Expression<T>): T {
 }
 
 export type MapFn<I, O> = (input: I) => O;
+
+// TODO: Docs: prefer using computed:
 
 /**
  * Map an expression value while preserving if the expression is static or not.
@@ -1053,9 +652,6 @@ export function map<I, O>(input: Static<I>, mapFn: MapFn<NoInfer<I>, O>): Expres
  */
 export function map<I, O>(input: Expression<I>, mapFn: MapFn<NoInfer<I>, O>): Expression<O>;
 export function map<I, O>(input: Expression<I>, mapFn: MapFn<NoInfer<I>, O>): Expression<O> {
-	if (input instanceof Signal) {
-		return () => mapFn(input.value);
-	}
 	if (typeof input === "function") {
 		return () => mapFn((input as () => I)());
 	}
