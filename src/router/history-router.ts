@@ -1,4 +1,4 @@
-import { $, batch, ENV, teardown } from "../core/index.js";
+import { $, ENV, teardown } from "../core/index.js";
 import { join, relative } from "./path.js";
 import { formatQuery, Query, QueryInit } from "./query.js";
 import { Router } from "./router.js";
@@ -44,12 +44,10 @@ export class HistoryRouter implements Router {
 	 * Called to parse & update this router's state from the current browser location.
 	 */
 	parse() {
-		batch(() => {
-			const env = this.#env;
-			this.#path.value = relative(this.#basePath, env.location.pathname);
-			this.#query.value = env.location.search.length > 0 ? new Query(env.location.search.slice(1)) : undefined;
-		});
-	};
+		const env = this.#env;
+		this.#path.value = relative(this.#basePath, env.location.pathname);
+		this.#query.value = env.location.search.length > 0 ? new Query(env.location.search.slice(1)) : undefined;
+	}
 
 	#format(path: string, query?: QueryInit): string {
 		let href = join(this.#basePath, path) || "/";

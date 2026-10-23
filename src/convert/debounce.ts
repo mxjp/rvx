@@ -1,4 +1,4 @@
-import { $, Signal, teardown, watchUpdates } from "../core/index.js";
+import { $, setSource, Signal, teardown, watchUpdates } from "../core/index.js";
 
 /**
  * Create a derived signal for debouncing user input updates.
@@ -19,7 +19,8 @@ import { $, Signal, teardown, watchUpdates } from "../core/index.js";
  * ```
  */
 export function debounce<T>(source: Signal<T>, delay: number): Signal<T> {
-	const input = $(source.value, source);
+	const input = $(source.value);
+	setSource(input, source);
 
 	watchUpdates(input, value => {
 		if (!Object.is(source.value, value)) {

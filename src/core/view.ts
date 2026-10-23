@@ -677,7 +677,7 @@ export function indexEach<T>(each: Expression<Iterable<T>>, component: IndexCont
  */
 export class MovableView {
 	#view: View;
-	#target: Signal<View | void> = $();
+	#target = $<View | undefined>(undefined);
 
 	constructor(view: View) {
 		this.#view = view;
@@ -690,7 +690,7 @@ export class MovableView {
 	 */
 	move: Component<void, View> = () => {
 		this.#target.value = undefined;
-		const target = this.#target = $(this.#view);
+		const target = this.#target = $<View | undefined>(this.#view);
 		return nest(target, v => v);
 	};
 

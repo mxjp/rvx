@@ -55,7 +55,7 @@ export function Nest<T>(props: {
 	 */
 	watch: Expression<Component | null | undefined>;
 }): View {
-	return nest(props.watch, (props as any).children);
+	return nest(props.watch as Expression<any>, (props as any).children);
 }
 
 /**

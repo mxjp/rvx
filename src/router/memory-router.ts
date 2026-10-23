@@ -1,4 +1,4 @@
-import { $, batch } from "../core/index.js";
+import { $ } from "../core/index.js";
 import { normalize } from "./path.js";
 import { Query, QueryInit } from "./query.js";
 import { Router } from "./router.js";
@@ -48,10 +48,8 @@ export class MemoryRouter implements Router {
 	}
 
 	push(path: string, query?: QueryInit): void {
-		batch(() => {
-			this.#path.value = normalize(path);
-			this.#query.value = Query.from(query);
-		});
+		this.#path.value = normalize(path);
+		this.#query.value = Query.from(query);
 	}
 
 	replace(path: string, query?: QueryInit): void {

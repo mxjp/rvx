@@ -1,4 +1,4 @@
-import { $, batch, ENV, teardown } from "../core/index.js";
+import { $, ENV, teardown } from "../core/index.js";
 import { normalize } from "./path.js";
 import { Query, QueryInit } from "./query.js";
 import { Router } from "./router.js";
@@ -37,18 +37,16 @@ export class HashRouter implements Router {
 	 * Called to parse & update this router's state from the current browser location.
 	 */
 	parse() {
-		batch(() => {
-			const hash = this.#env.location.hash.slice(1);
-			const queryStart = hash.indexOf("?");
-			if (queryStart < 0) {
-				this.#path.value = normalize(hash);
-				this.#query.value = undefined;
-			} else {
-				this.#path.value = normalize(hash.slice(0, queryStart));
-				this.#query.value = new Query(hash.slice(queryStart + 1));
-			}
-		});
-	};
+		const hash = this.#env.location.hash.slice(1);
+		const queryStart = hash.indexOf("?");
+		if (queryStart < 0) {
+			this.#path.value = normalize(hash);
+			this.#query.value = undefined;
+		} else {
+			this.#path.value = normalize(hash.slice(0, queryStart));
+			this.#query.value = new Query(hash.slice(queryStart + 1));
+		}
+	}
 
 	get root(): Router {
 		return this;

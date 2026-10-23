@@ -1,4 +1,4 @@
-import { $, Signal, watchUpdates } from "../core/index.js";
+import { $, setSource, Signal, watchUpdates } from "../core/index.js";
 
 /**
  * Create a derived signal for trimming user input.
@@ -18,7 +18,8 @@ import { $, Signal, watchUpdates } from "../core/index.js";
  * ```
  */
 export function trim(source: Signal<string>): Signal<string> {
-	const input = $(source.value, source);
+	const input = $(source.value);
+	setSource(input, source);
 
 	watchUpdates(input, value => {
 		source.value = value.trim();
