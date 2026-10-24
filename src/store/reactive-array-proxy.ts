@@ -1,4 +1,4 @@
-import { $, batch, isTracking } from "../core/index.js";
+import { $, isTracking } from "../core/index.js";
 import type { Barrier } from "./barrier.js";
 import { ProbeMap } from "./probes.js";
 
@@ -23,23 +23,19 @@ export function createReactiveArrayProxy<T>(target: T[], barrier: Barrier): T[] 
 		},
 		set(target, prop, value: T, recv) {
 			if (prop === "length") {
-				batch(() => {
-					const previous = target.length;
-					target.length = value as number;
-					for (let i = previous; i >= target.length; i--) {
-						indexProbes.update(i, undefined);
-					}
-					length.value = Number(value);
-				});
+				const previous = target.length;
+				target.length = value as number;
+				for (let i = previous; i >= target.length; i--) {
+					indexProbes.update(i, undefined);
+				}
+				length.value = Number(value);
 				return true;
 			}
 			const index = asCanonicalIndex(prop);
 			if (index !== undefined) {
-				batch(() => {
-					value = barrier.unwrap(value);
-					target[index] = value;
-					indexProbes.update(index, value as T);
-				});
+				value = barrier.unwrap(value);
+				target[index] = value;
+				indexProbes.update(index, value as T);
 				return true;
 			}
 			return Reflect.set(target, prop, value, recv);
@@ -55,10 +51,8 @@ export function createReactiveArrayProxy<T>(target: T[], barrier: Barrier): T[] 
 		deleteProperty(target, prop) {
 			const index = asCanonicalIndex(prop);
 			if (index !== undefined) {
-				batch(() => {
-					delete target[index];
-					indexProbes.update(index, undefined);
-				});
+				delete target[index];
+				indexProbes.update(index, undefined);
 				return true;
 			}
 			return Reflect.deleteProperty(target, prop);
@@ -89,9 +83,7 @@ for (const key of [
 	"unshift",
 ] as const) {
 	replacements[key] = function (...args: unknown[]): any {
-		return batch(() => {
-			return (Array.prototype[key] as (...args: unknown[]) => unknown).call(this, ...args);
-		});
+		return (Array.prototype[key] as (...args: unknown[]) => unknown).call(this, ...args);
 	};
 }
 

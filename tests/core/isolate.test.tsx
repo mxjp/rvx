@@ -1,6 +1,6 @@
 import { strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { $, batch, Context, isolate, isTracking, leak, teardown, trigger, untrack, watch } from "rvx";
+import { $, Context, isolate, isTracking, leak, teardown, trigger, untrack, watch } from "rvx";
 import { assertEvents, withMsg } from "../common.js";
 
 await suite("isolate", async () => {
@@ -58,25 +58,5 @@ await suite("isolate", async () => {
 				strictEqual(ctx.current, 77);
 			});
 		});
-	});
-
-	await test("batch transparency", () => {
-		const events: unknown[] = [];
-		const a = $(1);
-		const b = $(2);
-		leak(() => {
-			watch(() => {
-				events.push(a.value + b.value);
-			});
-		});
-		assertEvents(events, [3]);
-		batch(() => {
-			a.value = 3;
-			isolate(() => {
-				b.value = 4;
-			});
-			assertEvents(events, []);
-		});
-		assertEvents(events, [7]);
 	});
 });

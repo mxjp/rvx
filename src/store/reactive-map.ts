@@ -1,4 +1,4 @@
-import { $, batch, Signal } from "../core/index.js";
+import { $, $v, Signal } from "../core/index.js";
 import type { Barrier } from "./barrier.js";
 import { ProbeMap } from "./probes.js";
 
@@ -27,7 +27,7 @@ export class ReactiveMap<K, V> implements Map<K, V> {
 		this.#target = target;
 		this.#barrier = barrier;
 		this.#size = $(target.size);
-		this.#iterators = $();
+		this.#iterators = $v();
 		this.#getProbes = new ProbeMap(key => target.get(key));
 		this.#hasProbes = new ProbeMap(key => target.has(key));
 	}
@@ -72,12 +72,10 @@ export class ReactiveMap<K, V> implements Map<K, V> {
 	}
 
 	#notify(key: K, value: V | undefined, has: boolean): void {
-		batch(() => {
-			this.#size.value = this.#target.size;
-			this.#iterators.notify();
-			this.#getProbes.update(key, value);
-			this.#hasProbes.update(key, has);
-		});
+		this.#size.value = this.#target.size;
+		this.#iterators.notify();
+		this.#getProbes.update(key, value);
+		this.#hasProbes.update(key, has);
 	}
 
 	delete(key: K): boolean {
@@ -90,12 +88,10 @@ export class ReactiveMap<K, V> implements Map<K, V> {
 
 	clear(): void {
 		this.#target.clear();
-		batch(() => {
-			this.#size.value = 0;
-			this.#iterators.notify();
-			this.#getProbes.fill(undefined);
-			this.#hasProbes.fill(false);
-		});
+		this.#size.value = 0;
+		this.#iterators.notify();
+		this.#getProbes.fill(undefined);
+		this.#hasProbes.fill(false);
 	}
 
 	* entries(): MapIterator<[K, V]> {

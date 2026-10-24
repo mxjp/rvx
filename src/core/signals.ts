@@ -1,5 +1,4 @@
 import { Context } from "./context.js";
-import { EqualsFn } from "./equals.js";
 import { NOOP } from "./internals/noop.js";
 
 /**
@@ -18,9 +17,9 @@ interface Effect {
 /**
  * Represents an internal observable such as a signal or a computed value.
  */
-interface Observable<T> {
-	/** equals */
-	e: EqualsFn<T>;
+interface Observable<T, S> {
+	/** identity */
+	e: StateEq<T, S>;
 	/** subscribe */
 	s(effect: Effect): void;
 	/** unsubscribe */
@@ -32,12 +31,19 @@ interface Observable<T> {
 /**
  * Represents an accessed dependency.
  */
-interface Dependency<T> {
+interface Dependency<T, S> {
 	/** The target observable */
-	o: Observable<T>;
-	/** The last known value at access time */
-	v: T;
+	o: Observable<T, S>;
+	/** The last accessed state */
+	s: S;
 }
+
+const _isStale = <T, S>(dep: Dependency<T, S>) => !dep.o.e.e(dep.s, dep.o.p());
+
+const _toDep = <T, S>(observable: Observable<T, S>): Dependency<T, S> => ({
+	o: observable,
+	s: observable.e.s(observable.p()),
+});
 
 /**
  * A function that is called by a signal when accessed.
@@ -46,7 +52,7 @@ interface AccessFrame {
 	/**
 	 * @param observable The observable that is being accessed.
 	 */
-	(observable: Observable<any>): void;
+	(observable: Observable<any, any>): void;
 }
 
 const TEARDOWN_FRAME_THROW: TeardownFrame = {
@@ -209,6 +215,19 @@ export function isIsolated() {
 	return TEARDOWN_FRAME === TEARDOWN_FRAME_THROW && ACCESS_FRAME === undefined;
 }
 
+export interface StateEq<T, S> {
+	s(value: T): S;
+	e(prev: S, next: T): boolean;
+}
+
+/**
+ * Use `Object.is` for checking state equality.
+ */
+export const OBJECT_IS: StateEq<any, any> = {
+	s: value => value,
+	e: Object.is,
+};
+
 /**
  * Represents a value that changes over time.
  */
@@ -226,15 +245,14 @@ export class Signal<T> {
 	/**
 	 * The observable representing this signal.
 	 */
-	#observable: Observable<T>;
+	#observable: Observable<T, any>;
 
 	/**
 	 * Create a new signal.
 	 *
 	 * @param value The initial value.
-	 * @param source The {@link SignalSource source} this signal has been derived from.
 	 */
-	constructor(value: T, eq: EqualsFn<T> = Object.is) {
+	constructor(value: T, eq: StateEq<T, unknown> = OBJECT_IS) {
 		this.inert = value;
 		this.#effects = new Set();
 		this.#observable = {
@@ -323,8 +341,8 @@ export class Signal<T> {
  *
  * @param value The initial value.
  */
-export function $<T>(value: T, eq: EqualsFn<T> = Object.is): Signal<T> {
-	return new Signal(value, eq);
+export function $<T>(value: T): Signal<T> {
+	return new Signal(value);
 }
 
 /**
@@ -472,10 +490,10 @@ export function watch<T>(expr: Expression<T>, effect?: (value: NoInfer<T>) => vo
 	if (isSignal || typeof expr === "function") {
 		let disposed = false;
 		let dispose: TeardownHook = NOOP;
-		const deps: Dependency<unknown>[] = [];
+		const deps: Dependency<unknown, unknown>[] = [];
 
 		const invalidate = () => schedule(() => {
-			if (deps.some(d => !d.o.e(d.v, d.o.p()))) {
+			if (deps.some(_isStale)) {
 				unsubscribe();
 				deps.length = 0;
 				run();
@@ -493,10 +511,7 @@ export function watch<T>(expr: Expression<T>, effect?: (value: NoInfer<T>) => vo
 		});
 
 		const access: AccessFrame = observable => {
-			deps.push({
-				o: observable,
-				v: observable.p(),
-			});
+			deps.push(_toDep(observable));
 			observable.s(invalidate);
 		};
 
@@ -592,24 +607,21 @@ export function watchUpdates<T>(expr: Expression<T>, effect: (value: NoInfer<T>)
 	return first!;
 }
 
-export function computed<T>(fn: () => T, eq: EqualsFn<NoInfer<T>> = Object.is): () => T {
-	const deps: Dependency<unknown>[] = [];
+export function computed<T>(fn: () => T, eq: StateEq<T, any>): () => T {
+	const deps: Dependency<unknown, unknown>[] = [];
 
 	let value!: T;
 	let stale = true;
 	let updating = false;
 
 	const access: AccessFrame = observable => {
-		deps.push({
-			o: observable,
-			v: observable.p(),
-		});
+		deps.push(_toDep(observable));
 	};
 
 	const effects = new Set<Effect>();
 	const proxy = () => effects.forEach(e => e());
 
-	const observable: Observable<T> = {
+	const observable: Observable<T, unknown> = {
 		e: eq,
 		s: effect => {
 			const prev = effects.size;
@@ -629,7 +641,7 @@ export function computed<T>(fn: () => T, eq: EqualsFn<NoInfer<T>> = Object.is): 
 			}
 			try {
 				updating = true;
-				if (stale || deps.some(d => !d.o.e(d.v, d.o.p()))) {
+				if (stale || deps.some(_isStale)) {
 					stale = true;
 					if (effects.size > 0) {
 						deps.forEach(d => d.o.u(proxy));
@@ -819,7 +831,7 @@ export interface TriggerPipe {
  * @returns The pipe to evaluate expressions.
  */
 export function trigger(callback: () => void): TriggerPipe {
-	const sources: Observable<unknown>[] = [];
+	const sources: Observable<unknown, unknown>[] = [];
 
 	teardown(() => {
 		sources.forEach(o => o.u(effect));

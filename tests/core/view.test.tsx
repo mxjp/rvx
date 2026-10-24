@@ -1,6 +1,6 @@
 import { notStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { $, Attach, capture, Component, ENV, For, Index, leak, memo, mount, movable, Nest, render, Show, teardown, View, watch } from "rvx";
+import { $, $v, Attach, capture, Component, ENV, For, Index, leak, memo, mount, movable, Nest, render, Show, teardown, View, watch } from "rvx";
 import { assertViewState } from "rvx/test";
 import { assertEvents, boundaryEvents, causesRejection, computeMapArrayDiffEvents, lifecycleEvent, TestView, testView, text, viewText, withMsg } from "../common.js";
 
@@ -441,7 +441,7 @@ await suite("view", async () => {
 
 		await test("external state reset", () => {
 			const events: unknown[] = [];
-			const signal = $();
+			const signal = $v();
 			const count = $(0);
 
 			const view = leak(() => {
@@ -543,7 +543,7 @@ await suite("view", async () => {
 
 		await suite("direct content reuse", async () => {
 			await test("leading view, detached", () => {
-				const signal = $();
+				const signal = $v();
 				const inner = render(<>{0}{1}</>);
 				assertViewState(inner);
 				const outer = leak(() => {
@@ -561,7 +561,7 @@ await suite("view", async () => {
 			});
 
 			await test("trailing view, detached", () => {
-				const signal = $();
+				const signal = $v();
 				const inner = render(<>{0}{1}</>);
 				assertViewState(inner);
 				const outer = leak(() => {
@@ -579,7 +579,7 @@ await suite("view", async () => {
 			});
 
 			await test("leading view, attached", () => {
-				const signal = $();
+				const signal = $v();
 				const inner = render(<>{0}{1}</>);
 				assertViewState(inner);
 				const outer = leak(() => {
@@ -598,7 +598,7 @@ await suite("view", async () => {
 			});
 
 			await test("trailing view, attached", () => {
-				const signal = $();
+				const signal = $v();
 				const inner = render(<>{0}{1}</>);
 				assertViewState(inner);
 				const outer = leak(() => {

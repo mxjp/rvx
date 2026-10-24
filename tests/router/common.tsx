@@ -1,4 +1,4 @@
-import { $, batch } from "rvx";
+import { $ } from "rvx";
 import { normalize, Query, QueryInit, Router } from "rvx/router";
 
 export class TestRouter implements Router {
@@ -27,10 +27,8 @@ export class TestRouter implements Router {
 	}
 
 	#push(path: string, query?: QueryInit): void {
-		batch(() => {
-			this.#path.value = normalize(path);
-			this.#query.value = Query.from(query);
-		});
+		this.#path.value = normalize(path);
+		this.#query.value = Query.from(query);
 	}
 
 	push(path: string, query?: QueryInit): void {

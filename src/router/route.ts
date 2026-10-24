@@ -1,4 +1,4 @@
-import { $, batch, Component, Expression, get, nest, View, watch } from "../core/index.js";
+import { $, Component, Expression, get, nest, View, watch } from "../core/index.js";
 import { ChildRouter } from "./child-router.js";
 import { normalize } from "./path.js";
 import { Router, ROUTER } from "./router.js";
@@ -126,17 +126,15 @@ export function watchRoutes<T extends Route>(path: Expression<string>, routes: E
 			}
 		}
 	}, match => {
-		batch(() => {
-			if (match) {
-				if (!parent.value || parent.value.path !== match.path || parent.value.route !== match.route) {
-					parent.value = match;
-				}
-				rest.value = match.rest;
-			} else {
-				parent.value = undefined;
-				rest.value = "";
+		if (match) {
+			if (!parent.value || parent.value.path !== match.path || parent.value.route !== match.route) {
+				parent.value = match;
 			}
-		});
+			rest.value = match.rest;
+		} else {
+			parent.value = undefined;
+			rest.value = "";
+		}
 	});
 	return {
 		match: () => parent.value,

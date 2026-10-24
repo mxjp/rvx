@@ -1,4 +1,4 @@
-import { $, batch, Signal } from "../core/index.js";
+import { $, $v, Signal } from "../core/index.js";
 import type { Barrier } from "./barrier.js";
 import { ProbeMap } from "./probes.js";
 
@@ -26,7 +26,7 @@ export class ReactiveSet<T> implements Set<T> {
 		this.#target = target;
 		this.#barrier = barrier;
 		this.#size = $(target.size);
-		this.#iterators = $();
+		this.#iterators = $v();
 		this.#probes = new ProbeMap(key => target.has(key));
 	}
 
@@ -42,36 +42,30 @@ export class ReactiveSet<T> implements Set<T> {
 	}
 
 	add(value: T): this {
-		batch(() => {
-			value = this.#barrier.unwrap(value);
-			this.#target.add(value);
-			this.#size.value = this.#target.size;
-			this.#iterators.notify();
-			this.#probes.update(value, true);
-		});
+		value = this.#barrier.unwrap(value);
+		this.#target.add(value);
+		this.#size.value = this.#target.size;
+		this.#iterators.notify();
+		this.#probes.update(value, true);
 		return this;
 	}
 
 	delete(value: T): boolean {
-		return batch(() => {
-			value = this.#barrier.unwrap(value);
-			const deleted = this.#target.delete(value);
-			if (deleted) {
-				this.#size.value = this.#target.size;
-				this.#iterators.notify();
-				this.#probes.update(value, false);
-			}
-			return deleted;
-		});
+		value = this.#barrier.unwrap(value);
+		const deleted = this.#target.delete(value);
+		if (deleted) {
+			this.#size.value = this.#target.size;
+			this.#iterators.notify();
+			this.#probes.update(value, false);
+		}
+		return deleted;
 	}
 
 	clear(): void {
 		this.#target.clear();
-		batch(() => {
-			this.#size.value = 0;
-			this.#iterators.notify();
-			this.#probes.fill(false);
-		});
+		this.#size.value = 0;
+		this.#iterators.notify();
+		this.#probes.fill(false);
 	}
 
 	difference<U>(other: ReadonlySetLike<U>): Set<T> {
