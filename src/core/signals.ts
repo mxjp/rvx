@@ -677,59 +677,6 @@ export function computed<T>(fn: () => T, eq: StateEq<T, any>): () => T {
 }
 
 /**
- * {@link watch Watch} an expression and get a function to reactively access its result.
- *
- * @param expr The expression to watch.
- * @returns A function to reactively access the latest result.
- *
- * @example
- * ```tsx
- * import { $, memo, watch } from "rvx";
- *
- * const count = $(42);
- *
- * const computed = memo(() => someExpensiveComputation(count.value));
- *
- * watch(computed, count => {
- *   console.log("Count:", count);
- * });
- * ```
- */
-export function memo<T>(expr: Reactive<T>): () => T;
-
-/**
- * @deprecated
- * This call can be removed because the expression is always static. You can use the value directly.
- */
-export function memo<T>(expr: Static<T>): () => T;
-
-/**
- * {@link watch Watch} an expression and get a function to reactively access its result.
- *
- * @param expr The expression to watch.
- * @returns A function to reactively access the latest result.
- *
- * @example
- * ```tsx
- * import { $, memo, watch } from "rvx";
- *
- * const count = $(42);
- *
- * const computed = memo(() => someExpensiveComputation(count.value));
- *
- * watch(computed, count => {
- *   console.log("Count:", count);
- * });
- * ```
- */
-export function memo<T>(expr: Expression<T>): () => T;
-export function memo<T>(expr: Expression<T>): () => T {
-	const signal = $<T>(undefined!);
-	watch(() => signal.value = get(expr));
-	return () => signal.value;
-}
-
-/**
  * {@link get Evaluate an expression} without tracking signal accesses.
  *
  * @param expr The expression to evaluate.
@@ -838,7 +785,12 @@ export function trigger(callback: () => void): TriggerPipe {
 		sources.length = 0;
 	});
 
-	const effect: Effect = () => schedule(Context.bind(callback));
+	const effect: Effect = () => {
+		sources.forEach(o => o.u(effect));
+		sources.length = 0;
+
+		schedule(Context.bind(callback));
+	};
 
 	const access: AccessFrame = observer => {
 		sources.push(observer);

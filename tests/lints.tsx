@@ -1,4 +1,4 @@
-import { $, Expression, get, map, memo, trigger, untrack, watch, watchUpdates } from "rvx";
+import { $, Expression, get, map, trigger, untrack, watch, watchUpdates } from "rvx";
 
 declare const Expr: Expression<number>;
 declare const Any: any;
@@ -9,7 +9,6 @@ const pipe = trigger(() => {});
 
 watch(42, () => {});
 watchUpdates(42, () => {});
-memo(42);
 untrack(42);
 pipe(42);
 get(42);
@@ -28,12 +27,6 @@ watchUpdates(Any, () => {});
 watchUpdates(Unknown, () => {});
 watchUpdates(() => 42, () => {});
 watchUpdates($(42), () => {});
-
-memo(Expr);
-memo(Any);
-memo(Unknown);
-memo(() => 42);
-memo($(42));
 
 untrack(Expr);
 untrack(Any);

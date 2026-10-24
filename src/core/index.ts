@@ -6,7 +6,7 @@ export * from "./event.js";
 export * from "./map-array.js";
 export * from "./meta.js";
 export * from "./override.js";
-export { $, capture, captureSelf, computed, dispatch, Expression, ExpressionResult, get, isolate, isTracking, leak, map, MapFn, memo, OBJECT_IS, Reactive, schedule, Signal, StateEq, Static, teardown, teardownOnError, trigger, TriggerPipe, untrack, watch, watchUpdates, type TeardownHook } from "./signals.js";
+export { $, capture, captureSelf, computed, dispatch, Expression, ExpressionResult, get, isolate, isTracking, leak, map, MapFn, OBJECT_IS, Reactive, schedule, Signal, StateEq, Static, teardown, teardownOnError, trigger, TriggerPipe, untrack, watch, watchUpdates, type TeardownHook } from "./signals.js";
 export type * from "./types.js";
 export * from "./unique-id.js";
 export * from "./versioned.js";

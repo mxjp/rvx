@@ -1,6 +1,6 @@
 import { strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { $, Context, isolate, isTracking, leak, teardown, trigger, untrack, watch } from "rvx";
+import { $, Context, dispatch, isolate, isTracking, leak, teardown, trigger, untrack, watch } from "rvx";
 import { assertEvents, withMsg } from "../common.js";
 
 await suite("isolate", async () => {
@@ -48,6 +48,8 @@ await suite("isolate", async () => {
 		});
 		assertEvents(events, []);
 		signal.value++;
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, ["trigger"]);
 	});
 
