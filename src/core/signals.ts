@@ -640,7 +640,7 @@ export function computed<T>(expr: Expression<T>, eq: StateEq<T, any> = OBJECT_IS
 				deps.forEach(d => d.o.u(proxy));
 			}
 		},
-		p: () => {
+		p: Context.bind(() => {
 			if (updating) {
 				throw new Error("G6");
 			}
@@ -671,7 +671,7 @@ export function computed<T>(expr: Expression<T>, eq: StateEq<T, any> = OBJECT_IS
 			} finally {
 				updating = false;
 			}
-		},
+		}),
 	};
 
 	return () => {
