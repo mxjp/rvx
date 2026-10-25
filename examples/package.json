@@ -8,7 +8,7 @@
 		"rvx": "file:.."
 	},
 	"devDependencies": {
-		"rolldown": "^1.1.4",
+		"rolldown": "^1.2.13",
 		"typescript": "^7.0.2"
 	}
 }

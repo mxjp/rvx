@@ -87,11 +87,11 @@
 		"prepack": "npm run build && npm test && node scripts/prepack.js"
 	},
 	"devDependencies": {
-		"@mxjp/parallel": "^1.0.2",
-		"@types/jsdom": "^28.0.1",
-		"@types/node": "^24.12.0",
-		"jsdom": "^29.0.1",
-		"rolldown": "^1.1.4",
+		"@mxjp/parallel": "^1.0.3",
+		"@types/jsdom": "^30.0.0",
+		"@types/node": "^26.6.5",
+		"jsdom": "^30.1.2",
+		"rolldown": "^1.2.13",
 		"rvx": "file:.",
 		"typescript": "^7.0.2"
 	}
