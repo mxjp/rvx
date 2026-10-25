@@ -1,6 +1,6 @@
 import { strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { ENV, map, teardown } from "rvx";
+import { dispatch, ENV, map, teardown } from "rvx";
 import { RvxElement } from "rvx/element";
 import { assertEvents } from "../common.js";
 
@@ -43,9 +43,11 @@ await suite("element/element", async () => {
 		strictEqual(elem.innerHTML, "Hello World!");
 
 		elem.setAttribute("name", "Test");
+		dispatch();
 		strictEqual(elem.innerHTML, "Hello Test!");
 
 		elem.removeAttribute("name");
+		dispatch();
 		strictEqual(elem.innerHTML, "Hello World!");
 
 		assertEvents(elem.events, []);
@@ -56,6 +58,10 @@ await suite("element/element", async () => {
 		elem.setAttribute("name", "Test2");
 		elem.start();
 		assertEvents(elem.events, ["render"]);
+		strictEqual(elem.innerHTML, "Hello Test2!");
+
+		dispatch();
+		assertEvents(elem.events, []);
 		strictEqual(elem.innerHTML, "Hello Test2!");
 	});
 
@@ -71,9 +77,11 @@ await suite("element/element", async () => {
 		strictEqual(elem.shadowRoot!.innerHTML, "Hello World!");
 
 		elem.setAttribute("name", "Test");
+		dispatch();
 		strictEqual(elem.shadowRoot!.innerHTML, "Hello Test!");
 
 		elem.removeAttribute("name");
+		dispatch();
 		strictEqual(elem.shadowRoot!.innerHTML, "Hello World!");
 
 		assertEvents(elem.events, []);
@@ -84,6 +92,10 @@ await suite("element/element", async () => {
 		elem.setAttribute("name", "Test2");
 		elem.start();
 		assertEvents(elem.events, ["render"]);
+		strictEqual(elem.shadowRoot!.innerHTML, "Hello Test2!");
+
+		dispatch();
+		assertEvents(elem.events, []);
 		strictEqual(elem.shadowRoot!.innerHTML, "Hello Test2!");
 	});
 
@@ -99,9 +111,11 @@ await suite("element/element", async () => {
 		strictEqual(elem.innerHTML, "Hello World!");
 
 		elem.setAttribute("name", "Test");
+		dispatch();
 		strictEqual(elem.innerHTML, "Hello Test!");
 
 		elem.removeAttribute("name");
+		dispatch();
 		strictEqual(elem.innerHTML, "Hello World!");
 
 		assertEvents(elem.events, []);

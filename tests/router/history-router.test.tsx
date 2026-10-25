@@ -1,6 +1,6 @@
 import { strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { ENV, leak, watch } from "rvx";
+import { dispatch, ENV, leak, watch } from "rvx";
 import { isRvxDom } from "rvx/dom";
 import { HistoryRouter } from "rvx/router";
 import { assertEvents } from "../common.js";
@@ -61,25 +61,37 @@ await suite("router/history router", { skip: isRvxDom() }, async () => {
 		assertEvents(events, [["", undefined]]);
 
 		router.push("/a");
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, [["/a", undefined]]);
 
 		router.push("/b", "test=1");
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, [["/b", "test=1"]]);
 
 		router.replace("/c");
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, [["/c", undefined]]);
 
 		router.push("/d", { test: "2" });
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, [["/d", "test=2"]]);
 
 		locationPath = "/e";
 		locationSearch = "?test=3";
 		ENV.current.window.dispatchEvent(new ENV.current.CustomEvent("popstate"));
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, [["/e", "test=3"]]);
 
 		locationPath = "/f";
 		locationSearch = "?test=4";
 		ENV.current.window.dispatchEvent(new ENV.current.CustomEvent("rvx:router:update"));
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, [["/f", "test=4"]]);
 	});
 
@@ -100,24 +112,34 @@ await suite("router/history router", { skip: isRvxDom() }, async () => {
 
 		for (const fn of ["push", "replace"] as const) {
 			router[fn]("/test");
+			assertEvents(events, []);
+			dispatch();
 			strictEqual(locationPath, "/foo/bar/test");
 			assertEvents(events, ["/test"]);
 
 			router[fn]("/test/");
+			assertEvents(events, []);
+			dispatch();
 			strictEqual(locationPath, "/foo/bar/test/");
 			assertEvents(events, ["/test/"]);
 
 			router[fn]("foo/bar");
+			assertEvents(events, []);
+			dispatch();
 			strictEqual(locationPath, "/foo/bar/foo/bar");
 			assertEvents(events, ["/foo/bar"]);
 		}
 
 		const router2 = leak(() => new HistoryRouter());
 		router2.push("/test");
+		assertEvents(events, []);
+		dispatch();
 		strictEqual(locationPath, "/test");
 		assertEvents(events, ["/../../test"]);
 
 		router2.push("/foo/test/bar");
+		assertEvents(events, []);
+		dispatch();
 		strictEqual(locationPath, "/foo/test/bar");
 		assertEvents(events, ["/../test/bar"]);
 	});

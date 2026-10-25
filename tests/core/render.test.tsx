@@ -1,6 +1,6 @@
 import { deepStrictEqual, notStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { $, ENV, leak, NODE, render, View, viewNodes } from "rvx";
+import { $, dispatch, ENV, leak, NODE, render, View, viewNodes } from "rvx";
 import { createText } from "../../dist/es/core/internals/create-text.js";
 import { assertEvents, boundaryEvents, testView, text, viewText } from "../common.js";
 
@@ -14,10 +14,13 @@ await suite("render", async () => {
 		const text = leak(() => createText(signal, ENV.current));
 		strictEqual(text.textContent, "");
 		signal.value = null;
+		dispatch();
 		strictEqual(text.textContent, "");
 		signal.value = 42;
+		dispatch();
 		strictEqual(text.textContent, "42");
 		signal.value = "test";
+		dispatch();
 		strictEqual(text.textContent, "test");
 	});
 

@@ -1,6 +1,6 @@
 import { deepStrictEqual, fail, rejects, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { leak, watch } from "rvx";
+import { dispatch, leak, watch } from "rvx";
 import { AsyncContext, AsyncError } from "rvx/async";
 import { assertEvents, future } from "../common.js";
 
@@ -87,22 +87,31 @@ await suite("async/async-context", async () => {
 	await test("pending", async () => {
 		const events: unknown[] = [];
 		const ac = new AsyncContext();
-		leak(() => watch(() => ac.pending, pending => {
+		leak(() => watch(ac.pending, pending => {
 			events.push(pending);
 		}));
 		assertEvents(events, [false]);
 		ac.track(Promise.resolve());
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, [true]);
 		await Promise.resolve();
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, [false]);
 
 		const [promise,, reject] = future();
 		ac.track(promise);
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, [true]);
 		const complete = ac.complete();
 		reject(42);
 		const error = await complete.catch(e => e) as unknown;
 		strictEqual(error, 42);
 		assertEvents(events, [false]);
+		dispatch();
+		strictEqual(error, 42);
+		assertEvents(events, []);
 	});
 });

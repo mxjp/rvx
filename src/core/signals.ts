@@ -607,7 +607,7 @@ export function watchUpdates<T>(expr: Expression<T>, effect: (value: NoInfer<T>)
 	return first!;
 }
 
-export function computed<T>(fn: () => T, eq: StateEq<T, any>): () => T {
+export function computed<T>(fn: () => T, eq: StateEq<T, any> = OBJECT_IS): () => T {
 	const deps: Dependency<unknown, unknown>[] = [];
 
 	let value!: T;

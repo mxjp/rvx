@@ -1,4 +1,4 @@
-import { $, Context } from "../core/index.js";
+import { $v, computed, Context } from "../core/index.js";
 
 export interface AsyncContextParent {
 	/**
@@ -14,7 +14,7 @@ export interface AsyncContextParent {
  */
 export class AsyncContext {
 	#parent: AsyncContextParent | undefined;
-	#tasks = $(new Set<Promise<unknown>>());
+	#tasks = $v(new Set<Promise<unknown>>());
 	#errorHandlers = new Set<unknown[]>();
 
 	constructor(parent?: AsyncContextParent) {
@@ -26,14 +26,12 @@ export class AsyncContext {
 	 *
 	 * @example
 	 * ```tsx
-	 * <Show when={() => asyncCtx.pending}>
+	 * <Show when={asyncCtx.pending}>
 	 *   <div class="overlay">Please wait...</div>
 	 * </Show>
 	 * ```
 	 */
-	get pending(): boolean {
-		return this.#tasks.value.size > 0;
-	}
+	pending = computed(() => this.#tasks.value.size > 0);
 
 	/**
 	 * Track the specified task in this and all parent contexts.

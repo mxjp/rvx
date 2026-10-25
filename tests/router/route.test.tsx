@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { $, leak, Provide, watch } from "rvx";
+import { $, dispatch, leak, Provide, watch } from "rvx";
 import { ChildRouter, matchRoute, Route, ROUTER, Routes, watchRoutes } from "rvx/router";
 import { assertEvents, lifecycleEvent, text } from "../common.js";
 import { TestRouter } from "./common.js";
@@ -88,6 +88,8 @@ await suite("router/route", async () => {
 		strictEqual(watched.rest(), "");
 
 		path.value = "/foo";
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, ["match"]);
 		strictEqual(watched.match()?.route, routes[1]);
 		strictEqual(watched.match()?.path, "/foo");
@@ -95,10 +97,14 @@ await suite("router/route", async () => {
 		strictEqual(watched.rest(), "");
 
 		path.value = "/foo/bar";
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, ["rest"]);
 		strictEqual(watched.rest(), "/bar");
 
 		path.value = "/bar";
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, ["match", "rest"]);
 		strictEqual(watched.match(), undefined);
 		strictEqual(watched.rest(), "");
@@ -128,6 +134,7 @@ await suite("router/route", async () => {
 				["/e", ""],
 			] as [string, string][]) {
 				router.push(path);
+				dispatch();
 				strictEqual(text(root), expectedText);
 			}
 		});
@@ -151,18 +158,32 @@ await suite("router/route", async () => {
 			</div>) as HTMLDivElement;
 			assertEvents(events, ["s:a"]);
 			router.push("/b");
+			assertEvents(events, []);
+			dispatch();
 			assertEvents(events, ["e:a", "s:b"]);
 			router.push("/c");
+			assertEvents(events, []);
+			dispatch();
 			assertEvents(events, ["e:b", "s:c", ""]);
 			router.push("/c/");
 			assertEvents(events, []);
+			dispatch();
+			assertEvents(events, []);
 			router.push("/c/foo");
+			assertEvents(events, []);
+			dispatch();
 			assertEvents(events, ["/foo"]);
 			router.push("/c/bar/baz");
+			assertEvents(events, []);
+			dispatch();
 			assertEvents(events, ["/bar/baz"]);
 			router.push("/d");
+			assertEvents(events, []);
+			dispatch();
 			assertEvents(events, ["e:c"]);
 			router.push("/d/e");
+			assertEvents(events, []);
+			dispatch();
 			assertEvents(events, []);
 		});
 	});

@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { capture, Context, ENV, leak, mount, watch } from "rvx";
+import { capture, Context, dispatch, ENV, leak, mount, watch } from "rvx";
 import { isPending, isSelfPending, TASKS, Tasks } from "rvx/async";
 import { isRvxDom } from "rvx/dom";
 import { isIsolated } from "../../dist/es/core/signals.js";
@@ -116,10 +116,14 @@ await suite("async/tasks", async () => {
 
 		const [a, resolveA] = future();
 		tasks.waitFor(a);
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, [true, true]);
 
 		resolveA();
 		await Promise.resolve();
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, [false, false]);
 	});
 
@@ -164,11 +168,13 @@ await suite("async/tasks", async () => {
 			strictEqual(ENV.current.document.activeElement, input);
 
 			const done = capture(() => tasks.setPending());
+			dispatch();
+			strictEqual(ENV.current.document.activeElement, input);
 
 			input.blur();
 			strictEqual(ENV.current.document.activeElement, ENV.current.document.body);
-
 			done();
+			dispatch();
 			strictEqual(ENV.current.document.activeElement, ENV.current.document.body);
 			await Promise.resolve();
 			strictEqual(ENV.current.document.activeElement, input);

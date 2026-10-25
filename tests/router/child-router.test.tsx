@@ -1,6 +1,6 @@
 import { strictEqual } from "node:assert";
 import test from "node:test";
-import { $, leak, watch } from "rvx";
+import { $, dispatch, leak, watch } from "rvx";
 import { ChildRouter, normalize } from "rvx/router";
 import { assertEvents } from "../common.js";
 import { TestRouter } from "./common.js";
@@ -35,18 +35,22 @@ await test("router/child router", async () => {
 	assertEvents(events, [["replace", "/test/bar", undefined]]);
 
 	child.push("a", "test=1");
+	dispatch();
 	strictEqual(root.path, "/test/a");
 	assertEvents(events, [["push", "/test/a", "test=1"], ["update", "", "test=1"]]);
 
 	child.replace("b", "test=2");
+	dispatch();
 	strictEqual(root.path, "/test/b");
 	assertEvents(events, [["replace", "/test/b", "test=2"], ["update", "", "test=2"]]);
 
 	path.value = normalize("/foo");
+	dispatch();
 	strictEqual(child.path, "/foo");
 	assertEvents(events, [["update", "/foo", "test=2"]]);
 
 	path.value = normalize("/bar");
+	dispatch();
 	strictEqual(child.path, "/bar");
 	assertEvents(events, [["update", "/bar", "test=2"]]);
 });

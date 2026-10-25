@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { For, Index, leak, View, watch } from "rvx";
+import { dispatch, For, Index, leak, View, watch } from "rvx";
 import { ReactiveSet, wrap } from "rvx/store";
 import { assertEvents, viewText } from "../common.js";
 import { WrapTest } from "./common.js";
@@ -80,6 +80,8 @@ await suite("store/reactive-set", async () => {
 		]);
 
 		set.add("bar");
+		assertEvents(events, []);
+		dispatch();
 		assertEntries([inner], ["foo", "bar"]);
 		assertEvents(events, [
 			size(2),
@@ -88,10 +90,14 @@ await suite("store/reactive-set", async () => {
 		]);
 
 		set.add("bar");
+		assertEvents(events, []);
+		dispatch();
 		assertEntries([inner], ["foo", "bar"]);
 		assertEvents(events, iterators(["foo", "bar"]));
 
 		set.delete("foo");
+		assertEvents(events, []);
+		dispatch();
 		assertEntries([inner], ["bar"]);
 		assertEvents(events, [
 			size(1),
@@ -101,8 +107,12 @@ await suite("store/reactive-set", async () => {
 
 		set.delete("foo");
 		assertEvents(events, []);
+		dispatch();
+		assertEvents(events, []);
 
 		set.clear();
+		assertEvents(events, []);
+		dispatch();
 		assertEntries([inner], []);
 		assertEvents(events, [
 			size(0),
@@ -111,6 +121,8 @@ await suite("store/reactive-set", async () => {
 		]);
 
 		set.clear();
+		assertEvents(events, []);
+		dispatch();
 		assertEntries([inner], []);
 		assertEvents(events, iterators([]));
 	});
@@ -141,8 +153,10 @@ await suite("store/reactive-set", async () => {
 				const view = leak(() => render(proxy));
 				strictEqual(viewText(view), "a");
 				proxy.add("b");
+				dispatch();
 				strictEqual(viewText(view), "ab");
 				proxy.delete("a");
+				dispatch();
 				strictEqual(viewText(view), "b");
 			};
 		}

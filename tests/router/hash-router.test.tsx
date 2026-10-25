@@ -1,6 +1,6 @@
 import { strictEqual } from "node:assert";
 import test from "node:test";
-import { ENV, leak, watch } from "rvx";
+import { dispatch, ENV, leak, watch } from "rvx";
 import { HashRouter } from "rvx/router";
 import { isRvxDom } from "../../dist/es/dom/env.js";
 import { assertEvents } from "../common.js";
@@ -37,35 +37,57 @@ await test("router/history router", { skip: isRvxDom() }, () => {
 	assertEvents(events, [["", undefined]]);
 
 	router.push("/a");
+	assertEvents(events, []);
+	dispatch();
 	assertEvents(events, [["/a", undefined]]);
 
 	router.push("/b", "test=1");
+	assertEvents(events, []);
+	dispatch();
 	assertEvents(events, [["/b", "test=1"]]);
 
 	router.replace("/c");
+	assertEvents(events, []);
+	dispatch();
 	assertEvents(events, [["/c", undefined]]);
 
 	router.push("/d", { test: "2" });
+	assertEvents(events, []);
+	dispatch();
 	assertEvents(events, [["/d", "test=2"]]);
 
 	ENV.current.location.hash = "#";
+	assertEvents(events, []);
+	dispatch();
 	assertEvents(events, [["", undefined]]);
 
 	ENV.current.location.hash = "#foo";
+	assertEvents(events, []);
+	dispatch();
 	assertEvents(events, [["/foo", undefined]]);
 
 	ENV.current.location.hash = "#/";
+	assertEvents(events, []);
+	dispatch();
 	assertEvents(events, [["", undefined]]);
 
 	ENV.current.location.hash = "#/bar/baz";
+	assertEvents(events, []);
+	dispatch();
 	assertEvents(events, [["/bar/baz", undefined]]);
 
 	ENV.current.location.hash = "#/?";
+	assertEvents(events, []);
+	dispatch();
 	assertEvents(events, [["", ""]]);
 
 	ENV.current.location.hash = "#foo?test=1";
+	assertEvents(events, []);
+	dispatch();
 	assertEvents(events, [["/foo", "test=1"]]);
 
 	ENV.current.location.hash = "#/bar/baz?test=2";
+	assertEvents(events, []);
+	dispatch();
 	assertEvents(events, [["/bar/baz", "test=2"]]);
 });

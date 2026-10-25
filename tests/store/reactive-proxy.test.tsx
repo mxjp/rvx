@@ -1,6 +1,6 @@
 import { deepStrictEqual, notStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { For, leak, View, watch } from "rvx";
+import { dispatch, For, leak, View, watch } from "rvx";
 import { unwrap, wrap, wrapInstancesOf } from "rvx/store";
 import { assertEvents, viewText } from "../common.js";
 import { WrapTest } from "./common.js";
@@ -73,6 +73,8 @@ await suite("store/reactive-proxy", async () => {
 		]);
 
 		proxy.bar = 42;
+		assertEvents(events, []);
+		dispatch();
 		assertEntries([inner], [["foo", 7], ["bar", 42]]);
 		assertEvents(events, [
 			...iterators([["foo", 7], ["bar", 42]]),
@@ -80,6 +82,8 @@ await suite("store/reactive-proxy", async () => {
 		]);
 
 		proxy.bar = 144;
+		assertEvents(events, []);
+		dispatch();
 		assertEntries([inner], [["foo", 7], ["bar", 144]]);
 		assertEvents(events, [
 			...iterators([["foo", 7], ["bar", 144]]),
@@ -87,6 +91,8 @@ await suite("store/reactive-proxy", async () => {
 		]);
 
 		delete proxy.foo;
+		assertEvents(events, []);
+		dispatch();
 		assertEntries([inner], [["bar", 144]]);
 		assertEvents(events, [
 			...iterators([["bar", 144]]),
@@ -94,6 +100,8 @@ await suite("store/reactive-proxy", async () => {
 		]);
 
 		delete proxy.foo;
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, iterators([["bar", 144]]));
 	});
 
@@ -154,9 +162,13 @@ await suite("store/reactive-proxy", async () => {
 
 		proxy.updatePrivate();
 		assertEvents(events, []);
+		dispatch();
+		assertEvents(events, []);
 		strictEqual(inner.computed, 8);
 
 		proxy.updateValue();
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, [
 			["value", 2],
 			["computed", 16],
@@ -173,6 +185,8 @@ await suite("store/reactive-proxy", async () => {
 
 		proxy.updatePrivate = () => {};
 		proxy.updateValue = () => {};
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, []);
 	});
 
@@ -199,10 +213,13 @@ await suite("store/reactive-proxy", async () => {
 		});
 		strictEqual(viewText(view), "(foo:0)");
 		proxy.foo = 1;
+		dispatch();
 		strictEqual(viewText(view), "(foo:1)");
 		proxy.bar = 2;
+		dispatch();
 		strictEqual(viewText(view), "(foo:1)(bar:2)");
 		delete proxy.foo;
+		dispatch();
 		strictEqual(viewText(view), "(bar:2)");
 	});
 

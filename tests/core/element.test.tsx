@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { $, capture, ClassValue, Context, e, ENV, ExpressionResult, leak, NODE, StyleMap } from "rvx";
+import { $, $v, capture, ClassValue, Context, dispatch, e, ENV, ExpressionResult, leak, NODE, StyleMap } from "rvx";
 import { isRvxDom } from "rvx/dom";
 import { assertEvents } from "../common.js";
 
@@ -115,18 +115,23 @@ await suite("element", async () => {
 				strictEqual(elem.getAttribute("test-attr"), null);
 
 				signal.value = true;
+				dispatch();
 				strictEqual(elem.getAttribute("test-attr"), "");
 
 				signal.value = 42;
+				dispatch();
 				strictEqual(elem.getAttribute("test-attr"), "42");
 
 				signal.value = null;
+				dispatch();
 				strictEqual(elem.getAttribute("test-attr"), null);
 
 				signal.value = "abc";
+				dispatch();
 				strictEqual(elem.getAttribute("test-attr"), "abc");
 
 				signal.value = undefined;
+				dispatch();
 				strictEqual(elem.getAttribute("test-attr"), null);
 			});
 
@@ -196,8 +201,10 @@ await suite("element", async () => {
 					]);
 					assertClass(elem, ["a", "b", "c"]);
 					a.value = "foo";
+					dispatch();
 					assertClass(elem, ["foo", "b", "c"]);
 					d.value = true;
+					dispatch();
 					assertClass(elem, ["foo", "b", "c", "d"]);
 				});
 
@@ -221,28 +228,40 @@ await suite("element", async () => {
 					assertEvents(events, []);
 
 					signal.value = "a";
+					assertEvents(events, []);
+					dispatch();
 					assertClass(elem, ["a"]);
 					assertEvents(events, [["setAttribute", "class", "a"]]);
 
 					signal.value = ["b", "c"];
+					assertEvents(events, []);
+					dispatch();
 					assertClass(elem, ["b", "c"]);
 					assertEvents(events, [["remove", "a"], ["add", "b", "c"]]);
 
 					signal.value = { "d": true, "e": false };
+					assertEvents(events, []);
+					dispatch();
 					assertClass(elem, ["d"]);
 					assertEvents(events, [["remove", "b", "c"], ["add", "d"]]);
 
 					signal.value = ["f", "d"];
+					assertEvents(events, []);
+					dispatch();
 					assertClass(elem, ["d", "f"]);
 					// This is not optimal, but a rare edge case:
 					assertEvents(events, [["remove", "d"], ["add", "d", "f"]]);
 
 					signal.value = "f";
+					assertEvents(events, []);
+					dispatch();
 					assertClass(elem, ["f"]);
 					// This is not optimal, but a rare edge case:
 					assertEvents(events, [["remove", "d", "f"], ["add", "f"]]);
 
 					signal.value = null;
+					assertEvents(events, []);
+					dispatch();
 					assertClass(elem, []);
 					assertEvents(events, [["remove", "f"]]);
 				});
@@ -250,13 +269,19 @@ await suite("element", async () => {
 				await test("external mutation behavior", () => {
 					const events: unknown[] = [];
 					const signal = $<ExpressionResult<ClassValue>>(undefined);
-					const elem = createElem(signal, events);
+					const versioned = $v();
+					const elem = createElem(() => {
+						versioned.access();
+						return signal.value;
+					}, events);
 					assertEvents(events, []);
 					elem.classList.add("a");
 					assertClass(elem, ["a"]);
 					assertEvents(events, [["add", "a"]]);
 
 					signal.value = "b";
+					assertEvents(events, []);
+					dispatch();
 					assertClass(elem, ["a", "b"]);
 					assertEvents(events, [["add", "b"]]);
 
@@ -264,7 +289,9 @@ await suite("element", async () => {
 					assertClass(elem, ["a"]);
 					assertEvents(events, [["remove", "b"]]);
 
-					signal.notify();
+					versioned.notify();
+					assertEvents(events, []);
+					dispatch();
 					assertClass(elem, ["a", "b"]);
 					// This is not optimal, but a rare edge case:
 					assertEvents(events, [["remove", "b"], ["add", "b"]]);
@@ -278,54 +305,80 @@ await suite("element", async () => {
 					assertEvents(events, [["setAttribute", "class", "a b"]]);
 
 					signal.value = "c";
+					assertEvents(events, []);
+					dispatch();
 					assertClass(elem, ["a", "b", "c"]);
 					assertEvents(events, [["add", "c"]]);
 
 					signal.value = ["a", "d"];
+					assertEvents(events, []);
+					dispatch();
 					assertClass(elem, ["a", "b", "d"]);
 					assertEvents(events, [["remove", "c"], ["add", "d"]]);
 
 					const nestedA = $(false);
 					const nestedC = $(true);
-					signal.value = { "a": nestedA, "c": nestedC };
+					const versionedC = $v();
+					signal.value = { "a": nestedA, "c": () => {
+						versionedC.access();
+						return nestedC.value;
+					} };
+					assertEvents(events, []);
+					dispatch();
 					assertClass(elem, ["a", "b", "c"]);
 					assertEvents(events, [["remove", "d"], ["add", "c"]]);
 
 					nestedA.value = true;
+					assertEvents(events, []);
+					dispatch();
 					assertClass(elem, ["a", "b", "c"]);
 					assertEvents(events, []);
 
 					nestedC.value = false;
+					assertEvents(events, []);
+					dispatch();
 					assertClass(elem, ["a", "b"]);
 					assertEvents(events, [["remove", "c"]]);
 
 					nestedA.value = false;
+					assertEvents(events, []);
+					dispatch();
 					assertClass(elem, ["a", "b"]);
 					assertEvents(events, []);
 
 					nestedC.value = true;
+					assertEvents(events, []);
+					dispatch();
 					assertClass(elem, ["a", "b", "c"]);
 					assertEvents(events, [["add", "c"]]);
 
-					nestedC.notify();
+					versionedC.notify();
+					assertEvents(events, []);
+					dispatch();
 					assertClass(elem, ["a", "b", "c"]);
-					// This is not optimal, but a rare edge case:
-					// (This also supports restoration of externally removed classes)
 					assertEvents(events, [["remove", "c"], ["add", "c"]]);
 
 					signal.value = "e";
+					assertEvents(events, []);
+					dispatch();
 					assertClass(elem, ["a", "b", "e"]);
 					assertEvents(events, [["remove", "c"], ["add", "e"]]);
 
 					signal.value = "c";
+					assertEvents(events, []);
+					dispatch();
 					assertClass(elem, ["a", "b", "c"]);
 					assertEvents(events, [["remove", "e"], ["add", "c"]]);
 
 					nestedC.value = false;
+					assertEvents(events, []);
+					dispatch();
 					assertClass(elem, ["a", "b", "c"]);
 					assertEvents(events, []);
 
 					signal.value = [["a", "b", "c"], ["b", "d"]];
+					assertEvents(events, []);
+					dispatch();
 					assertClass(elem, ["a", "b", "c", "d"]);
 					// This is not optimal, but a rare edge case:
 					assertEvents(events, [["remove", "c"], ["add", "c", "d"]]);
@@ -344,11 +397,14 @@ await suite("element", async () => {
 					assertClass(elem, ["a", "b", "c"]);
 					signalA.value = ["e"];
 					signalB.value = true;
+					dispatch();
 					assertClass(elem, ["a", "b", "e", "d"]);
 					dispose();
 					assertClass(elem, ["a", "b", "e", "d"]);
 					signalA.value = ["f"];
 					signalB.value = false;
+					assertClass(elem, ["a", "b", "e", "d"]);
+					dispatch();
 					assertClass(elem, ["a", "b", "e", "d"]);
 				});
 			});
@@ -383,32 +439,43 @@ await suite("element", async () => {
 				strictEqual(elem.style.getPropertyValue("color"), "red");
 				strictEqual(elem.style.getPropertyValue("width"), "42px");
 				c.value = { width: "7px" };
+				dispatch();
 				strictEqual(elem.style.getPropertyValue("color"), "red");
 				strictEqual(elem.style.getPropertyValue("width"), "7px");
 				a.value = { color: "blue", width: "13px" };
+				dispatch();
 				strictEqual(elem.style.getPropertyValue("color"), "red");
 				strictEqual(elem.style.getPropertyValue("width"), "7px");
 				b.value = "green";
+				dispatch();
 				strictEqual(elem.style.getPropertyValue("color"), "green");
 				strictEqual(elem.style.getPropertyValue("width"), "7px");
 				c.value = {};
+				dispatch();
 				strictEqual(elem.style.getPropertyValue("color"), "green");
 				strictEqual(elem.style.getPropertyValue("width"), "7px");
 				a.value = { color: "gray" };
+				dispatch();
 				strictEqual(elem.style.getPropertyValue("color"), "green");
 				strictEqual(elem.style.getPropertyValue("width"), "7px");
 				b.value = "silver";
+				dispatch();
 				strictEqual(elem.style.getPropertyValue("color"), "silver");
 				strictEqual(elem.style.getPropertyValue("width"), "7px");
 				a.value = { "--foo": 0 };
+				dispatch();
 				strictEqual(elem.style.getPropertyValue("--foo"), "0");
 				a.value = { "--foo": null };
+				dispatch();
 				strictEqual(elem.style.getPropertyValue("--foo"), "");
 				a.value = { "--foo": undefined };
+				dispatch();
 				strictEqual(elem.style.getPropertyValue("--foo"), "undefined");
 				a.value = { "--foo": "null" };
+				dispatch();
 				strictEqual(elem.style.getPropertyValue("--foo"), "null");
 				a.value = { "--foo": 42n };
+				dispatch();
 				strictEqual(elem.style.getPropertyValue("--foo"), "42");
 			});
 

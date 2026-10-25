@@ -1,4 +1,4 @@
-import { $, $v, Signal } from "../core/index.js";
+import { $, $v, Signal, Versioned } from "../core/index.js";
 import type { Barrier } from "./barrier.js";
 import { ProbeMap } from "./probes.js";
 
@@ -13,7 +13,7 @@ export class ReactiveMap<K, V> implements Map<K, V> {
 	#target: Map<K, V>;
 	#barrier: Barrier;
 	#size: Signal<number>;
-	#iterators: Signal<void>;
+	#iterators: Versioned<void>;
 	#getProbes: ProbeMap<K, V | undefined>;
 	#hasProbes: ProbeMap<K, boolean>;
 

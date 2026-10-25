@@ -1,9 +1,9 @@
 import { strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { capture, leak, Provide } from "rvx";
+import { capture, dispatch, leak, Provide } from "rvx";
 import { ASYNC, Async, AsyncContext } from "rvx/async";
-import { assertEvents, future, text } from "../common.js";
 import { isIsolated } from "../../dist/es/core/signals.js";
+import { assertEvents, future, text } from "../common.js";
 
 await suite("async/async", async () => {
 	await test("tracking", async () => {
@@ -41,6 +41,8 @@ await suite("async/async", async () => {
 		});
 		await Promise.resolve();
 		assertEvents(events, []);
+		dispatch();
+		assertEvents(events, []);
 		reject("test");
 		await complete;
 		assertEvents(events, ["test"]);
@@ -56,6 +58,7 @@ await suite("async/async", async () => {
 		strictEqual(text(root), "pending");
 		resolve(42);
 		await Promise.resolve();
+		dispatch();
 		strictEqual(text(root), "resolved: 42");
 	});
 
@@ -71,6 +74,7 @@ await suite("async/async", async () => {
 		strictEqual(text(root), "pending");
 		reject(42);
 		await Promise.resolve();
+		dispatch();
 		strictEqual(text(root), "rejected: 42");
 	});
 

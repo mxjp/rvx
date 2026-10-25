@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { For, Index, leak, View, watch } from "rvx";
+import { dispatch, For, Index, leak, View, watch } from "rvx";
 import { ReactiveMap, wrap } from "rvx/store";
 import { assertEvents, viewText } from "../common.js";
 import { WrapTest } from "./common.js";
@@ -78,6 +78,8 @@ await suite("store/reactive-map", async () => {
 		]);
 
 		map.set("bar", 42);
+		assertEvents(events, []);
+		dispatch();
 		assertEntries([inner, map], [["foo", 7], ["bar", 42]]);
 		assertEvents(events, [
 			size(2),
@@ -86,6 +88,8 @@ await suite("store/reactive-map", async () => {
 		]);
 
 		map.set("bar", 144);
+		assertEvents(events, []);
+		dispatch();
 		assertEntries([inner, map], [["foo", 7], ["bar", 144]]);
 		assertEvents(events, [
 			...iterators([["foo", 7], ["bar", 144]]),
@@ -93,6 +97,8 @@ await suite("store/reactive-map", async () => {
 		]);
 
 		map.delete("foo");
+		assertEvents(events, []);
+		dispatch();
 		assertEntries([inner, map], [["bar", 144]]);
 		assertEvents(events, [
 			size(1),
@@ -102,8 +108,12 @@ await suite("store/reactive-map", async () => {
 
 		map.delete("foo");
 		assertEvents(events, []);
+		dispatch();
+		assertEvents(events, []);
 
 		map.clear();
+		assertEvents(events, []);
+		dispatch();
 		assertEntries([inner, map], []);
 		assertEvents(events, [
 			size(0),
@@ -112,10 +122,14 @@ await suite("store/reactive-map", async () => {
 		]);
 
 		map.clear();
+		assertEvents(events, []);
+		dispatch();
 		assertEntries([inner, map], []);
 		assertEvents(events, iterators([]));
 
 		strictEqual(map.getOrInsert("foo", 1), 1);
+		assertEvents(events, []);
+		dispatch();
 		assertEntries([inner, map], [["foo", 1]]);
 		assertEvents(events, [
 			size(1),
@@ -127,6 +141,7 @@ await suite("store/reactive-map", async () => {
 			events.push("compute");
 			return 2;
 		}), 2);
+		dispatch();
 		assertEntries([inner, map], [["foo", 1], ["bar", 2]]);
 		assertEvents(events, [
 			"compute",
@@ -138,6 +153,8 @@ await suite("store/reactive-map", async () => {
 		strictEqual(map.getOrInsertComputed("bar", () => {
 			throw new Error();
 		}), 2);
+		assertEvents(events, []);
+		dispatch();
 		assertEntries([inner, map], [["foo", 1], ["bar", 2]]);
 		assertEvents(events, []);
 	});
@@ -155,12 +172,16 @@ await suite("store/reactive-map", async () => {
 			});
 		});
 
+		dispatch();
 		assertEvents(events, ["compute", 0, 0]);
 
 		map.set("test", 1);
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, [1]);
 
 		map.delete("test");
+		dispatch();
 		assertEvents(events, ["compute", 0, 0]);
 	});
 
@@ -190,10 +211,13 @@ await suite("store/reactive-map", async () => {
 				const view = leak(() => render(proxy));
 				strictEqual(viewText(view), "(foo:0)");
 				proxy.set("foo", 1);
+				dispatch();
 				strictEqual(viewText(view), "(foo:1)");
 				proxy.set("bar", 2);
+				dispatch();
 				strictEqual(viewText(view), "(foo:1)(bar:2)");
 				proxy.delete("foo");
+				dispatch();
 				strictEqual(viewText(view), "(bar:2)");
 			};
 		}

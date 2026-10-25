@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { $, capture, leak, mapArray, memo, teardown, watch } from "rvx";
+import { $, capture, dispatch, leak, mapArray, teardown, watch } from "rvx";
 import { assertEvents, computeMapArrayDiffEvents, lifecycleEvent } from "../common.js";
 
 await suite("mapArray", async () => {
@@ -26,7 +26,12 @@ await suite("mapArray", async () => {
 			});
 		});
 
-		const watchedOutput = leak(() => memo(output));
+		let watchedOutput!: number[];
+		leak(() => {
+			watch(output, output => {
+				watchedOutput = output;
+			});
+		});
 
 		function assertIndexes() {
 			deepStrictEqual(outputByIndex.slice(0, output().length), output());
@@ -35,21 +40,24 @@ await suite("mapArray", async () => {
 
 		assertEvents(events, computeMapArrayDiffEvents([], sequence[0]));
 		deepStrictEqual(output(), sequence[0].map(v => -v));
-		deepStrictEqual(watchedOutput(), sequence[0].map(v => -v));
+		deepStrictEqual(watchedOutput, sequence[0].map(v => -v));
 		assertIndexes();
 
 		for (let i = 1; i < sequence.length; i++) {
 			signal.value = sequence[i];
+			assertEvents(events, []);
+			dispatch();
 			assertEvents(events, computeMapArrayDiffEvents(sequence[i - 1], sequence[i]));
 			deepStrictEqual(output(), sequence[i].map(v => -v));
-			deepStrictEqual(watchedOutput(), sequence[i].map(v => -v));
+			deepStrictEqual(watchedOutput, sequence[i].map(v => -v));
 			assertIndexes();
 		}
 
+		assertEvents(events, []);
 		dispose();
 		assertEvents(events, computeMapArrayDiffEvents(sequence[sequence.length - 1], []));
 		deepStrictEqual(output(), sequence[sequence.length - 1].map(v => -v));
-		deepStrictEqual(watchedOutput(), sequence[sequence.length - 1].map(v => -v));
+		deepStrictEqual(watchedOutput, sequence[sequence.length - 1].map(v => -v));
 		assertIndexes();
 	}
 
@@ -116,6 +124,7 @@ await suite("mapArray", async () => {
 		const output = leak(() => mapArray(signal, value => {
 			if (value === 3) {
 				signal.value = [5];
+				dispatch();
 			}
 			lifecycleEvent(events, String(value));
 			return value;
@@ -123,11 +132,56 @@ await suite("mapArray", async () => {
 		assertEvents(events, ["s:1"]);
 		deepStrictEqual(output(), [1]);
 		signal.value = [2, 3, 4];
+		assertEvents(events, []);
+		dispatch();
+		assertEvents(events, ["e:1", "s:2", "s:3", "s:4", "e:2", "e:3", "e:4", "s:5"]);
+		deepStrictEqual(output(), [5]);
+	});
+
+	await test("sequential map side effects, deferred dispatch", () => {
+		const events: unknown[] = [];
+		const signal = $([1]);
+		const output = leak(() => mapArray(signal, value => {
+			if (value === 3) {
+				signal.value = [5];
+			}
+			lifecycleEvent(events, String(value));
+			return value;
+		}));
+		assertEvents(events, ["s:1"]);
+		deepStrictEqual(output(), [1]);
+		signal.value = [2, 3, 4];
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, ["e:1", "s:2", "s:3", "s:4", "e:2", "e:3", "e:4", "s:5"]);
 		deepStrictEqual(output(), [5]);
 	});
 
 	await test("sequential index side effects", () => {
+		const events: unknown[] = [];
+		const signal = $([1, 2]);
+		const output = leak(() => mapArray(signal, (value, index) => {
+			if (index() === 0) {
+				watch(index, index => {
+					if (index === 2) {
+						signal.value = [4];
+						dispatch();
+					}
+				});
+			}
+			lifecycleEvent(events, String(value));
+			return value;
+		}));
+		assertEvents(events, ["s:1", "s:2"]);
+		deepStrictEqual(output(), [1, 2]);
+		signal.value = [3, 2, 1];
+		assertEvents(events, []);
+		dispatch();
+		assertEvents(events, ["s:3", "e:3", "e:2", "e:1", "s:4"]);
+		deepStrictEqual(output(), [4]);
+	});
+
+	await test("sequential index side effects, deferred dispatch", () => {
 		const events: unknown[] = [];
 		const signal = $([1, 2]);
 		const output = leak(() => mapArray(signal, (value, index) => {
@@ -144,6 +198,8 @@ await suite("mapArray", async () => {
 		assertEvents(events, ["s:1", "s:2"]);
 		deepStrictEqual(output(), [1, 2]);
 		signal.value = [3, 2, 1];
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, ["s:3", "e:3", "e:2", "e:1", "s:4"]);
 		deepStrictEqual(output(), [4]);
 	});
@@ -174,9 +230,13 @@ await suite("mapArray", async () => {
 			[0, "d"],
 			[2, "c"],
 		];
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, ["s:1", "s:2"]);
 		deepStrictEqual(output(), ["b", "a", "c"]);
 		signal.value = [];
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, ["e:1", "e:0", "e:2"]);
 		deepStrictEqual(output(), []);
 	});

@@ -1,7 +1,7 @@
 import { deepStrictEqual, fail, notStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 
-import { For, Index, leak, View, watchUpdates } from "rvx";
+import { dispatch, For, Index, leak, View, watchUpdates } from "rvx";
 import { wrap } from "rvx/store";
 
 import { assertEvents, viewText } from "../common.js";
@@ -58,6 +58,8 @@ await suite("store/reactive-array-proxy", async () => {
 					}
 				});
 				options.action(proxy);
+				assertEvents(events, []);
+				dispatch();
 				assertEvents(events, options.events);
 				assertEntries([inner, proxy], options.end);
 			}
@@ -281,7 +283,11 @@ await suite("store/reactive-array-proxy", async () => {
 			});
 			proxy[0] = "c";
 			assertEvents(events, []);
+			dispatch();
+			assertEvents(events, []);
 			proxy[1] = "d";
+			assertEvents(events, []);
+			dispatch();
 			assertEvents(events, ["d"]);
 		});
 
@@ -324,10 +330,16 @@ await suite("store/reactive-array-proxy", async () => {
 					});
 				});
 				proxy.push("d");
+				assertEvents(events, []);
+				dispatch();
 				assertEvents(events, ["access"]);
 				proxy.unshift("d");
+				assertEvents(events, []);
+				dispatch();
 				assertEvents(events, ["access"]);
 				proxy[1] = "e";
+				assertEvents(events, []);
+				dispatch();
 				assertEvents(events, ["access"]);
 			});
 		}
@@ -367,6 +379,7 @@ await suite("store/reactive-array-proxy", async () => {
 				const view = leak(() => render(proxy));
 				strictEqual(viewText(view), "ab");
 				proxy.splice(1, 0, "c");
+				dispatch();
 				strictEqual(viewText(view), "acb");
 			};
 		}

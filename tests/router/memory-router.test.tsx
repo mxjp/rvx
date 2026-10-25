@@ -1,7 +1,7 @@
 import { strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 
-import { leak, watch } from "rvx";
+import { dispatch, leak, watch } from "rvx";
 import { MemoryRouter } from "rvx/router";
 
 import { assertEvents } from "../common.js";
@@ -22,15 +22,23 @@ await suite("router/memory router", async () => {
 		assertEvents(events, [["", undefined]]);
 
 		router.push("/a");
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, [["/a", undefined]]);
 
 		router.push("/b", "test=1");
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, [["/b", "test=1"]]);
 
 		router.replace("/c");
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, [["/c", undefined]]);
 
 		router.push("/d", { test: "2" });
+		assertEvents(events, []);
+		dispatch();
 		assertEvents(events, [["/d", "test=2"]]);
 	});
 

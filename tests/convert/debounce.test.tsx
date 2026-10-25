@@ -1,6 +1,6 @@
 import { strictEqual } from "node:assert";
 import test from "node:test";
-import { $, capture, Signal } from "rvx";
+import { $, capture, dispatch, Signal } from "rvx";
 import { debounce } from "rvx/convert";
 import { poll } from "rvx/test";
 
@@ -17,6 +17,7 @@ await test("convert/debounce", async () => {
 	strictEqual(input.value, 0);
 
 	input.value = 1;
+	dispatch();
 	strictEqual(source.value, 0);
 	strictEqual(input.value, 1);
 
@@ -24,11 +25,13 @@ await test("convert/debounce", async () => {
 	strictEqual(input.value, 1);
 
 	source.value = 2;
+	dispatch();
 	strictEqual(source.value, 2);
 	strictEqual(input.value, 2);
 
 	input.value = 3;
 	source.value = 4;
+	dispatch();
 	strictEqual(source.value, 4);
 	strictEqual(input.value, 4);
 	await new Promise(r => setTimeout(r, delay * 2));
@@ -37,6 +40,7 @@ await test("convert/debounce", async () => {
 
 	input.value = 5;
 	input.value = 6;
+	dispatch();
 	strictEqual(source.value, 4);
 	strictEqual(input.value, 6);
 
@@ -44,6 +48,7 @@ await test("convert/debounce", async () => {
 	strictEqual(input.value, 6);
 
 	input.value = 7;
+	dispatch();
 	dispose();
 	strictEqual(source.value, 6);
 	strictEqual(input.value, 7);
