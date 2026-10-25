@@ -3,7 +3,7 @@ import { ENV } from "./env.js";
 import { createText } from "./internals/create-text.js";
 import { createMapArrayState, MapArrayFn, MapArrayKeyFn, mapArrayUpdate } from "./internals/map-array.js";
 import { NOOP } from "./internals/noop.js";
-import { $, capture, Expression, get, isolate, Signal, teardown, TeardownHook, watch } from "./signals.js";
+import { $, capture, computed, Expression, get, isolate, Signal, teardown, TeardownHook, watch } from "./signals.js";
 import type { Component, Content, Falsy } from "./types.js";
 import type { Attach, For, Index, Nest, Show } from "./view-jsx.js";
 
@@ -512,7 +512,7 @@ export function nest(expr: Expression<unknown>, component: Component<unknown> = 
  * ```
  */
 export function when<T>(condition: Expression<T | Falsy>, truthy: Component<NoInfer<T>>, falsy?: Component): View {
-	return nest(condition, value => value ? truthy(value) : falsy?.());
+	return nest(computed(condition), value => value ? truthy(value) : falsy?.());
 }
 
 export interface ForContentFn<T> {

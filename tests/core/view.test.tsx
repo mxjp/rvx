@@ -738,7 +738,7 @@ await suite("view", async () => {
 		dispatch();
 		assertViewState(view);
 		strictEqual(viewText(view), "2");
-		assertEvents(events, ["-2", "+2"]);
+		assertEvents(events, []);
 
 		signal.value = 0;
 		dispatch();
@@ -757,10 +757,8 @@ await suite("view", async () => {
 		dispatch();
 		assertViewState(view);
 		strictEqual(viewText(view), "f");
-		assertEvents(events, ["-f", "+f"]);
+		assertEvents(events, []);
 	});
-
-	// TODO: Show + computed.
 
 	await suite("For", async () => {
 		function sequenceTest(sequence: number[][], prefix: string | null, suffix: string | null) {

@@ -607,7 +607,12 @@ export function watchUpdates<T>(expr: Expression<T>, effect: (value: NoInfer<T>)
 	return first!;
 }
 
-export function computed<T>(fn: () => T, eq: StateEq<T, any> = OBJECT_IS): () => T {
+export function computed<T>(expr: Expression<T>, eq: StateEq<T, any> = OBJECT_IS): () => T {
+	const isSignal = expr instanceof Signal;
+	if (!isSignal && typeof expr !== "function") {
+		return () => expr as T;
+	}
+
 	const deps: Dependency<unknown, unknown>[] = [];
 
 	let value!: T;
@@ -652,7 +657,7 @@ export function computed<T>(fn: () => T, eq: StateEq<T, any> = OBJECT_IS): () =>
 					try {
 						ACCESS_FRAME = access;
 						TEARDOWN_FRAME = TEARDOWN_FRAME_THROW;
-						value = fn();
+						value = isSignal ? (expr as Signal<T>).value : (expr as () => T)();
 						stale = false;
 					} finally {
 						ACCESS_FRAME = accessParent;
