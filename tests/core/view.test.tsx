@@ -1,6 +1,6 @@
 import { notStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { $, $v, Attach, capture, Component, dispatch, ENV, For, Index, leak, mount, movable, Nest, render, Show, teardown, View } from "rvx";
+import { $, $v, Attach, capture, Component, computed, dispatch, ENV, For, Index, leak, mount, movable, Nest, render, Show, teardown, View } from "rvx";
 import { assertViewState } from "rvx/test";
 import { assertEvents, boundaryEvents, causesRejection, computeMapArrayDiffEvents, lifecycleEvent, TestView, testView, text, viewText, withMsg } from "../common.js";
 
@@ -436,45 +436,48 @@ await suite("view", async () => {
 			});
 		});
 
-		// await test("component memo", () => {
-		// 	const events: unknown[] = [];
-		// 	const signal = $(0);
+		await test("component memo", () => {
+			const events: unknown[] = [];
+			const signal = $(0);
 
-		// 	function A() {
-		// 		lifecycleEvent(events, "a");
-		// 		return <>a{signal}</>;
-		// 	}
+			function A() {
+				lifecycleEvent(events, "a");
+				return <>a{signal}</>;
+			}
 
-		// 	function B() {
-		// 		lifecycleEvent(events, "b");
-		// 		return <>b{signal}</>;
-		// 	}
+			function B() {
+				lifecycleEvent(events, "b");
+				return <>b{signal}</>;
+			}
 
-		// 	const view = leak(() => {
-		// 		return <Nest watch={memo<Component>(() => signal.value < 2 ? A : B)}>
-		// 			{comp => comp()}
-		// 		</Nest> as View;
-		// 	});
+			const view = leak(() => {
+				return <Nest watch={computed<Component>(() => signal.value < 2 ? A : B)}>
+					{comp => comp()}
+				</Nest> as View;
+			});
 
-		// 	assertViewState(view);
-		// 	assertEvents(events, ["s:a"]);
-		// 	strictEqual(viewText(view), "a0");
+			assertViewState(view);
+			assertEvents(events, ["s:a"]);
+			strictEqual(viewText(view), "a0");
 
-		// 	signal.value = 1;
-		// 	assertViewState(view);
-		// 	assertEvents(events, []);
-		// 	strictEqual(viewText(view), "a1");
+			signal.value = 1;
+			dispatch();
+			assertViewState(view);
+			assertEvents(events, []);
+			strictEqual(viewText(view), "a1");
 
-		// 	signal.value = 2;
-		// 	assertViewState(view);
-		// 	assertEvents(events, ["e:a", "s:b"]);
-		// 	strictEqual(viewText(view), "b2");
+			signal.value = 2;
+			dispatch();
+			assertViewState(view);
+			assertEvents(events, ["e:a", "s:b"]);
+			strictEqual(viewText(view), "b2");
 
-		// 	signal.value = 3;
-		// 	assertViewState(view);
-		// 	assertEvents(events, []);
-		// 	strictEqual(viewText(view), "b3");
-		// });
+			signal.value = 3;
+			dispatch();
+			assertViewState(view);
+			assertEvents(events, []);
+			strictEqual(viewText(view), "b3");
+		});
 
 		await test("external state reset", () => {
 			const events: unknown[] = [];
