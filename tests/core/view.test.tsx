@@ -1,6 +1,6 @@
 import { notStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { $, $v, Attach, capture, Component, dispatch, ENV, For, Index, leak, mount, Nest, render, Show, teardown, View } from "rvx";
+import { $, $v, Attach, capture, Component, dispatch, ENV, For, Index, leak, mount, movable, Nest, render, Show, teardown, View } from "rvx";
 import { assertViewState } from "rvx/test";
 import { assertEvents, boundaryEvents, causesRejection, computeMapArrayDiffEvents, lifecycleEvent, TestView, testView, text, viewText, withMsg } from "../common.js";
 
@@ -1048,62 +1048,67 @@ await suite("view", async () => {
 		});
 	});
 
-	// await suite("movable", async () => {
-	// 	await test("basic usage", () => {
-	// 		const inner = $(1);
-	// 		const view = leak(() => movable(<>
-	// 			inner:{inner}
-	// 		</>));
+	await suite("movable", async () => {
+		await test("detached usage", () => {
+			const inner = $(1);
+			const component = leak(() => movable(<>inner:{inner}</>));
 
-	// 		const a = leak(view.move);
-	// 		assertViewState(a);
-	// 		strictEqual(viewText(a), "inner:1");
+			const a = component();
+			assertViewState(a);
+			strictEqual(viewText(a), "inner:1");
 
-	// 		const b = leak(view.move);
-	// 		assertViewState(a);
-	// 		assertViewState(b);
-	// 		strictEqual(viewText(a), "");
-	// 		strictEqual(a.first instanceof ENV.current.Comment, true);
-	// 		strictEqual(a.first, a.last);
-	// 		strictEqual(viewText(b), "inner:1");
-	// 		inner.value = 2;
-	// 		assertViewState(a);
-	// 		assertViewState(b);
-	// 		strictEqual(viewText(b), "inner:2");
-	// 		view.detach();
-	// 		assertViewState(a);
-	// 		assertViewState(b);
-	// 		inner.value = 3;
-	// 		assertViewState(a);
-	// 		assertViewState(b);
-	// 		strictEqual(text(b.detach()), "");
-	// 		strictEqual(b.first instanceof ENV.current.Comment, true);
-	// 		strictEqual(b.first, b.last);
-	// 		notStrictEqual(a.first, b.first);
+			const b = component();
+			assertViewState(a);
+			assertViewState(b);
+			strictEqual(viewText(a), "");
+			strictEqual(a.first instanceof ENV.current.Comment, true);
+			strictEqual(a.first, a.last);
+			strictEqual(viewText(b), "inner:1");
 
-	// 		const c = leak(view.move);
-	// 		assertViewState(a);
-	// 		assertViewState(b);
-	// 		assertViewState(c);
-	// 		strictEqual(text(c.detach()), "inner:3");
-	// 		assertViewState(c);
-	// 	});
+			inner.value = 2;
+			dispatch();
+			assertViewState(a);
+			assertViewState(b);
+			strictEqual(viewText(a), "");
+			strictEqual(viewText(b), "inner:2");
 
-	// 	await test("lifecycle", () => {
-	// 		const view = leak(() => movable(<>test</>));
-	// 		let a!: View;
-	// 		const disposeA = capture(() => {
-	// 			a = render(<>0{view.move()}1</>);
-	// 		});
-	// 		strictEqual(viewText(a), "0test1");
-	// 		disposeA();
-	// 		view.detach();
-	// 		strictEqual(viewText(a), "0test1");
-	// 		const b = leak(() => render(<>2{view.move()}3</>));
-	// 		strictEqual(viewText(a), "01");
-	// 		strictEqual(viewText(b), "2test3");
-	// 	});
-	// });
+			component();
+			assertViewState(a);
+			assertViewState(b);
+
+			inner.value = 3;
+			dispatch();
+
+			assertViewState(a);
+			assertViewState(b);
+			strictEqual(viewText(b), "");
+			strictEqual(b.first instanceof ENV.current.Comment, true);
+			strictEqual(b.first, b.last);
+			notStrictEqual(a.first, b.first);
+
+			const c = component();
+			assertViewState(a);
+			assertViewState(b);
+			assertViewState(c);
+			strictEqual(text(c.detach()), "inner:3");
+			assertViewState(c);
+		});
+
+		await test("lifecycle", () => {
+			const component = leak(() => movable(<>test</>));
+			let a!: View;
+			const disposeA = capture(() => {
+				a = render(<>0{component()}1</>);
+			});
+			strictEqual(viewText(a), "0test1");
+			disposeA();
+			component();
+			strictEqual(viewText(a), "01");
+			const b = leak(() => render(<>2{component()}3</>));
+			strictEqual(viewText(a), "01");
+			strictEqual(viewText(b), "2test3");
+		});
+	});
 
 	await test("Attach", async () => {
 		const signal = $(false);

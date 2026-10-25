@@ -2,6 +2,7 @@ import { NODE, NodeTarget } from "./element-common.js";
 import { ENV } from "./env.js";
 import { createText } from "./internals/create-text.js";
 import { createMapArrayState, MapArrayFn, MapArrayKeyFn, mapArrayUpdate } from "./internals/map-array.js";
+import { NOOP } from "./internals/noop.js";
 import { $, capture, Expression, get, isolate, Signal, teardown, TeardownHook, watch } from "./signals.js";
 import type { Component, Content, Falsy } from "./types.js";
 import type { Attach, For, Index, Nest, Show } from "./view-jsx.js";
@@ -673,40 +674,37 @@ export function indexEach<T>(each: Expression<Iterable<T>>, component: IndexCont
 }
 
 /**
- * A wrapper that can be used for moving and reusing views.
+ * Create a component for safely moving or reusing already rendered content.
+ *
+ * @example
+ * ```tsx
+ * const content = movable(<h1>Hello World!</h1>);
+ *
+ * <Show when={a}>
+ *   {content}
+ * </Show>
+ * <Show when={b}>
+ *   {content}
+ * </Show>
+ * ```
  */
-export class MovableView {
-	#view: View;
-	#target = $<View | undefined>(undefined);
-
-	constructor(view: View) {
-		this.#view = view;
-	}
-
-	/**
-	 * Create a new view that contains the wrapped view until it is moved again or detached.
-	 *
-	 * If the lifecycle in which `move` is called is disposed, the created view no longer updates its boundary and nodes may be silently removed.
-	 */
-	move: Component<void, View> = () => {
-		this.#target.value = undefined;
-		const target = this.#target = $<View | undefined>(this.#view);
-		return nest(target, v => v);
-	};
-
-	/**
-	 * Detach content from the currently active view.
-	 */
-	detach(): void {
-		this.#target.value = undefined;
-	}
-}
-
-/**
- * Render and wrap arbitrary content so that it can be moved and reused.
- */
-export function movable(content: Content): MovableView {
-	return new MovableView(render(content));
+export function movable(content: Content): Component<void, View> {
+	const env = ENV.current;
+	const inner = render(content);
+	let dispose: TeardownHook = NOOP;
+	return () => new View((setBoundary, self) => {
+		dispose();
+		dispose = capture(() => {
+			teardown(() => {
+				const removed = createPlaceholder(env);
+				self.parent?.insertBefore(removed, self.first!);
+				self.detach();
+				setBoundary(removed, removed);
+			});
+			setBoundary(inner.first, inner.last);
+			inner.setBoundaryOwner(setBoundary);
+		});
+	});
 }
 
 /**
