@@ -2016,168 +2016,108 @@ await suite("signals", async () => {
 		});
 	});
 
-	// await suite("batch", async () => {
-	// 	await test("usage", () => {
-	// 		const events: unknown[] = [];
-	// 		const a = $(0);
-	// 		const b = $(1);
-	// 		leak(() => watch(() => {
-	// 			strictEqual(isTracking(), true);
-	// 			return a.value + b.value;
-	// 		}, value => {
-	// 			events.push(value);
-	// 		}));
-	// 		assertEvents(events, [1]);
+	await suite("batching", async () => {
+		await test("usage", () => {
+			const events: unknown[] = [];
+			const a = $(0);
+			const b = $(1);
+			leak(() => watch(() => {
+				strictEqual(isTracking(), true);
+				return a.value + b.value;
+			}, value => {
+				events.push(value);
+			}));
+			assertEvents(events, [1]);
 
-	// 		// batch(() => {
-	// 			a.value++;
-	// 			b.value++;
-	// 			assertEvents(events, []);
-	// 		// });
-	// 		assertEvents(events, [3]);
+			a.value++;
+			b.value++;
+			assertEvents(events, []);
+			dispatch();
+			assertEvents(events, [3]);
 
-	// 		// batch(() => {
-	// 			a.value++;
-	// 			assertEvents(events, []);
-	// 			batch(() => {
-	// 				b.value++;
-	// 				assertEvents(events, []);
-	// 			});
-	// 			assertEvents(events, []);
-	// 		// });
-	// 		assertEvents(events, [5]);
+			a.value++;
+			b.value++;
+			assertEvents(events, []);
+			dispatch();
+			assertEvents(events, [5]);
 
-	// 		// batch(() => batch(() => {
-	// 			a.value++;
-	// 			b.value++;
-	// 			assertEvents(events, []);
-	// 			batch(() => {
-	// 				a.value++;
-	// 				b.value++;
-	// 				assertEvents(events, []);
-	// 			});
-	// 			assertEvents(events, []);
-	// 		// }));
-	// 		assertEvents(events, [9]);
+			a.value++;
+			b.value++;
+			a.value++;
+			b.value++;
+			assertEvents(events, []);
+			dispatch();
+			assertEvents(events, [9]);
 
-	// 		// batch(() => {
-	// 			a.value++;
-	// 			a.value++;
-	// 			assertEvents(events, []);
-	// 		// });
-	// 		assertEvents(events, [11]);
-	// 	});
+			a.value++;
+			a.value++;
+			assertEvents(events, []);
+			dispatch();
+			assertEvents(events, [11]);
+		});
 
-	// 	await test("error handling", () => {
-	// 		const events: unknown[] = [];
-	// 		const signal = $(42);
-	// 		leak(() => watch(signal, value => {
-	// 			events.push(value);
-	// 		}));
-	// 		assertEvents(events, [42]);
+		await test("dispose before dispatch (watch)", () => {
+			const events: unknown[] = [];
+			const signal = $(42);
+			const dispose = capture(() => watch(signal, value => {
+				events.push("a", value);
+			}));
+			leak(() => watch(signal, value => {
+				events.push("b", value);
+			}));
+			assertEvents(events, ["a", 42, "b", 42]);
+			signal.value = 77;
+			dispose();
+			dispatch();
+			assertEvents(events, ["b", 77]);
+		});
 
-	// 		throws(() => {
-	// 			batch(() => {
-	// 				signal.value = 77;
-	// 				throw new Error("test");
-	// 			});
-	// 		}, withMsg("test"));
+		await test("dispose before dispatch (effect)", () => {
+			const events: unknown[] = [];
+			const signal = $(42);
+			const dispose = capture(() => watch(() => {
+				events.push("a", signal.value);
+			}));
+			leak(() => watch(() => {
+				events.push("b", signal.value);
+			}));
+			assertEvents(events, ["a", 42, "b", 42]);
+			signal.value = 77;
+			dispose();
+			dispatch();
+			assertEvents(events, ["b", 77]);
+		});
 
-	// 		strictEqual(signal.value, 77);
-	// 		assertEvents(events, []);
+		await test("dispatch error handling", () => {
+			const events: unknown[] = [];
+			const a = $(0);
+			const b = $(0);
 
-	// 		signal.value = 2;
-	// 		strictEqual(signal.value, 2);
-	// 		assertEvents(events, [2]);
+			leak(() => watchUpdates(a, value => {
+				events.push("a", value);
+				throw new Error("test");
+			}));
 
-	// 		batch(() => {
-	// 			throws(() => {
-	// 				batch(() => {
-	// 					signal.value = 11;
-	// 					throw new Error("test");
-	// 				});
-	// 			}, withMsg("test"));
+			leak(() => watchUpdates(b, value => {
+				events.push("b", value);
+			}));
 
-	// 			strictEqual(signal.value, 11);
-	// 			assertEvents(events, []);
-	// 		});
-	// 		assertEvents(events, [11]);
+			assertEvents(events, []);
+			a.value++;
+			b.value++;
+			events.push("end1");
+			causesRejection(dispatch, withMsg("test"));
+			assertEvents(events, ["end1", "a", 1, "b", 1]);
 
-	// 		signal.value = 3;
-	// 		strictEqual(signal.value, 3);
-	// 		assertEvents(events, [3]);
-	// 	});
+			a.value++;
+			b.value++;
+			events.push("end2");
+			causesRejection(dispatch, withMsg("test"));
+			assertEvents(events, ["end2", "a", 2, "b", 2]);
+		});
+	});
 
-	// 	await test("disposed watch", () => {
-	// 		const events: unknown[] = [];
-	// 		const signal = $(42);
-	// 		const dispose = capture(() => watch(signal, value => {
-	// 			events.push("a", value);
-	// 		}));
-	// 		leak(() => watch(signal, value => {
-	// 			events.push("b", value);
-	// 		}));
-	// 		assertEvents(events, ["a", 42, "b", 42]);
-	// 		batch(() => {
-	// 			signal.value = 77;
-	// 			dispose();
-	// 		});
-	// 		assertEvents(events, ["b", 77]);
-	// 	});
-
-	// 	await test("disposed effect", () => {
-	// 		const events: unknown[] = [];
-	// 		const signal = $(42);
-	// 		const dispose = capture(() => watch(() => {
-	// 			events.push("a", signal.value);
-	// 		}));
-	// 		leak(() => watch(() => {
-	// 			events.push("b", signal.value);
-	// 		}));
-	// 		assertEvents(events, ["a", 42, "b", 42]);
-	// 		batch(() => {
-	// 			signal.value = 77;
-	// 			dispose();
-	// 		});
-	// 		assertEvents(events, ["b", 77]);
-	// 	});
-
-	// 	await test("dispatch error handling", () => {
-	// 		const events: unknown[] = [];
-	// 		const a = $(0);
-	// 		const b = $(0);
-
-	// 		leak(() => watchUpdates(a, value => {
-	// 			events.push("a", value);
-	// 			throw new Error("test");
-	// 		}));
-
-	// 		leak(() => watchUpdates(b, value => {
-	// 			events.push("b", value);
-	// 		}));
-
-	// 		assertEvents(events, []);
-	// 		causesRejection(() => {
-	// 			batch(() => {
-	// 				a.value++;
-	// 				b.value++;
-	// 				events.push("end1");
-	// 			});
-	// 		}, withMsg("test"));
-	// 		assertEvents(events, ["end1", "a", 1, "b", 1]);
-
-	// 		causesRejection(() => {
-	// 			batch(() => {
-	// 				a.value++;
-	// 				b.value++;
-	// 				events.push("end2");
-	// 			});
-	// 		}, withMsg("test"));
-	// 		assertEvents(events, ["end2", "a", 2, "b", 2]);
-	// 	});
-	// });
-
-	await test("mapper", () => {
+	await test("map", () => {
 		strictEqual(map(42, String), "42");
 
 		const a = map(() => 42, String);
