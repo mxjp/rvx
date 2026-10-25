@@ -11,10 +11,10 @@ This can be useful when you only ever append or prepend elements and you require
 
 */
 
-import { $, capture, Component, Emitter, Event, Nest, render, teardown, TeardownHook, View } from "rvx";
+import { $v, capture, Component, Emitter, Event, Nest, render, teardown, TeardownHook, View } from "rvx";
 
 export function Example() {
-	const reset = $();
+	const reset = $v();
 	const actions = new Emitter<[Action, number]>();
 
 	return <div class="column">

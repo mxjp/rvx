@@ -1,5 +1,6 @@
 import { createMapArrayState, MapArrayFn, MapArrayKeyFn, mapArrayUpdate } from "./internals/map-array.js";
-import { $, Expression, get, watch } from "./signals.js";
+import { Expression, get, watch } from "./signals.js";
+import { $v } from "./versioned.js";
 
 export { MapArrayFn, MapArrayKeyFn } from "./internals/map-array.js";
 
@@ -15,7 +16,7 @@ export { MapArrayFn, MapArrayKeyFn } from "./internals/map-array.js";
  */
 export function mapArray<I, O>(inputs: Expression<Iterable<I>>, fn: MapArrayFn<NoInfer<I>, O>, keyFn?: MapArrayKeyFn<unknown, NoInfer<I>>): () => O[] {
 	const state = createMapArrayState<unknown, I, O>();
-	const output = $<O[]>([]);
+	const output = $v<O[]>([]);
 	watch(() => {
 		const update = mapArrayUpdate(state, get(inputs), fn, keyFn);
 		if (update !== null) {

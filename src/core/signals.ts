@@ -1,5 +1,6 @@
 import { Context } from "./context.js";
 import { NOOP } from "./internals/noop.js";
+import type { Versioned } from "./versioned.js";
 
 /**
  * Represents a stack frame that teardown hooks can be pushed into.
@@ -312,6 +313,8 @@ export class Signal<T> {
 
 	/**
 	 * Manually notify observers.
+	 *
+	 * @deprecated Use a {@link Versioned} signal instead.
 	 */
 	notify(): void {
 		this.#effects.forEach(e => e());

@@ -7,7 +7,7 @@ This example also demonstrates how state and logic can be separated from its rep
 
 */
 
-import { $, batch, Expression, get, Index, Nest, Override, Show, watchUpdates } from "rvx";
+import { $, $v, Expression, get, Index, Nest, Override, Show, watchUpdates } from "rvx";
 import { useAnimation } from "rvx/async";
 
 export function Example() {
@@ -39,7 +39,7 @@ class Stopwatch {
 	#runningSince = 0;
 	#running = $(false);
 	#time = $(0);
-	#laps = $<number[]>([]);
+	#laps = $v<number[]>([]);
 
 	constructor() {
 		watchUpdates(this.#running, running => {
@@ -59,11 +59,11 @@ class Stopwatch {
 	start = () => { this.#running.value = true };
 	stop = () => { this.#running.value = false };
 
-	reset = () => batch(() => {
+	reset = () => {
 		this.#running.value = false;
 		this.#time.value = 0;
 		this.#laps.value = [];
-	});
+	};
 
 	lap = () => {
 		this.#laps.inert.push(this.#time.value);

@@ -5,6 +5,8 @@ When building user inputs, signals are the best way to pass data in and out of y
 
 This example shows two functions `trim` and `debounce` that can be combined to change the behavior of inputs.
 
+The `setSource` call just adds optional metadata to the `input` signals so that e.g. validation systems can figure out where a value comes from.
+
 !!! info
 	Note, that these two functions are already available in rvx, but are a good place to start if you need to customize that behavior in any way.
 
@@ -14,11 +16,12 @@ This example shows two functions `trim` and `debounce` that can be combined to c
 
 */
 
-import { $, Signal, watchUpdates } from "rvx";
+import { $, setSource, Signal, watchUpdates } from "rvx";
 import { useTimeout } from "rvx/async";
 
 function trim(source: Signal<string>) {
-	const input = $(source.value, source);
+	const input = $(source.value);
+	setSource(input, source);
 
 	// Trim and write into the source signal:
 	watchUpdates(input, value => {
@@ -37,6 +40,7 @@ function trim(source: Signal<string>) {
 
 function debounce<T>(source: Signal<T>, delay: number) {
 	const input = $<T>(source.value);
+	setSource(input, source);
 
 	// Schedule writing into the source signal:
 	watchUpdates(input, value => {

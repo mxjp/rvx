@@ -14,7 +14,7 @@ function WithLoadingSignal(props: {
 	const ctx = AsyncContext.fork();
 	const content = movable(ASYNC.provide(ctx, props.children));
 	return <Async source={ctx.complete()} pending={() => <>Loading...</>}>
-		{content.move}
+		{content}
 	</Async>;
 }
 
