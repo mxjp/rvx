@@ -1,6 +1,6 @@
 import { notStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { $, $v, Attach, capture, Component, computed, dispatch, ENV, For, Index, leak, mount, movable, Nest, render, Show, teardown, View } from "rvx";
+import { $, $obj, Attach, capture, Component, computed, dispatch, ENV, For, Index, leak, mount, movable, Nest, render, Show, teardown, View } from "rvx";
 import { assertViewState } from "rvx/test";
 import { assertEvents, boundaryEvents, causesRejection, computeMapArrayDiffEvents, lifecycleEvent, TestView, testView, text, viewText, withMsg } from "../common.js";
 
@@ -481,7 +481,7 @@ await suite("view", async () => {
 
 		await test("external state reset", () => {
 			const events: unknown[] = [];
-			const versioned = $v();
+			const versioned = $obj();
 			const count = $(0);
 
 			const view = leak(() => {
@@ -523,7 +523,7 @@ await suite("view", async () => {
 		await test("explicit component from signal", () => {
 			const events: unknown[] = [];
 			const comp = $<Component | undefined>(undefined);
-			const versioned = $v();
+			const versioned = $obj();
 			const view = leak(() => <Nest watch={() => {
 				versioned.access();
 				return comp.value;
@@ -564,7 +564,7 @@ await suite("view", async () => {
 		await test("implicit component from signal", () => {
 			const events: unknown[] = [];
 			const comp = $<Component | undefined | null>(undefined);
-			const versioned = $v();
+			const versioned = $obj();
 			const view = leak(() => <Nest watch={() => {
 				versioned.access();
 				return comp.value;
@@ -611,7 +611,7 @@ await suite("view", async () => {
 
 		await suite("direct content reuse", async () => {
 			await test("leading view, detached", () => {
-				const signal = $v();
+				const signal = $obj();
 				const inner = render(<>{0}{1}</>);
 				assertViewState(inner);
 				const outer = leak(() => {
@@ -629,7 +629,7 @@ await suite("view", async () => {
 			});
 
 			await test("trailing view, detached", () => {
-				const signal = $v();
+				const signal = $obj();
 				const inner = render(<>{0}{1}</>);
 				assertViewState(inner);
 				const outer = leak(() => {
@@ -647,7 +647,7 @@ await suite("view", async () => {
 			});
 
 			await test("leading view, attached", () => {
-				const signal = $v();
+				const signal = $obj();
 				const inner = render(<>{0}{1}</>);
 				assertViewState(inner);
 				const outer = leak(() => {
@@ -666,7 +666,7 @@ await suite("view", async () => {
 			});
 
 			await test("trailing view, attached", () => {
-				const signal = $v();
+				const signal = $obj();
 				const inner = render(<>{0}{1}</>);
 				assertViewState(inner);
 				const outer = leak(() => {
@@ -689,7 +689,7 @@ await suite("view", async () => {
 	await test("Show", () => {
 		const events: unknown[] = [];
 		const signal = $(0);
-		const versioned = $v();
+		const versioned = $obj();
 
 		const view = leak(() => {
 			return <Show when={() => {
@@ -1114,7 +1114,7 @@ await suite("view", async () => {
 	await test("Attach", async () => {
 		const signal = $(false);
 		const inner = $(1);
-		const versioned = $v();
+		const versioned = $obj();
 
 		const view = leak(() => {
 			return <Attach when={() => {

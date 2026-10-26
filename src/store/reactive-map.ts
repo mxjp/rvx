@@ -1,4 +1,4 @@
-import { $, $v, Signal, Versioned } from "../core/index.js";
+import { $, $obj, Signal, ObjSignal } from "../core/index.js";
 import type { Barrier } from "./barrier.js";
 import { ProbeMap } from "./probes.js";
 
@@ -13,7 +13,7 @@ export class ReactiveMap<K, V> implements Map<K, V> {
 	#target: Map<K, V>;
 	#barrier: Barrier;
 	#size: Signal<number>;
-	#iterators: Versioned<void>;
+	#iterators: ObjSignal<void>;
 	#getProbes: ProbeMap<K, V | undefined>;
 	#hasProbes: ProbeMap<K, boolean>;
 
@@ -27,7 +27,7 @@ export class ReactiveMap<K, V> implements Map<K, V> {
 		this.#target = target;
 		this.#barrier = barrier;
 		this.#size = $(target.size);
-		this.#iterators = $v();
+		this.#iterators = $obj();
 		this.#getProbes = new ProbeMap(key => target.get(key));
 		this.#hasProbes = new ProbeMap(key => target.has(key));
 	}

@@ -1,4 +1,4 @@
-import { $, $v, Signal, Versioned } from "../core/index.js";
+import { $, $obj, Signal, ObjSignal } from "../core/index.js";
 import type { Barrier } from "./barrier.js";
 import { ProbeMap } from "./probes.js";
 
@@ -13,7 +13,7 @@ export class ReactiveSet<T> implements Set<T> {
 	#target: Set<T>;
 	#barrier: Barrier;
 	#size: Signal<number>;
-	#iterators: Versioned<void>;
+	#iterators: ObjSignal<void>;
 	#probes: ProbeMap<T, boolean>;
 
 	/**
@@ -26,7 +26,7 @@ export class ReactiveSet<T> implements Set<T> {
 		this.#target = target;
 		this.#barrier = barrier;
 		this.#size = $(target.size);
-		this.#iterators = $v();
+		this.#iterators = $obj();
 		this.#probes = new ProbeMap(key => target.has(key));
 	}
 

@@ -1,4 +1,4 @@
-import { $v, computed, Context } from "../core/index.js";
+import { $obj, computed, Context } from "../core/index.js";
 
 export interface AsyncContextParent {
 	/**
@@ -14,7 +14,7 @@ export interface AsyncContextParent {
  */
 export class AsyncContext {
 	#parent: AsyncContextParent | undefined;
-	#tasks = $v(new Set<Promise<unknown>>());
+	#tasks = $obj(new Set<Promise<unknown>>());
 	#errorHandlers = new Set<unknown[]>();
 
 	constructor(parent?: AsyncContextParent) {

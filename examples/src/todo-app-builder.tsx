@@ -5,7 +5,7 @@ This is a basic todo app with browser backed storage using only rvx's core featu
 
 */
 
-import { $, $v, Signal, e, forEach, watch, when } from "rvx";
+import { $, $obj, Signal, e, forEach, watch, when } from "rvx";
 
 const STORAGE_KEY = "rvx-examples:todo-app";
 
@@ -14,7 +14,7 @@ export function Example() {
 
 	// Load items from storage by converting the
 	// json representation into objects with signals:
-	const items = $v<Item[]>([]);
+	const items = $obj<Item[]>([]);
 	try {
 		const json = JSON.parse(localStorage.getItem(STORAGE_KEY)!) as ItemJson[];
 		items.value = json.map(item => ({ name: $(item.name), done: $(item.done) }));

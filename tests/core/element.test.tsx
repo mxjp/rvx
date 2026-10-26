@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
-import { $, $v, capture, ClassValue, Context, dispatch, e, ENV, ExpressionResult, leak, NODE, StyleMap } from "rvx";
+import { $, $obj, capture, ClassValue, Context, dispatch, e, ENV, ExpressionResult, leak, NODE, StyleMap } from "rvx";
 import { isRvxDom } from "rvx/dom";
 import { assertEvents } from "../common.js";
 
@@ -269,7 +269,7 @@ await suite("element", async () => {
 				await test("external mutation behavior", () => {
 					const events: unknown[] = [];
 					const signal = $<ExpressionResult<ClassValue>>(undefined);
-					const versioned = $v();
+					const versioned = $obj();
 					const elem = createElem(() => {
 						versioned.access();
 						return signal.value;
@@ -318,7 +318,7 @@ await suite("element", async () => {
 
 					const nestedA = $(false);
 					const nestedC = $(true);
-					const versionedC = $v();
+					const versionedC = $obj();
 					signal.value = { "a": nestedA, "c": () => {
 						versionedC.access();
 						return nestedC.value;

@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { $, $v, capture, computed, Context, dispatch, isTracking, leak, map, teardown, TeardownHook, trigger, TriggerPipe, untrack, watch, watchUpdates } from "rvx";
+import { $, $obj, capture, computed, Context, dispatch, eq, isTracking, leak, map, teardown, TeardownHook, trigger, TriggerPipe, untrack, watch, watchUpdates } from "rvx";
 import { assertEvents, causesRejection, lifecycleEvent, withMsg } from "../common.js";
 
 await suite("signals", async () => {
@@ -192,7 +192,7 @@ await suite("signals", async () => {
 		await test("interleaved effect updates", () => {
 			const events: unknown[] = [];
 			const a = $(0);
-			const b = $v();
+			const b = $obj();
 
 			leak(() => {
 				watch(() => {
@@ -237,7 +237,7 @@ await suite("signals", async () => {
 		await test("interleaved effect updates, deferred dispatch", () => {
 			const events: unknown[] = [];
 			const a = $(0);
-			const b = $v();
+			const b = $obj();
 
 			leak(() => {
 				watch(() => {
@@ -282,7 +282,7 @@ await suite("signals", async () => {
 		await test("interleaved watch updates", () => {
 			const events: unknown[] = [];
 			const a = $(0);
-			const b = $v();
+			const b = $obj();
 
 			leak(() => {
 				watch(() => {
@@ -333,7 +333,7 @@ await suite("signals", async () => {
 		await test("interleaved watch updates, deferred dispatch", () => {
 			const events: unknown[] = [];
 			const a = $(0);
-			const b = $v();
+			const b = $obj();
 
 			leak(() => {
 				watch(() => {
@@ -913,7 +913,7 @@ await suite("signals", async () => {
 
 		await test("re-entry tracking isolation", () => {
 			const events: unknown[] = [];
-			const signal = $v();
+			const signal = $obj();
 			leak(() => {
 				watch(() => {
 					events.push("a");
@@ -945,7 +945,7 @@ await suite("signals", async () => {
 
 		await test("re-entry tracking isolation, deferred dispatch", () => {
 			const events: unknown[] = [];
-			const signal = $v();
+			const signal = $obj();
 			leak(() => {
 				watch(() => {
 					events.push("a");
@@ -976,7 +976,7 @@ await suite("signals", async () => {
 
 		await test("context", () => {
 			const events: unknown[] = [];
-			const signal = $v();
+			const signal = $obj();
 
 			const ctx = new Context<number | undefined>();
 			ctx.provide(42, () => {
@@ -1205,7 +1205,7 @@ await suite("signals", async () => {
 
 		await test("re-entry tracking isolation", () => {
 			const events: unknown[] = [];
-			const signal = $v();
+			const signal = $obj();
 			leak(() => {
 				watch(() => {
 					events.push("a");
@@ -1833,7 +1833,7 @@ await suite("signals", async () => {
 		await test("watch", () => {
 			const events: unknown[] = [];
 			const signal = $(1);
-			const versioned = $v();
+			const versioned = $obj();
 			strictEqual(signal.active, false);
 			strictEqual(isTracking(), false);
 
@@ -2013,6 +2013,29 @@ await suite("signals", async () => {
 			assertEvents(events, ["d:8", "ab:3"]);
 			strictEqual(c(), 3);
 			strictEqual(d(), 8);
+		});
+
+		await test("custom eq", () => {
+			const events: unknown[] = [];
+			const signal = $<string | number>(1);
+			const fn = leak(() => computed(signal, eq((prev, next) => prev == next)));
+
+			leak(() => watch(fn, value => {
+				events.push(value);
+			}));
+			assertEvents(events, [1]);
+
+			signal.value = "2";
+			dispatch();
+			assertEvents(events, ["2"]);
+
+			signal.value = 2;
+			dispatch();
+			assertEvents(events, []);
+
+			signal.value = 3;
+			dispatch();
+			assertEvents(events, [3]);
 		});
 	});
 
@@ -2358,7 +2381,7 @@ await suite("signals", async () => {
 
 		await test("external untrack", () => {
 			const events: unknown[] = [];
-			const signal = $v();
+			const signal = $obj();
 			const pipe = leak(() => trigger(() => {
 				strictEqual(isTracking(), false);
 				events.push("trigger");
@@ -2388,7 +2411,7 @@ await suite("signals", async () => {
 
 		await test("internal untrack", () => {
 			const events: unknown[] = [];
-			const signal = $v();
+			const signal = $obj();
 			const pipe = leak(() => trigger(() => {
 				strictEqual(isTracking(), false);
 				events.push("trigger");

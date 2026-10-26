@@ -1,4 +1,4 @@
-import { $v } from "../core/index.js";
+import { $obj } from "../core/index.js";
 import type { Barrier } from "./barrier.js";
 import { ProbeMap } from "./probes.js";
 
@@ -10,7 +10,7 @@ import { ProbeMap } from "./probes.js";
  * @returns The proxy.
  */
 export function createReactiveProxy<T extends object>(target: T, barrier: Barrier): T {
-	const iterators = $v();
+	const iterators = $obj();
 	const getProbes = new ProbeMap<keyof T, T[keyof T]>(key => target[key]);
 	const hasProbes = new ProbeMap<keyof T, boolean>(key => key in target);
 	const proto = Object.getPrototypeOf(target) as T | null;

@@ -1,6 +1,5 @@
 import { Context } from "./context.js";
 import { NOOP } from "./internals/noop.js";
-import type { Versioned } from "./versioned.js";
 
 /**
  * Represents a stack frame that teardown hooks can be pushed into.
@@ -216,18 +215,30 @@ export function isIsolated() {
 	return TEARDOWN_FRAME === TEARDOWN_FRAME_THROW && ACCESS_FRAME === undefined;
 }
 
+/**
+ * Fields are considered internal and not subject to semantic versioning.
+ */
 export interface StateEq<T, S> {
 	s(value: T): S;
 	e(prev: S, next: T): boolean;
 }
 
 /**
- * Use `Object.is` for checking state equality.
+ * Use `Object.is` for checking if two values are equal.
  */
 export const OBJECT_IS: StateEq<any, any> = {
 	s: value => value,
 	e: Object.is,
 };
+
+/**
+ * Create a state equality check that uses the previous and next values.
+ *
+ * @param e A function that returns true if the values are equal.
+ */
+export function eq<T>(e: (prev: T, next: T) => boolean): StateEq<T, NoInfer<T>> {
+	return { s: value => value, e };
+}
 
 /**
  * Represents a value that changes over time.
@@ -314,7 +325,7 @@ export class Signal<T> {
 	/**
 	 * Manually notify observers.
 	 *
-	 * @deprecated Use a {@link Versioned} signal instead.
+	 * @deprecated Use an {@link ObjSignal} signal instead.
 	 */
 	notify(): void {
 		this.#effects.forEach(e => e());
@@ -346,6 +357,65 @@ export class Signal<T> {
  */
 export function $<T>(value: T): Signal<T> {
 	return new Signal(value);
+}
+
+/**
+ * A {@link Signal} with a manually versioned state.
+ */
+export class ObjSignal<T> extends Signal<T> {
+	#version = Symbol();
+
+	constructor(value: T) {
+		super(value, {
+			s: _value => this.#version,
+			e: (prev, _next) => prev === this.#version,
+		} satisfies StateEq<T, symbol>);
+	}
+
+	/**
+	 * Bump the version of this signal & notify observers.
+	 */
+	notify(): void {
+		this.#version = Symbol();
+		super.notify();
+	}
+}
+
+/**
+ * Shorthand for creating a {@link ObjSignal versioned signal}.
+ *
+ * @example
+ * ```tsx
+ * let value = 0;
+ * const signal = $v();
+ *
+ * watch(() => {
+ *   signal.access();
+ *   return value;
+ * }, () => {
+ *   console.log("Value:", value);
+ * });
+ *
+ * value++;
+ * signal.notify();
+ * ```
+ */
+export function $obj(): ObjSignal<void>;
+
+/**
+ * Shorthand for creating a {@link ObjSignal versioned signal}.
+ *
+ * @example
+ * ```tsx
+ * const map = $v(new Map());
+ * map.inert.set("foo", 1);
+ * map.inert.set("bar", 2);
+ * map.notify();
+ * ```
+ */
+export function $obj<T>(value: T): ObjSignal<T>;
+export function $obj<T>(value?: T): ObjSignal<T> {
+	return new ObjSignal(value!);
 }
 
 /**
@@ -610,7 +680,7 @@ export function watchUpdates<T>(expr: Expression<T>, effect: (value: NoInfer<T>)
 	return first!;
 }
 
-export function computed<T>(expr: Expression<T>, eq: StateEq<T, any> = OBJECT_IS): () => T {
+export function computed<T>(expr: Expression<T>, eq: StateEq<NoInfer<T>, any> = OBJECT_IS): () => T {
 	const isSignal = expr instanceof Signal;
 	if (!isSignal && typeof expr !== "function") {
 		return () => expr as T;

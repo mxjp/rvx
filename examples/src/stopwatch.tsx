@@ -7,7 +7,7 @@ This example also demonstrates how state and logic can be separated from its rep
 
 */
 
-import { $, $v, Expression, get, Index, Nest, Override, Show, watchUpdates } from "rvx";
+import { $, $obj, Expression, get, Index, Nest, Override, Show, watchUpdates } from "rvx";
 import { useAnimation } from "rvx/async";
 
 export function Example() {
@@ -39,7 +39,7 @@ class Stopwatch {
 	#runningSince = 0;
 	#running = $(false);
 	#time = $(0);
-	#laps = $v<number[]>([]);
+	#laps = $obj<number[]>([]);
 
 	constructor() {
 		watchUpdates(this.#running, running => {
