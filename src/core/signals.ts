@@ -263,8 +263,9 @@ export class Signal<T> {
 	 * Create a new signal.
 	 *
 	 * @param value The initial value.
+	 * @param eq Defines how two values are checked for equality. See {@link eq}. Default is {@link OBJECT_IS}.
 	 */
-	constructor(value: T, eq: StateEq<T, unknown> = OBJECT_IS) {
+	constructor(value: T, eq: StateEq<NoInfer<T>, unknown> = OBJECT_IS) {
 		this.inert = value;
 		this.#effects = new Set();
 		this.#observable = {
@@ -354,9 +355,10 @@ export class Signal<T> {
  * Create a new signal.
  *
  * @param value The initial value.
+ * @param eq Defines how two values are checked for equality. See {@link eq}. Default is {@link OBJECT_IS}.
  */
-export function $<T>(value: T): Signal<T> {
-	return new Signal(value);
+export function $<T>(value: T, eq?: StateEq<NoInfer<T>, unknown>): Signal<T> {
+	return new Signal(value, eq);
 }
 
 /**
@@ -680,6 +682,61 @@ export function watchUpdates<T>(expr: Expression<T>, effect: (value: NoInfer<T>)
 	return first!;
 }
 
+/**
+ * Wrap an expression to re-run only when any accessed signal has been updated.
+ *
+ * + The {@link Context} from where `computed` was called is available in the expression.
+ * + Teardown hooks in the expression are not supported.
+ * + The expression only re-runs when the result is accessed after any used signal has been updated.
+ * + Observers only re-run when the result is not equal to the previous one.
+ *
+ * @param expr The expression to wrap.
+ * @param eq Defines how two results are checked for equality. See {@link eq}. Default is {@link OBJECT_IS}.
+ * @returns The wrapped expression.
+ *
+ * @example
+ * ```tsx
+ * import { $, computed } from "rvx";
+ *
+ * const a = $(2);
+ * const b = $(3);
+ *
+ * // This function always returns the sum of the current signal values:
+ * const sum = computed(() => a.value + b.value);
+ * ```
+ */
+export function computed<T>(expr: Reactive<T>, eq?: StateEq<NoInfer<T>, any>): () => T;
+
+/**
+ * @deprecated
+ * This call can be removed because the expression is always static. You can replace it with a function that returns the value directly.
+ */
+export function computed<T>(expr: Static<T>, eq?: StateEq<NoInfer<T>, any>): () => T;
+
+/**
+ * Wrap an expression to re-run only when any accessed signal has been updated.
+ *
+ * + The {@link Context} from where `computed` was called is available in the expression.
+ * + Teardown hooks in the expression are not supported.
+ * + The expression only re-runs when the result is accessed after any used signal has been updated.
+ * + Observers only re-run when the result is not equal to the previous one.
+ *
+ * @param expr The expression to wrap.
+ * @param eq Defines how two results are checked for equality. See {@link eq}. Default is {@link OBJECT_IS}.
+ * @returns The wrapped expression.
+ *
+ * @example
+ * ```tsx
+ * import { $, computed } from "rvx";
+ *
+ * const a = $(2);
+ * const b = $(3);
+ *
+ * // This function always returns the sum of the current signal values:
+ * const sum = computed(() => a.value + b.value);
+ * ```
+ */
+export function computed<T>(expr: Expression<T>, eq?: StateEq<NoInfer<T>, any>): () => T;
 export function computed<T>(expr: Expression<T>, eq: StateEq<NoInfer<T>, any> = OBJECT_IS): () => T {
 	const isSignal = expr instanceof Signal;
 	if (!isSignal && typeof expr !== "function") {

@@ -614,6 +614,23 @@ await suite("signals", async () => {
 		assertEvents(events, []);
 	});
 
+	await test("custom eq", () => {
+		const events: unknown[] = [];
+		const signal = $<string | number>(1, eq((prev, next) => prev == next));
+		leak(() => watch(signal, value => {
+			events.push(value);
+		}));
+		assertEvents(events, [1]);
+		signal.value = "1";
+		assertEvents(events, []);
+		dispatch();
+		assertEvents(events, []);
+		signal.value = "2";
+		assertEvents(events, []);
+		dispatch();
+		assertEvents(events, ["2"]);
+	});
+
 	await suite("watch", async () => {
 		await test("static", () => {
 			const events: unknown[] = [];

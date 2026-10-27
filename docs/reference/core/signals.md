@@ -40,22 +40,65 @@ items.inert.push("c");
 items.notify();
 ```
 
-Signals can be controlled manually:
+Signals can be accessed manually without actually using the current value:
 ```jsx
 // Pretend that count was accessed:
 count.access();
-
-// Pretend that count has changed:
-count.notify();
 ```
 
 ## Equality
-By default, setting a signal's `value` property only notifies its observers if the value is not the same.
+Observers re-run when any accessed signal or computed value has changed. By default, `Object.is` is used for checking if two values are equal.
 ```jsx
 const count = $(42);
-// This does nothing since the value is already 42:
+
+watch(() => {
+	console.log(count.value);
+});
+
+// This has no effect because the value is already 42:
 count.value = 42;
 ```
+
+```jsx
+const a = $(3);
+const b = $(4);
+
+const c = computed(() => a.value + b.value);
+
+watch(c, result => {
+	console.log(result);
+});
+
+// This has no effect because the computed result stays 7:
+a.value = 4;
+b.value = 3;
+```
+
+The equality check can be customized:
+
+=== "JSX"
+	```jsx
+	import { $, computed, eq } from "rvx";
+
+	const count = $(7, eq((a, b) => a == b));
+
+	// This is now considered the same as 7:
+	count.value = "7";
+
+	computed(() => { ... }, eq((a, b) => a == b));
+	```
+
+=== "No Build"
+	```jsx
+	import { $, computed, eq } from "./rvx.js";
+
+	const count = $(7, eq((a, b) => a == b));
+
+	// This is now considered the same as 7:
+	count.value = "7";
+
+	computed(() => { ... }, eq((a, b) => a == b));
+	```
 
 ## Expressions
 In rvx, an `Expression` can be a static value, a signal or a function that accesses signals.
@@ -192,25 +235,27 @@ This is the same as [`watch`](#watch) except that it returns a function to react
 + Execution is stopped when the current [lifecycle](lifecycle.md) is disposed.
 + Teardown hooks from the callback are called when the current [lifecycle](lifecycle.md) is disposed or before the next call.
 
-## `lazy`
+## `computed`
 Wrap an expression to re-run only when any accessed signal has been updated.
 
 === "JSX"
 	```jsx
-	import { lazy } from "rvx";
+	import { computed } from "rvx";
 
-	const getValue = lazy(() => a.value * b.value);
+	const getValue = computed(() => a.value * b.value);
 	```
 
 === "No Build"
 	```jsx
-	import { lazy } from "./rvx.js";
+	import { computed } from "./rvx.js";
 
-	const getValue = lazy(() => a.value * b.value);
+	const getValue = computed(() => a.value * b.value);
 	```
 
-+ The [context](context.md) from where `lazy` was called is available in the expression.
++ The [context](context.md) from where `computed` was called is available in the expression.
 + Teardown hooks in the expression are not supported.
++ The expression only re-runs when the result is accessed after any used signal has been updated.
++ Observers only re-run when the result is not equal to the previous one (see [Equality](#equality) for custom checks).
 
 ## `untrack`
 Evaluate an expression and isolate signal accesses from the current observer.
@@ -502,7 +547,7 @@ Observers like [`watch`](#watch) and [`trigger`](#trigger), signals and teardown
 + Observers reference all accessed signals from the latest expression until disposed.
 + Signals reference all current observers.
 
-Note that [`lazy`](#lazy) is not an observer and does not affect references even when in between an observer and a signal.
+Note that [`computed`](#computed) is not an observer itself, but acts as one while its result is accessed by another observer and does not affect references otherwise.
 
 !!! warning
 	Not cleaning up unused observers by calling their teardown hooks can result in memory leaks and other undefined behavior.
