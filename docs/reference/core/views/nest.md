@@ -49,7 +49,7 @@ All signals accessed from the `watch` expression will trigger a full re-render w
 + When **signalA** is updated, the expression re-runs, the previous component is disposed and the new component is rendered.
 + Updating **signalB** has no effect on the component lifecycle.
 
-To avoid re-rendering the component when the same values are returned, you can wrap the expression using [`memo`](../signals.md#memo) or use [`<Show>`](./show.md) instead.
+To avoid re-rendering the component when the same values are returned, you can wrap the expression using [`computed`](../signals.md#computed) or use [`<Show>`](./show.md) instead.
 
 ## Component expressions
 The component can be omitted if the expression itself returns a component, `null` or `undefined`:

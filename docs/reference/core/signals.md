@@ -211,30 +211,6 @@ Signal updates are always processed immediately. The `batch` function can be use
 
 If updates from a batch cause immediate recursive side effects, these are also processed as part of the batch.
 
-## `memo`
-Run a function and re-run when any accessed signals are updated.
-
-This is the same as [`watch`](#watch) except that it returns a function to reactively access the latest expression result.
-
-=== "JSX"
-	```jsx
-	import { memo } from "rvx";
-
-	const getValue = memo(() => a.value * b.value);
-	```
-
-=== "No Build"
-	```jsx
-	import { memo } from "./rvx.js";
-
-	const getValue = memo(() => a.value * b.value);
-	```
-
-+ The current [context](context.md) is available in the expression.
-+ Execution is deferred during [batches](#batch).
-+ Execution is stopped when the current [lifecycle](lifecycle.md) is disposed.
-+ Teardown hooks from the callback are called when the current [lifecycle](lifecycle.md) is disposed or before the next call.
-
 ## `computed`
 Wrap an expression to re-run only when any accessed signal has been updated.
 
