@@ -17,5 +17,5 @@ export function getSource(target: object) {
 }
 
 export function getRoot(target: object) {
-	return ROOTS.get(target);
+	return ROOTS.get(target) ?? target;
 }
