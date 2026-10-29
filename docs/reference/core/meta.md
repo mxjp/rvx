@@ -36,3 +36,6 @@ const input = debounce(trim(value), 300);
 
 getRoot(input) === value; // true
 ```
+
+!!! info
+	Note that this returns the result of `getRoot` on the target's source at the time `setSource` was called or the target itself. Changes to sources of other objects after that are not taken into account.
