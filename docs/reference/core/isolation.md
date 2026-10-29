@@ -90,22 +90,6 @@ Signal accesses are not tracked as if the signal was accessed outside of any obs
 To only isolate signal accesses, use [`untrack`](./signals.md#untrack) instead.
 
 ## Non Isolated APIs
-[Batches](./signals.md#batch) are not isolated as this could lead to inconsistent signal access tracking:
-
-```jsx
-import { batch, isolate } from "rvx";
-
-batch(() => {
-	// This is part of the batch:
-	a.value++;
-
-	isolate(() => {
-		// This is also part of the batch:
-		b.value++;
-	});
-});
-```
-
 The `isolate` function is transparent to all [contexts](./context.md) for performance reasons:
 
 === "JSX"

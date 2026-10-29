@@ -110,7 +110,7 @@ When there are multiple async parts in the same place, tracking can be used to h
 	);
 
 	<Async source={innerCtx.complete()}>
-		{() => inner.move()}
+		{inner}
 	</Async>
 	```
 
@@ -126,7 +126,7 @@ When there are multiple async parts in the same place, tracking can be used to h
 		nestAsync(...),
 	]));
 
-	nestAsync(innerCtx.complete(), () => inner.move())
+	nestAsync(innerCtx.complete(), inner)
 	```
 
 ## Dynamic Sources

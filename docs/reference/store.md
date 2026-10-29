@@ -64,28 +64,6 @@ To update a reactive object, you can directly modify the wrapper.
 	todos.push({ name: "Baz", done: true });
 	```
 
-Note that every individual update is processed immediately. To prevent this, you can use [batches](./core/signals.md#batch):
-
-=== "JSX"
-	```jsx
-	import { batch } from "rvx";
-
-	batch(() => {
-		todos[1].done = true;
-		todos.push({ name: "Baz", done: true });
-	});
-	```
-
-=== "No Build"
-	```jsx
-	import { batch } from "./rvx.js";
-
-	batch(() => {
-		todos[1].done = true;
-		todos.push({ name: "Baz", done: true });
-	});
-	```
-
 ## Signal Reflection
 The `reflect` utility can be used to create a [signal](./core/signals.md) that reflects a reactive property of an arbitrary object.
 

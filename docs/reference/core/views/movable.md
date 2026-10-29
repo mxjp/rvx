@@ -1,40 +1,58 @@
 # Movable Views
 Using views in multiple places at once is not supported and will result in undefined behavior.
 
-When you want to safely reuse, keep alive or move content, you can wrap content as a movable view to automatically remove it from its previous place when used concurrently.
+When you want to safely reuse, keep alive or move content, you can wrap it as a movable component to automatically remove it from its previous place when used again.
 
 === "JSX"
 	```jsx
-	import { movable, MovableView } from "rvx";
+	import { movable } from "rvx";
 
 	// Wrap arbitrary content:
-	const wrapper = movable(<>Hello World!</>);
+	const Content = movable(<>Hello World!</>);
 
-	// Wrap an existing view:
-	const wrapper = new MovableView(someOtherView);
-
-	// Remove content from all other instances and create a new one:
-	const view = wrapper.move();
-
-	// Remove content from all other instances:
-	wrapper.detach();
+	// Render the content and remove it from its previous place:
+	<Content />;
 	```
 
 === "No Build"
 	```jsx
-	import { movable, MovableView } from "./rvx.js";
+	import { movable } from "./rvx.js";
 
 	// Wrap arbitrary content:
-	const wrapper = movable("Hello World!");
+	const content = movable("Hello World!");
 
-	// Wrap an existing view:
-	const wrapper = new MovableView(someOtherView);
+	// Render the content and remove it from its previous place:
+	e("div").append(content());
+	```
 
-	// Remove content from all other instances and create a new one:
-	const view = wrapper.move();
+The content is rendered once and reused:
 
-	// Remove content from all other instances:
-	wrapper.detach();
+=== "JSX"
+	```jsx
+	import { movable, Show } from "rvx";
+
+	const content = movable(<input type="text" prop:value="Hello World!" />);
+
+	<>
+		<Show when={a}>
+			{content}
+		</Show>
+		<Show when={b}>
+			{content}
+		</Show>
+	</>
+	```
+
+=== "No Build"
+	```jsx
+	import { movable, when } from "./rvx.js";
+
+	const content = movable(e("input").set("type", "text").prop("value", "Hello World!"));
+
+	[
+		when(a, content),
+		when(b, content),
+	]
 	```
 
 For just keeping content alive and conditionally rendering it in the same place, consider using [`<Attach>`](./attach.md) instead of movable views.

@@ -1,25 +1,27 @@
 # Testing
-Testing rvx based applications is usually very simple because all of its signal based rendering is synchronous. E.g. when updating a signal, all resulting changes are reflected in the DOM immediately:
+Testing rvx based applications is usually very simple. To assert changes to the DOM, update signals and process them synchronously by calling `dispatch`:
 
 === "JSX"
 	```jsx
-	import { $ } from "rvx";
+	import { $, dispatch } from "rvx";
 
 	const count = $(7);
 	const element = <div>Current count: {count}</div> as HTMLDivElement;
 	assert(element.innerText === "Current count: 7");
 	count.value = 42;
+	dispatch();
 	assert(element.innerText === "Current count: 42");
 	```
 
 === "No Build"
 	```jsx
-	import { $, e } from "./rvx.js";
+	import { $, dispatch, e } from "./rvx.js";
 
 	const count = $(7);
 	const element = e("div").append("Current count: ", count).elem;
 	assert(element.innerText === "Current count: 7");
 	count.value = 42;
+	dispatch();
 	assert(element.innerText === "Current count: 42");
 	```
 

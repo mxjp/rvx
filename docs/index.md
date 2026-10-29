@@ -57,13 +57,14 @@ watch(count, value => {
 ```
 
 ## Synchronous Rendering
-Signal updates are processed synchronously for permanent consistency between state & UI.
+Signal updates can be processed synchronously for permanent consistency between state & UI.
 
 ```jsx
 const message = $("foo");
 const element = <h1>{message}</h1>;
 
 message.value = "bar";
+dispatch();
 element.textContent // "bar"
 ```
 

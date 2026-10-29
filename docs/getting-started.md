@@ -76,9 +76,11 @@ To replace a signal value, you can set the `value` property:
 count.value = 1;
 ```
 
-To deeply update an object, modify it directly and manually notify observers:
+To deeply update an object, use an object signal, modify it directly and manually notify observers:
 ```jsx
-const values = $([7, 42]);
+import { $obj } from "rvx";
+
+const values = $obj([7, 42]); 
 
 // This will modify the inner value without tracking:
 values.inert.push(77);
@@ -148,9 +150,9 @@ mount(
 
 The `For` component repeats content for each item in an iterable:
 ```jsx
-import { $, mount, For } from "rvx";
+import { $obj, mount, For } from "rvx";
 
-const values = $<number[]>([]);
+const values = $obj<number[]>([]);
 
 mount(
 	document.body,

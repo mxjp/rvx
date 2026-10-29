@@ -100,6 +100,42 @@ The equality check can be customized:
 	computed(() => { ... }, eq((a, b) => a == b));
 	```
 
+## Object Signals
+Object signals are meant for modifying values in place for more efficient atomic updates.
+
+Use the `$obj` shorthand to create an object signal:
+
+=== "JSX"
+	```jsx
+	import { $obj } from "rvx";
+
+	const map = $obj(new Map());
+	```
+
+=== "No Build"
+	```jsx
+	import { $obj } from "./rvx.js";
+
+	const map = $obj(new Map());
+	```
+
+To modify a value in an object signal, use the `inert` property followed by calling `notify()`:
+
+```jsx
+const map = $obj(new Map());
+
+watch(() => Array.from(map.value), entries => {
+	console.log("Current entries:", entries);
+});
+
+map.inert.set("a", 1);
+map.inert.set("b", 2);
+map.notify();
+```
+
+!!! note
+	Calling `notify` on an object signal always causes observers to re-run regardless of how or if the value was actually modified.
+
 ## Expressions
 In rvx, an `Expression` can be a static value, a signal or a function that accesses signals.
 ```jsx
@@ -110,6 +146,43 @@ $(42);
 // A function that accesses signals:
 () => a.value * b.value;
 ```
+
+## Scheduling
+When any signal is updated, affected observers re-run on the next microtask by default.
+
+Updates can be processed immediately by calling `dispatch`:
+
+=== "JSX"
+	```jsx
+	import { $, dispatch, watch } from "rvx";
+
+	const count = $(0);
+
+	watch(count, value => {
+		console.log("Count:", value);
+	});
+
+	count.value = 1;
+	count.value = 2;
+
+	dispatch(); // Logs "Count: 2"
+	```
+
+=== "No Build"
+	```jsx
+	import { $, dispatch, watch } from "./rvx.js";
+
+	const count = $(0);
+
+	watch(count, value => {
+		console.log("Count:", value);
+	});
+
+	count.value = 1;
+	count.value = 2;
+
+	dispatch(); // "Count: 2"
+	```
 
 ## `watch`
 Watch an expression until the current lifecycle is disposed.
@@ -179,37 +252,6 @@ This is the same as [`watch`](#watch), but the initial value is returned instead
 		console.log("Count:", value);
 	});
 	```
-
-## `batch`
-Signal updates are always processed immediately. The `batch` function can be used to deduplicate and defer updates until the batch callback finishes:
-
-=== "JSX"
-	```jsx
-	import { batch } from "rvx";
-
-	const a = $(1);
-	const b = $(2);
-
-	batch(() => {
-		a.value++;
-		b.value++;
-	});
-	```
-
-=== "No Build"
-	```jsx
-	import { batch } from "./rvx.js";
-
-	const a = $(1);
-	const b = $(2);
-
-	batch(() => {
-		a.value++;
-		b.value++;
-	});
-	```
-
-If updates from a batch cause immediate recursive side effects, these are also processed as part of the batch.
 
 ## `computed`
 Wrap an expression to re-run only when any accessed signal has been updated.
@@ -469,11 +511,11 @@ mapArray(someMap, (entry, index) => { ... }, entry => `${entry[0]}/${entry[1]}`)
 Note that updates to anything other than the computed key are ignored.
 
 ## Immediate Side Effects
-By default, signal updates are processed immediately. If an update causes recursive side effects, they run in sequence instead.
+If an update causes recursive side effects, they are processed in sequence.
 
 === "JSX"
 	```jsx
-	import { $, watch } from "rvx";
+	import { $, dispatch, watch } from "rvx";
 
 	const count = $(0);
 
@@ -481,17 +523,19 @@ By default, signal updates are processed immediately. If an update causes recurs
 		console.group("Count:", value);
 		if (value < 2) {
 			count.value++;
+			dispatch();
 			console.log("New count:", count.value);
 		}
 		console.groupEnd();
 	});
 
+	dispatch();
 	console.log("Final count:", count.value);
 	```
 
 === "No Build"
 	```jsx
-	import { $, watch } from "./rvx.js";
+	import { $, dispatch, watch } from "./rvx.js";
 
 	const count = $(0);
 
@@ -499,11 +543,13 @@ By default, signal updates are processed immediately. If an update causes recurs
 		console.group("Count:", value);
 		if (value < 2) {
 			count.value++;
+			dispatch();
 			console.log("New count:", count.value);
 		}
 		console.groupEnd();
 	});
 
+	dispatch();
 	console.log("Final count:", count.value);
 	```
 
@@ -624,8 +670,9 @@ When this isn't possible, you can use one of the following options:
 // Replace the entire value:
 counter.value = { count: 1 };
 
-// Manually notify observers:
-counter.value.count++;
+// Use an object signal instead to modify the value in place and notify observers:
+const counter = $obj({ count: 0 });
+counter.inert.count++;
 counter.notify();
 ```
 
