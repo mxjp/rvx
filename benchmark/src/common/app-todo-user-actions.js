@@ -9,7 +9,7 @@ export const multiplier = addCount + (setDoneAndRemoveCount * 2);
  * @param {import("rvx")}
  * @param {boolean} onscreen
  */
-export function createBenchmark({ $, capture, render, e, teardown, forEach, when }, onscreen) {
+export function createBenchmark({ $, $obj, capture, render, e, teardown, forEach, when, dispatch }, onscreen) {
 	const random = mulberry32();
 
 	/**
@@ -66,7 +66,7 @@ export function createBenchmark({ $, capture, render, e, teardown, forEach, when
 			 *   done: import("rvx").Signal<boolean>
 			 * }[]>}
 			 */
-			const todos = $([]);
+			const todos = $obj([]);
 			const name = $("");
 
 			app = render([
@@ -128,6 +128,7 @@ export function createBenchmark({ $, capture, render, e, teardown, forEach, when
 			input.value = name;
 			input.dispatchEvent(new Event("input"));
 			row.lastChild.click();
+			dispatch();
 
 			const item = app.last.lastChild.firstChild;
 			if (item.value !== name) {
@@ -143,10 +144,12 @@ export function createBenchmark({ $, capture, render, e, teardown, forEach, when
 				throw new Error("done button not found");
 			}
 			item.lastChild.click();
+			dispatch();
 			if (item.lastChild.textContent !== "Remove") {
 				throw new Error("remove button not found");
 			}
 			item.lastChild.click();
+			dispatch();
 			if (items.childNodes.length - 1 !== count - 1 || item.parentNode) {
 				throw new Error("item was not removed");
 			}

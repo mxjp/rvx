@@ -19,12 +19,13 @@ for (let s = 0; s < sequenceCount; s++) {
 export const multiplier = sequence.flat().length;
 
 /** @param {import("rvx")} */
-export function create({ $, forEach }) {
+export function create({ $, forEach, dispatch }) {
 	return () => {
 		const signal = $(sequence[0]);
 		const view = forEach(signal, (item, index) => [item, index]);
 		for (let i = 1; i < sequence.length; i++) {
 			signal.value = sequence[i];
+			dispatch();
 		}
 		return view;
 	};

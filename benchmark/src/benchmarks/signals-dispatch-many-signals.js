@@ -1,11 +1,11 @@
 
 const signalCount = 100;
-const batchCount = 10;
+const dispatchCount = 10;
 
-export const multiplier = signalCount * batchCount;
+export const multiplier = signalCount * dispatchCount;
 
 /** @param {import("rvx")} */
-export function create({ $, watch, batch }) {
+export function create({ $, watch, dispatch }) {
 	return () => {
 		const signals = [];
 		for (let i = 0; i < signalCount; i++) {
@@ -16,12 +16,11 @@ export function create({ $, watch, batch }) {
 				signals[i].access();
 			}
 		}, () => {});
-		for (let i = 0; i < batchCount; i++) {
-			batch(() => {
-				for (let i = 0; i < signalCount; i++) {
-					signals[i].value++;
-				}
-			});
+		for (let i = 0; i < dispatchCount; i++) {
+			for (let i = 0; i < signalCount; i++) {
+				signals[i].value++;
+			}
+			dispatch();
 		}
 	};
 }

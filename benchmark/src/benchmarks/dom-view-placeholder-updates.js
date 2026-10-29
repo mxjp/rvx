@@ -4,7 +4,7 @@ const viewCount = 100;
 export const multiplier = viewCount;
 
 /** @param {import("rvx") & import("rvx/dom")} */
-export function create({ $, render, nest, WINDOW, ENV }) {
+export function create({ $, render, nest, dispatch, WINDOW, ENV }) {
 	return () => {
 		ENV.provide(WINDOW, () => {
 			const signals = Array(viewCount).fill(0).map(() => $(false));
@@ -13,6 +13,7 @@ export function create({ $, render, nest, WINDOW, ENV }) {
 			})));
 			for (let i = 0; i < viewCount; i++) {
 				signals[i].value = true;
+				dispatch();
 			}
 			return root;
 		});

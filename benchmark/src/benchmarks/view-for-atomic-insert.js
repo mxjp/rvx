@@ -5,7 +5,7 @@ const itemCount = 50;
 export const multiplier = itemCount;
 
 /** @param {import("rvx")} */
-export function create({ $, forEach }) {
+export function create({ $, forEach, dispatch }) {
 	const random = mulberry32();
 	const sequence = [];
 	for (let i = 0; i < itemCount; i++) {
@@ -17,6 +17,7 @@ export function create({ $, forEach }) {
 		const view = forEach(signal, (item, index) => [item, index]);
 		for (let i = 1; i < sequence.length; i++) {
 			signal.value = sequence[i];
+			dispatch();
 		}
 		return view;
 	};

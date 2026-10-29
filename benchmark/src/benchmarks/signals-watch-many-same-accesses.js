@@ -2,7 +2,7 @@
 export const multiplier = 1000;
 
 /** @param {import("rvx")} */
-export function create({ $, watch }) {
+export function create({ $, watch, dispatch }) {
 	return () => {
 		const signal = $(0);
 		watch(() => {
@@ -10,6 +10,7 @@ export function create({ $, watch }) {
 				signal.access();
 			}
 		}, () => {});
-		signal.notify();
+		signal.value++;
+		dispatch();
 	};
 }
