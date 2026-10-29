@@ -2,7 +2,7 @@
 The meta API can be used to provide information about where a derived signal or computed value originates from. This can be used by e.g. a validation system to find the source of truth to attach validation rules to.
 
 ## `setSource / unsetSource`
-Set or unset the source that an object originates from:
+Set or unset the direct source of truth:
 
 ```jsx
 import { $, setSource, Signal } from "rvx";
@@ -18,7 +18,7 @@ function trim(source: Signal<string>): Signal<string> {
 ```
 
 ## `getSource`
-Returns the direct source of an object:
+Returns the direct source of truth if any:
 
 ```jsx
 const value = $("foo");
@@ -28,7 +28,7 @@ getSource(trimmed) === value; // true
 ```
 
 ## `getRoot`
-Returns the first object in the chain of sources:
+Returns the root source of truth:
 
 ```jsx
 const value = $("foo");
@@ -38,4 +38,4 @@ getRoot(input) === value; // true
 ```
 
 !!! info
-	Note that this returns the result of `getRoot` on the target's source at the time `setSource` was called or the target itself. Changes to sources of other objects after that are not taken into account.
+	The root is resolved when `setSource` is called. Changes to sources of other objects after that are not taken into account.
