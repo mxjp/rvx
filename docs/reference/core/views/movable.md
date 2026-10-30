@@ -1,7 +1,7 @@
-# Movable Views
-Using views in multiple places at once is not supported and will result in undefined behavior.
+# Movable Content
+Using content in multiple places at once is not supported and will result in undefined behavior.
 
-When you want to safely reuse, keep alive or move content, you can wrap it as a movable component to automatically remove it from its previous place when used again.
+When you want to safely reuse, keep alive or move content, you can create a component that automatically removes content from its previous place when used again.
 
 === "JSX"
 	```jsx
@@ -55,4 +55,4 @@ The content is rendered once and reused:
 	]
 	```
 
-For just keeping content alive and conditionally rendering it in the same place, consider using [`<Attach>`](./attach.md) instead of movable views.
+For just keeping content alive and conditionally rendering it in the same place, consider using [`<Attach>`](./attach.md) instead of `movable`.

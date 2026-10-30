@@ -5,7 +5,7 @@
 !!! tip
 	This example exists solely to demonstrate what's possible with the view API. You will most likely never need to implement a custom view, except in cases with extreme performance requirements.
 
-This example shows a custom view that rotates the order of its logical children when a signal is updated.
+This example shows a custom view that rotates the order of its logical children when an event is emitted.
 
 You can toggle the visibility of the entire view or one of its children to demonstrate boundary tracking.
 

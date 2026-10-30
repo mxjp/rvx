@@ -78,8 +78,8 @@ function Time(props: { value: Expression<number> }) {
 		</Show>
 		{() => Math.floor(get(props.value) / 1000 / 60) % 60}
 		:
-		{() => (Math.floor(get(props.value) / 1000) % 60).toFixed(0).padStart(2, "0")}
+		{() => String(Math.floor(get(props.value) / 1000) % 60).padStart(2, "0")}
 		.
-		{() => (Math.floor(get(props.value)) % 1000).toFixed(0).padStart(3, "0")}
+		{() => String(Math.floor(get(props.value)) % 1000).padStart(3, "0")}
 	</code>;
 }

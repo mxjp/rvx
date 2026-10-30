@@ -32,9 +32,9 @@ count.value++;
 count.inert++;
 ```
 
-To deeply change a value and then notify the signal observers, use the `inert` property and manually `notify` observers:
+To deeply change a value, use an object signal and manually call `notify()`:
 ```jsx
-const items = $(["a", "b"]);
+const items = $obj(["a", "b"]);
 
 items.inert.push("c");
 items.notify();
@@ -647,7 +647,7 @@ Note that [`computed`](#computed) is not an observer itself, but acts as one whi
 ## Troubleshooting
 For signal based reactivity to work, the following is required:
 
-+ The value of a signal is replaced via the `value` property or `notify` is called.
++ The value of a signal is replaced via the `value` property or `notify` is called on an object signal.
 + The place where the value is used must be able to access the signal by calling a function.
 
 ### Deep Updates
