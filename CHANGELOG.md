@@ -1,5 +1,21 @@
 # Changelog
 
+## 28.0
++ **Breaking:** Signal updates are now processed on the next microtask.
++ **Breaking:** Observers now re-run only if any directly used signals or computed results have changed:
+	+ Calling `notify()` on a plain signal no longer has an effect if the value was not replaced.
++ **Breaking:** `batch` has been removed. Updates are batched automatically until the next microtask or until `dispatch` is called.
++ **Breaking:** Rename `lazy => computed`.
++ **Breaking:** Remove `memo`. Use `computed` instead or manually create an output signal & watch the input expression.
++ Add specialized `ObjSignal & $obj` signal types for values that can be modified in place.
++ Add `schedule & dispatch` to manually run or dispatch work on the signal update queue.
++ **Breaking:** Remove `MovableView` class. `movable` now returns a lifecycle-less component.
++ **Breaking:** The following getters are now computed expressions instead:
+	+ `AsyncContext.pending`
++ **Breaking:** Signal meta API has been generalized and removed from signal objects:
+	+ Remove `Signal.source`, `Signal.root`, the `source` parameter of `Signal`/`$` & the `SignalSource` type.
+	+ Add `setSource`, `unsetSource`, `getSource` & `getRoot`.
+
 ## 27.0
 + **Breaking:** Remove `RvxElement` constructor options & default shadow root.
 + Fix: Unsupported methods on `ReactiveMap` and `ReactiveSet` no longer silently fail.
