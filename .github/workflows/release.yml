@@ -22,4 +22,9 @@ jobs:
           node-version: 26
           registry-url: https://registry.npmjs.org/
       - run: npm ci
-      - run: npm publish
+      - name: Release
+        if: ${{ !contains(github.ref_name, '-next') }}
+        run: npm publish
+      - name: Release next
+        if: ${{ contains(github.ref_name, '-next') }}
+        run: npm publish --tag next
