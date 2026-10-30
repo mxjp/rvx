@@ -17,7 +17,7 @@ await test("router/child router", async () => {
 	strictEqual(child.root, root);
 	strictEqual(child.parent, root);
 
-	leak(() => watch(() => [child.path, child.query] as const, ([path, query]) => {
+	leak(() => watch(() => [child.path(), child.query()] as const, ([path, query]) => {
 		events.push([
 			"update",
 			path,
@@ -27,30 +27,30 @@ await test("router/child router", async () => {
 	assertEvents(events, [["update", "", undefined]]);
 
 	child.push("foo");
-	strictEqual(root.path, "/test/foo");
+	strictEqual(root.path(), "/test/foo");
 	assertEvents(events, [["push", "/test/foo", undefined]]);
 
 	child.replace("bar");
-	strictEqual(root.path, "/test/bar");
+	strictEqual(root.path(), "/test/bar");
 	assertEvents(events, [["replace", "/test/bar", undefined]]);
 
 	child.push("a", "test=1");
 	dispatch();
-	strictEqual(root.path, "/test/a");
+	strictEqual(root.path(), "/test/a");
 	assertEvents(events, [["push", "/test/a", "test=1"], ["update", "", "test=1"]]);
 
 	child.replace("b", "test=2");
 	dispatch();
-	strictEqual(root.path, "/test/b");
+	strictEqual(root.path(), "/test/b");
 	assertEvents(events, [["replace", "/test/b", "test=2"], ["update", "", "test=2"]]);
 
 	path.value = normalize("/foo");
 	dispatch();
-	strictEqual(child.path, "/foo");
+	strictEqual(child.path(), "/foo");
 	assertEvents(events, [["update", "/foo", "test=2"]]);
 
 	path.value = normalize("/bar");
 	dispatch();
-	strictEqual(child.path, "/bar");
+	strictEqual(child.path(), "/bar");
 	assertEvents(events, [["update", "/bar", "test=2"]]);
 });

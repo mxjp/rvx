@@ -151,7 +151,7 @@ await suite("router/route", async () => {
 							lifecycleEvent(events, "c");
 							const child = ROUTER.current;
 							strictEqual(child instanceof ChildRouter, true);
-							watch(() => child!.path, path => events.push(path));
+							watch(child!.path, path => events.push(path));
 						} },
 					]} />}
 				</Provide>

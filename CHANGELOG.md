@@ -11,6 +11,7 @@
 + Add `schedule & dispatch` to manually run or dispatch work on the signal update queue.
 + **Breaking:** Remove `MovableView` class. `movable` now returns a lifecycle-less component.
 + **Breaking:** The following getters are now computed expressions instead:
+	+ `Router.path` & `Router.query`
 	+ `AsyncContext.pending`
 + **Breaking:** Signal meta API has been generalized and removed from signal objects:
 	+ Remove `Signal.source`, `Signal.root`, the `source` parameter of `Signal`/`$` & the `SignalSource` type.

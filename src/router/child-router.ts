@@ -1,4 +1,4 @@
-import { Expression, get } from "../core/index.js";
+import { computed, Expression } from "../core/index.js";
 import { join } from "./path.js";
 import { Query, QueryInit } from "./query.js";
 import { Router } from "./router.js";
@@ -9,7 +9,8 @@ import { Router } from "./router.js";
 export class ChildRouter implements Router {
 	#parent: Router;
 	#mountPath: string;
-	#path: Expression<string>;
+	path: () => string;
+	query: () => Query | undefined;
 
 	/**
 	 * Create a new child router.
@@ -21,7 +22,8 @@ export class ChildRouter implements Router {
 	constructor(parent: Router, mountPath: string, path: Expression<string>) {
 		this.#parent = parent;
 		this.#mountPath = mountPath;
-		this.#path = path;
+		this.path = computed(path);
+		this.query = parent.query;
 	}
 
 	get root(): Router {
@@ -30,14 +32,6 @@ export class ChildRouter implements Router {
 
 	get parent(): Router | undefined {
 		return this.#parent;
-	}
-
-	get path(): string {
-		return get(this.#path);
-	}
-
-	get query(): Query | undefined {
-		return this.#parent.query;
 	}
 
 	push(path: string, query?: QueryInit): void {

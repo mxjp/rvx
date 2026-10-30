@@ -24,6 +24,8 @@ export class MemoryRouter implements Router {
 	#parent: Router | undefined;
 	#path = $<string>(undefined!);
 	#query = $<Query | undefined>(undefined);
+	path = () => this.#path.value;
+	query = () => this.#query.value;
 
 	constructor(options?: MemoryRouterOptions) {
 		this.#parent = options?.parent;
@@ -37,14 +39,6 @@ export class MemoryRouter implements Router {
 
 	get parent(): Router | undefined {
 		return this.#parent;
-	}
-
-	get path(): string {
-		return this.#path.value;
-	}
-
-	get query(): Query | undefined {
-		return this.#query.value;
 	}
 
 	push(path: string, query?: QueryInit): void {

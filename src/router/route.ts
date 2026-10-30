@@ -168,7 +168,7 @@ export function routes(routes: Expression<Iterable<ComponentRoute<any>>>): View 
 		// Router is not available in the current context:
 		throw new Error("G3");
 	}
-	const watched = watchRoutes(() => router.path, routes);
+	const watched = watchRoutes(router.path, routes);
 	return nest(watched.match, match => {
 		if (match) {
 			return ROUTER.provide(new ChildRouter(router, match.path, watched.rest), () => {
@@ -201,5 +201,5 @@ export function isCurrent(match: Route["match"], router?: Router): boolean {
 		// Router is not available in the current context:
 		throw new Error("G3");
 	}
-	return matchRoute(router.path, { match }) !== undefined;
+	return matchRoute(router.path(), { match }) !== undefined;
 }

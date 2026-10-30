@@ -21,6 +21,8 @@ export class HashRouter implements Router {
 	#env = ENV.current;
 	#path = $<string>(undefined!);
 	#query = $<Query | undefined>(undefined);
+	path = () => this.#path.value;
+	query = () => this.#query.value;
 
 	constructor(options?: HashRouterOptions) {
 		const env = this.#env;
@@ -54,14 +56,6 @@ export class HashRouter implements Router {
 
 	get parent(): Router | undefined {
 		return undefined;
-	}
-
-	get path(): string {
-		return this.#path.value;
-	}
-
-	get query(): Query | undefined {
-		return this.#query.value;
 	}
 
 	push(path: string, query?: QueryInit): void {

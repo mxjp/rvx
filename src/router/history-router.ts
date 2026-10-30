@@ -27,6 +27,8 @@ export class HistoryRouter implements Router {
 	#basePath: string;
 	#path = $<string>(undefined!);
 	#query = $<Query | undefined>(undefined!);
+	path = () => this.#path.value;
+	query = () => this.#query.value;
 
 	constructor(options?: HistoryRouterOptions) {
 		const env = this.#env;
@@ -63,14 +65,6 @@ export class HistoryRouter implements Router {
 
 	get parent(): Router | undefined {
 		return undefined;
-	}
-
-	get path(): string {
-		return this.#path.value;
-	}
-
-	get query(): Query | undefined {
-		return this.#query.value;
 	}
 
 	push(path: string, query?: QueryInit): void {

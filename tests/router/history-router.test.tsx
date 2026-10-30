@@ -53,7 +53,7 @@ await suite("router/history router", { skip: isRvxDom() }, async () => {
 		strictEqual(router.parent, undefined);
 
 		leak(() => {
-			watch(() => [router.path, router.query] as const, ([path, query]) => {
+			watch(() => [router.path(), router.query()] as const, ([path, query]) => {
 				events.push([path, query?.raw]);
 			});
 		});
@@ -103,7 +103,7 @@ await suite("router/history router", { skip: isRvxDom() }, async () => {
 		const router = leak(() => new HistoryRouter({ basePath: "foo/bar" }));
 
 		leak(() => {
-			watch(() => router.path, path => {
+			watch(router.path, path => {
 				events.push(path);
 			});
 		});

@@ -29,7 +29,7 @@ await test("router/history router", { skip: isRvxDom() }, () => {
 	strictEqual(router.parent, undefined);
 
 	leak(() => {
-		watch(() => [router.path, router.query] as const, ([path, query]) => {
+		watch(() => [router.path(), router.query()] as const, ([path, query]) => {
 			events.push([path, query?.raw]);
 		});
 	});

@@ -330,22 +330,22 @@ Query parameters can be reactively accessed via router instances.
 === "JSX"
 	```jsx
 	// Access the raw query string (without the leading "?"):
-	ROUTER.current!.query?.raw;
+	ROUTER.current!.query()?.raw;
 
 	// Access the query as a URLSearchParams object:
-	ROUTER.current!.query?.params;
+	ROUTER.current!.query()?.params;
 	```
 
 === "No Build"
 	```jsx
 	// Access the raw query string (without the leading "?"):
-	ROUTER.current.query?.raw;
+	ROUTER.current.query()?.raw;
 
 	// Access the query as a URLSearchParams object:
-	ROUTER.current.query?.params;
+	ROUTER.current.query()?.params;
 	```
 
-Note that the `query` property is undefined if the current URL doesn't contain a query.
+Note that the `query` expression returns undefined if the current URL doesn't contain a query.
 
 ## Async Content
 You can use the [`<Async>`](./async-utilities/async.md) component to dynamically import & render components.

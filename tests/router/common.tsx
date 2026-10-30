@@ -5,6 +5,8 @@ export class TestRouter implements Router {
 	#events: unknown[];
 	#path = $(normalize(""));
 	#query = $<Query | undefined>(undefined);
+	path = () => this.#path.value;
+	query = () => this.#query.value;
 
 	constructor(events?: unknown[]) {
 		this.#events = events ?? [];
@@ -16,14 +18,6 @@ export class TestRouter implements Router {
 
 	get parent(): Router | undefined {
 		return undefined;
-	}
-
-	get path(): string {
-		return this.#path.value;
-	}
-
-	get query(): Query | undefined {
-		return this.#query.value;
 	}
 
 	#push(path: string, query?: QueryInit): void {

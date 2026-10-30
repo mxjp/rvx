@@ -18,12 +18,12 @@ export interface Router {
 	/**
 	 * Reactively get the remaining normalized path in this context.
 	 */
-	get path(): string;
+	path: () => string;
 
 	/**
 	 * Reactively get the search parameters in this context.
 	 */
-	get query(): Query | undefined;
+	query: () => Query | undefined;
 
 	/**
 	 * Navigate to the specified path within the path this router is mounted in.

@@ -14,7 +14,7 @@ await suite("router/memory router", async () => {
 		strictEqual(router.parent, undefined);
 
 		leak(() => {
-			watch(() => [router.path, router.query] as const, ([path, query]) => {
+			watch(() => [router.path(), router.query()] as const, ([path, query]) => {
 				events.push([path, query?.raw]);
 			});
 		});
@@ -51,7 +51,7 @@ await suite("router/memory router", async () => {
 			},
 		}));
 
-		strictEqual(router.path, "/foo/bar/");
-		strictEqual(router.query?.raw, "foo=1&bar=2");
+		strictEqual(router.path(), "/foo/bar/");
+		strictEqual(router.query()?.raw, "foo=1&bar=2");
 	});
 });
