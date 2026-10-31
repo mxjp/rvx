@@ -120,5 +120,10 @@ This is thrown by the [`<Routes>`](./routing.md) component if no router has been
 
 Make sure that you are not leaking teardown hooks by accident and either [`capture`](./core/lifecycle.md#capture) or intentionally [`leak`](./core/lifecycle.md#leak) them.
 
+### `G6`
+**Computed value has a circular dependency.**
+
+This is thrown when a [`computed`](./core/signals.md#computed) value accesses itself.
+
 ### Reserved Error Codes
 The following error codes existed in previous versions: `G0, G4`

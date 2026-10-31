@@ -772,6 +772,7 @@ export function computed<T>(expr: Expression<T>, eq: StateEq<NoInfer<T>, any> = 
 		},
 		p: Context.bind(() => {
 			if (updating) {
+				// Computed value has a circular dependency.
 				throw new Error("G6");
 			}
 			try {
