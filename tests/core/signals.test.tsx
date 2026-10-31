@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { $, $obj, capture, computed, Context, dispatch, eq, isTracking, leak, map, teardown, TeardownHook, trigger, TriggerPipe, untrack, watch, watchUpdates } from "rvx";
+import { $, $obj, capture, computed, Context, dispatch, eq, isTracking, leak, map, schedule, teardown, TeardownHook, trigger, TriggerPipe, untrack, watch, watchUpdates } from "rvx";
 import { assertEvents, causesRejection, lifecycleEvent, withMsg } from "../common.js";
 
 await suite("signals", async () => {
@@ -2163,6 +2163,67 @@ await suite("signals", async () => {
 			signal.value = 3;
 			dispatch();
 			assertEvents(events, [3]);
+		});
+	});
+
+	await suite("schedule & dispatch", async () => {
+		await test("microtask dispatch", async () => {
+			const events: unknown[] = [];
+			schedule(() => {
+				events.push("a");
+				schedule(() => {
+					events.push("c");
+				});
+			});
+			schedule(() => {
+				events.push("b");
+			});
+			assertEvents(events, []);
+			await Promise.resolve();
+			assertEvents(events, ["a", "b", "c"]);
+		});
+
+		await test("manual dispatch", async () => {
+			const events: unknown[] = [];
+			schedule(() => {
+				events.push("a");
+				schedule(() => {
+					events.push("c");
+				});
+			});
+			schedule(() => {
+				events.push("b");
+			});
+			assertEvents(events, []);
+			dispatch();
+			assertEvents(events, ["a", "b", "c"]);
+			dispatch();
+			assertEvents(events, []);
+			await Promise.resolve();
+			assertEvents(events, []);
+			schedule(() => {
+				events.push("d");
+			});
+			await Promise.resolve();
+			assertEvents(events, ["d"]);
+		});
+
+		await test("error handling", async () => {
+			const events: unknown[] = [];
+			schedule(() => {
+				events.push("a");
+				throw new Error("test");
+			});
+			schedule(() => {
+				events.push("b");
+			});
+			causesRejection(dispatch, withMsg("test"));
+			assertEvents(events, ["a", "b"]);
+			schedule(() => {
+				events.push("c");
+			});
+			await Promise.resolve();
+			assertEvents(events, ["c"]);
 		});
 	});
 

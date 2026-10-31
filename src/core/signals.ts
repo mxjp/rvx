@@ -639,7 +639,6 @@ export function schedule(effect: Effect): void {
 		EFFECTS_SCHEDULED = true;
 		queueMicrotask(() => {
 			_dispatch();
-			// TODO: Check order:
 			EFFECTS_SCHEDULED = false;
 		})
 	}
