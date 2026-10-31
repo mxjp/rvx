@@ -326,7 +326,7 @@ export class Signal<T> {
 	/**
 	 * Manually notify observers.
 	 *
-	 * @deprecated Use an {@link ObjSignal} signal instead.
+	 * Note that observers might not re-run if their last known value of this signal is equal to the current one.
 	 */
 	notify(): void {
 		this.#effects.forEach(e => e());

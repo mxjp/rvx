@@ -46,6 +46,12 @@ Signals can be accessed manually without actually using the current value:
 count.access();
 ```
 
+Observers can also be notified manually, but might not re-run if their last known value of the signal is equal to the current one:
+```jsx
+count.inert++;
+count.notify();
+```
+
 ## Equality
 Observers re-run when any accessed signal or computed value has changed. By default, `Object.is` is used for checking if two values are equal.
 ```jsx
