@@ -10,12 +10,12 @@
 		"build:render": "node render.js",
 		"preview": "vite preview --outDir dist/static"
 	},
-	"devDependencies": {
-		"@mxjp/parallel": "^1.0.2",
-		"typescript": "^6.0.3",
-		"vite": "^8.1.5"
-	},
 	"dependencies": {
-		"rvx": "^27.0.0"
+		"rvx": "^28.0.0"
+	},
+	"devDependencies": {
+		"@mxjp/parallel": "^1.0.3",
+		"typescript": "^7.0.2",
+		"vite": "^8.3.4"
 	}
 }
