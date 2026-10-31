@@ -80,7 +80,7 @@ To deeply update an object, use an object signal, modify it directly and manuall
 ```jsx
 import { $obj } from "rvx";
 
-const values = $obj([7, 42]); 
+const values = $obj([7, 42]);
 
 // This will modify the inner value without tracking:
 values.inert.push(77);
@@ -134,18 +134,20 @@ import { $, mount, Show } from "rvx";
 
 const showMessage = $(false);
 
-mount(
-	document.body,
-	<>
-		<button on:click={() => { showMessage.value = !showMessage.value }}>
-			Toggle message
-		</button>
+leak(() => {
+	mount(
+		document.body,
+		<>
+			<button on:click={() => { showMessage.value = !showMessage.value }}>
+				Toggle message
+			</button>
 
-		<Show when={showMessage}>
-			{() => <h1>Hello World!</h1>}
-		</Show>
-	</>
-);
+			<Show when={showMessage}>
+				{() => <h1>Hello World!</h1>}
+			</Show>
+		</>
+	);
+});
 ```
 
 The `For` component repeats content for each item in an iterable:
@@ -154,23 +156,25 @@ import { $obj, mount, For } from "rvx";
 
 const values = $obj<number[]>([]);
 
-mount(
-	document.body,
-	<>
-		<button on:click={() => {
-			values.inert.push(Date.now());
-			values.notify();
-		}}>
-			Add current time
-		</button>
+leak(() => {
+	mount(
+		document.body,
+		<>
+			<button on:click={() => {
+				values.inert.push(Date.now());
+				values.notify();
+			}}>
+				Add current time
+			</button>
 
-		<ul>
-			<For each={values}>
-				{value => <li>{value}</li>}
-			</For>
-		</ul>
-	</>
-);
+			<ul>
+				<For each={values}>
+					{value => <li>{value}</li>}
+				</For>
+			</ul>
+		</>
+	);
+});
 ```
 
 In addition to `Show` and `For`, rvx provides some more view types you can find [here](./reference/core/views/index.md) or you can implement your own views for special use cases.
