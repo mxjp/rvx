@@ -631,6 +631,116 @@ await suite("signals", async () => {
 		assertEvents(events, ["2"]);
 	});
 
+	await suite("object signals", async () => {
+		await test("in-place update", () => {
+			const events: unknown[] = [];
+			const map = $obj(new Map<string, number>());
+			strictEqual(map.active, false);
+
+			leak(() => watch(() => Array.from(map.value), entries => {
+				events.push(entries);
+			}));
+			assertEvents(events, [[]]);
+			strictEqual(map.active, true);
+
+			map.inert.set("a", 1);
+			map.inert.set("b", 2);
+			assertEvents(events, []);
+			dispatch();
+			assertEvents(events, []);
+
+			map.notify();
+			assertEvents(events, []);
+			dispatch();
+			assertEvents(events, [[["a", 1], ["b", 2]]]);
+		});
+
+		await test("unchanged notify", () => {
+			const events: unknown[] = [];
+			const items = $obj([1, 2, 3]);
+			leak(() => watch(() => {
+				events.push("expr");
+				return items.value.length;
+			}, length => {
+				events.push(length);
+			}));
+			assertEvents(events, ["expr", 3]);
+
+			items.notify();
+			assertEvents(events, []);
+			dispatch();
+			assertEvents(events, ["expr", 3]);
+		});
+
+		await test("computed chain", () => {
+			const events: unknown[] = [];
+			const items = $obj(new Map([["a", 1], ["b", 2]]));
+			const size = computed(() => {
+				events.push("compute");
+				return items.value.size;
+			});
+
+			leak(() => watch(size, value => {
+				events.push(value);
+			}));
+			assertEvents(events, ["compute", 2]);
+
+			items.inert.set("a", 3);
+			items.notify();
+			assertEvents(events, []);
+			dispatch();
+			assertEvents(events, ["compute"]);
+
+			items.inert.set("c", 4);
+			items.notify();
+			assertEvents(events, []);
+			dispatch();
+			assertEvents(events, ["compute", 3]);
+		});
+
+		await test("replace value", () => {
+			const events: unknown[] = [];
+			const initial = [1];
+			const signal = $obj(initial);
+			leak(() => watch(() => signal.value.length, length => {
+				events.push(length);
+			}));
+			assertEvents(events, [1]);
+
+			signal.value = initial;
+			assertEvents(events, []);
+			dispatch();
+			assertEvents(events, []);
+
+			signal.value = [1, 2];
+			assertEvents(events, []);
+			dispatch();
+			assertEvents(events, [2]);
+		});
+
+		await test("manual access", () => {
+			const events: unknown[] = [];
+			const signal = $obj();
+			strictEqual(signal.inert, undefined);
+
+			let outerValue = 0;
+			leak(() => watch(() => {
+				signal.access();
+				return outerValue;
+			}, value => {
+				events.push(value);
+			}));
+			assertEvents(events, [0]);
+
+			outerValue++;
+			assertEvents(events, []);
+			signal.notify();
+			assertEvents(events, []);
+			dispatch();
+			assertEvents(events, [1]);
+		});
+	});
+
 	await suite("watch", async () => {
 		await test("static", () => {
 			const events: unknown[] = [];
