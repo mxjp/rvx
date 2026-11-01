@@ -22,7 +22,7 @@ The `isolate` function can be used to run arbitrary code in isolation from signa
 	```
 
 ## Lifecycle
-Teardown hooks are leaked as if [`teardown`](./lifecycle.md#teardown) was called outside of any context:
+Registering teardown hooks throws an [error](../error-handling.md#g5) as if [`teardown`](./lifecycle.md#teardown) was called outside of any context:
 
 === "JSX"
 	```jsx
@@ -33,7 +33,7 @@ Teardown hooks are leaked as if [`teardown`](./lifecycle.md#teardown) was called
 		teardown(() => {});
 
 		isolate(() => {
-			// This will leak:
+			// This throws:
 			teardown(() => {});
 		});
 	});
@@ -48,7 +48,7 @@ Teardown hooks are leaked as if [`teardown`](./lifecycle.md#teardown) was called
 		teardown(() => {});
 
 		isolate(() => {
-			// This will leak:
+			// This throws:
 			teardown(() => {});
 		});
 	});
@@ -100,7 +100,7 @@ The `isolate` function is transparent to all [contexts](./context.md) for perfor
 
 	EXAMPLE.provide(77, () => {
 		isolate(() => {
-			EXAMPLE.value; // 77
+			EXAMPLE.current; // 77
 		});
 	});
 	```
@@ -113,7 +113,7 @@ The `isolate` function is transparent to all [contexts](./context.md) for perfor
 
 	EXAMPLE.provide(77, () => {
 		isolate(() => {
-			EXAMPLE.value; // 77
+			EXAMPLE.current; // 77
 		});
 	});
 	```

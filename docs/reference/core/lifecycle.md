@@ -1,7 +1,7 @@
 # Lifecycle
 Teardown hooks allow you to run cleanup code when the lifecycle of something is disposed.
 
-The lifecycle of any synchronous code can be manually managed using [`capture`](#capture), [`captureSelf`](#capture) and [`teardownOnError`](#teardownonerror).
+The lifecycle of any synchronous code can be manually managed using [`capture`](#capture), [`captureSelf`](#captureself) and [`teardownOnError`](#teardownonerror).
 
 To run code after something has been created, you can use [`useMicrotask`](../async-utilities/timers.md#usemicrotask) or manually schedule a microtask.
 

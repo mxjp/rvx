@@ -88,7 +88,7 @@ The `reflect` utility can be used to create a [signal](./core/signals.md) that r
 The target object does not need to be a reactive wrapper. Any arbitrary object with reactive properties works.
 
 ## Classes
-By default, arbitrary class instances are not reactive unless you specify, how to wrap them:
+By default, arbitrary class instances are not reactive unless you specify how to wrap them:
 
 === "JSX"
 	```jsx

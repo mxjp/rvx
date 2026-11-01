@@ -115,15 +115,15 @@ If needed, you can wait for [`<Async>`](./async-utilities/async.md) parts to com
 === "No Build"
 	```jsx
 	import { e, render } from "./rvx.js";
-	import { ASYNC, Async, AsyncContext } from "./rvx.async.js";
+	import { ASYNC, nestAsync, AsyncContext } from "./rvx.async.js";
 
 	const asyncCtx = new AsyncContext();
 	const app = ASYNC.provide(asyncCtx, () => {
 		return render(
-			Async({
-				source: Promise.resolve("Hello World!"),
-				children: title => e("h1").append(title),
-			})
+			nestAsync(
+				Promise.resolve("Hello World!"),
+				title => e("h1").append(title),
+			)
 		);
 	});
 

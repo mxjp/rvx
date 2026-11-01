@@ -176,8 +176,7 @@ export function teardownOnError<T>(fn: () => T): T {
 /**
  * Register a teardown hook to be called when the current lifecycle is disposed.
  *
- * This has no effect if teardown hooks are not captured in the current context.
- *
+ * @throws An error if teardown hooks are not captured in the current context. See {@link leak} for intentionally leaking teardown hooks.
  * @param hook The hook to register. This may be called multiple times.
  */
 export function teardown(hook: TeardownHook): void {
@@ -186,7 +185,7 @@ export function teardown(hook: TeardownHook): void {
 
 /**
  * Run a function in isolation from the following side effect causing APIs:
- * + Teardown hooks are leaked. To isolate only teardown hooks, use {@link leak} instead.
+ * + Teardown hooks can not be registered and cause an error. To isolate only teardown hooks, use {@link leak} instead.
  * + Signal accesses are not tracked and the default tracking behavior is restored. To only isolate signal accesses, use {@link untrack} instead.
  *
  * Note that contexts are not isolated.
@@ -389,7 +388,7 @@ export class ObjSignal<T> extends Signal<T> {
  * @example
  * ```tsx
  * let value = 0;
- * const signal = $v();
+ * const signal = $obj();
  *
  * watch(() => {
  *   signal.access();
@@ -409,7 +408,7 @@ export function $obj(): ObjSignal<void>;
  *
  * @example
  * ```tsx
- * const map = $v(new Map());
+ * const map = $obj(new Map());
  * map.inert.set("foo", 1);
  * map.inert.set("bar", 2);
  * map.notify();
@@ -906,7 +905,7 @@ export interface TriggerPipe {
  * Create an expression evaluator pipe that calls a function once when any accessed signals from the latest evaluated expression are updated.
  *
  * + When the lifecycle at which the pipe was created is disposed, the callback function will not be called anymore.
- * + It is guaranteed that the function is called before any other observers like {@link watch} or {@link effect} are notified.
+ * + It is guaranteed that the function is called before any other observers like {@link watch} or {@link watchUpdates} are notified.
  * + If pipes are nested, the callback for the most inner one is called first.
  *
  * @param callback The callback to invoke when a signal is updated.

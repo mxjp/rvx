@@ -11,7 +11,7 @@ Rvx supports using web components just like any other native element.
 	e("some-web-component");
 	```
 
-To implement a web component, you can extend the `RvxElement` class which takes care of creating a shadow root and renders content when the element is connected to the document:
+To implement a web component, you can extend the `RvxElement` class which takes care of rendering content when the element is connected to the document:
 
 === "JSX"
 	```jsx
@@ -56,10 +56,10 @@ The `reflect` function can be used to get a signal that reflects an attribute va
 
 		render() {
 			return <button on:click={() => {
-				const newCount = Number(this.#count) + 1;
+				const newCount = Number(this.#count.value) + 1;
 
 				// Updating the signal will also update the "count" attribute:
-				this.#count.value = newCount;
+				this.#count.value = String(newCount);
 
 				// Dispatch an event to notify users of your web component:
 				this.dispatchEvent(new CustomEvent("count-changed", { detail: newCount }));
@@ -95,10 +95,10 @@ The `reflect` function can be used to get a signal that reflects an attribute va
 		render() {
 			return e("button")
 				.on("click", () => {
-					const newCount = Number(this.#count) + 1;
+					const newCount = Number(this.#count.value) + 1;
 
 					// Updating the signal will also update the "count" attribute:
-					this.#count.value = newCount;
+					this.#count.value = String(newCount);
 
 					// Dispatch an event to notify users of your web component:
 					this.dispatchEvent(new CustomEvent("count-changed", { detail: newCount }));
@@ -146,7 +146,7 @@ You can always start or dispose the component manually:
 
 === "No Build"
 	```jsx
-	const elem = e("example-element");
+	const elem = e("example-element").elem;
 
 	// Start rendering the component:
 	elem.start();

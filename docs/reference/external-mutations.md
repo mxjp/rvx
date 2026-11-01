@@ -10,7 +10,7 @@ In the example below, updating `someSignal` will override only the `"alt"` attri
 
 === "JSX"
 	```jsx
-	const elem = <img src="./a.webp" alt={someSignal} /> as HTMLElement;
+	const elem = <img src="./a.webp" alt={someSignal} /> as HTMLImageElement;
 	elem.src = "./b.webp";
 	elem.alt = "Something else...";
 	```
@@ -81,7 +81,7 @@ In the example below, updating `someSignal` will only override the `"color"` pro
 		render([
 			"Hello World!",
 			e("some-element"),
-			Show({ when: ... }),
+			when(..., ...),
 		])
 		```
 

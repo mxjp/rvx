@@ -177,7 +177,7 @@ The example below shows a basic text input and a [`trim`](../convert.md#trim) fu
 
 === "JSX"
 	```jsx
-	import { $, Signal, watchUpdates } from "rvx";
+	import { $, setSource, Signal, watchUpdates } from "rvx";
 
 	function TextInput(props: { value: Signal<string>; }) {
 		return <input
@@ -190,9 +190,9 @@ The example below shows a basic text input and a [`trim`](../convert.md#trim) fu
 	}
 
 	function trim(source: Signal<string>) {
-		// The second parameter is metadata to let other APIs
-		// know that "input" has been derived from "source":
-		const input = $(source.value, source);
+		// Let other APIs know that "input" has been derived from "source":
+		const input = $(source.value);
+		setSource(input, source);
 
 		// Update the source signal if the input changes:
 		watchUpdates(input, value => {
@@ -225,7 +225,7 @@ The example below shows a basic text input and a [`trim`](../convert.md#trim) fu
 
 === "No Build"
 	```jsx
-	import { $, watchUpdates, e } from "./rvx.js";
+	import { $, setSource, watchUpdates, e } from "./rvx.js";
 
 	/**
 	 * @param {object} props
@@ -242,9 +242,9 @@ The example below shows a basic text input and a [`trim`](../convert.md#trim) fu
 	 * @param {import("./rvx.js").Signal<string>} source
 	 */
 	function trim(source) {
-		// The second parameter is metadata to let other APIs
-		// know that "input" has been derived from "source":
-		const input = $(source.value, source);
+		// Let other APIs know that "input" has been derived from "source":
+		const input = $(source.value);
+		setSource(input, source);
 
 		// Update the source signal if the input changes:
 		watchUpdates(input, value => {

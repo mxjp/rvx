@@ -10,7 +10,7 @@ The `mount` and `render` functions can be used to create a view from arbitrary [
 
 === "No Build"
 	```jsx
-	import { render } from "rvx";
+	import { render } from "./rvx.js";
 
 	const view = render("Hello World!");
 	```
@@ -26,7 +26,7 @@ The `mount` function also appends the created view to a parent node until the cu
 
 === "No Build"
 	```jsx
-	import { mount } from "rvx";
+	import { mount } from "./rvx.js";
 
 	mount(document.body, "Hello World!");
 	```

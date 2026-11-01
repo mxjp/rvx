@@ -75,7 +75,7 @@ To wait for async parts in a specific context to complete, you can use `AsyncCon
 
 === "No Build"
 	```jsx
-	import { ASYNC, Async, AsyncContext } from "./rvx.async.js";
+	import { ASYNC, nestAsync, AsyncContext } from "./rvx.async.js";
 
 	const ctx = new AsyncContext();
 

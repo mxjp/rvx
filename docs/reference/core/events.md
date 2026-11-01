@@ -62,7 +62,7 @@ To allow components to listen to events, it's enough to pass the `event` as a pr
 
 	/**
 	 * @param {object} props
-	 * @param {import("./rvx.event.js").Event<[message: string]>} props.onMessage
+	 * @param {import("./rvx.js").Event<[message: string]>} props.onMessage
 	 */
 	function SomeComponent(props) {
 		props.onMessage(message => {

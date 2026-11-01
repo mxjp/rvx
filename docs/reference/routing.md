@@ -379,15 +379,16 @@ You can use the [`<Async>`](./async-utilities/async.md) component to dynamically
 	}
 
 	// main.js:
-	import { routes, Async } from "./rvx.router.js";
+	import { routes } from "./rvx.router.js";
+	import { nestAsync } from "./rvx.async.js";
 
 	routes([
 		{
 			match: "/",
-			content: () => Async({
-				source: () => import("./example-page"),
-				children: pageModule => pageModule.default(),
-			})
+			content: () => nestAsync(
+				() => import("./example-page"),
+				pageModule => pageModule.default(),
+			)
 		},
 	])
 	```
@@ -417,12 +418,12 @@ Depending on how you want to implement things like error handling and loading in
 	 * @param {() => Promise<{ default: () => unknown }>} importModule
 	 */
 	function page(importModule) {
-		return () => Async({
-			source: importModule,
-			pending: () => "Loading...",
-			rejected: error => ["Error: ", error],
-			children: pageModule => pageModule.default(),
-		});
+		return () => nestAsync(
+			importModule,
+			pageModule => pageModule.default(),
+			() => "Loading...",
+			error => ["Error: ", error],
+		);
 	}
 
 	routes([

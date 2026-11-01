@@ -74,10 +74,12 @@ If you need some kind of error boundary, you can use a component like the one be
 	```jsx
 	import { teardownOnError } from "./rvx.js";
 
-	function TryRender(props: {
-		fallback: (error: unknown) => unknown;
-		children: () => unknown;
-	}) {
+	/**
+	 * @param {object} props
+	 * @param {(error: unknown) => unknown} props.fallback
+	 * @param {() => unknown} props.children
+	 */
+	function TryRender(props) {
 		try {
 			return teardownOnError(props.children);
 		} catch (error) {

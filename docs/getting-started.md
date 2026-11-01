@@ -49,26 +49,28 @@ const count = $(0);
 
 When a signal is used directly or its value is accessed through a function call, the signal can notify its observers when the value changes:
 ```jsx
-import { $, mount } from "rvx";
+import { $, leak, mount } from "rvx";
 
 const count = $(0);
 
-mount(
-	document.body,
-	<>
-		{/* Using the signal directly is reactive: */}
-		Current count: {count}
+leak(() => {
+	mount(
+		document.body,
+		<>
+			{/* Using the signal directly is reactive: */}
+			Current count: {count}
 
-		{/* Accessing its value through a function is reactive: */}
-		Is even count: {() => (count.value & 1) === 0}
+			{/* Accessing its value through a function is reactive: */}
+			Is even count: {() => (count.value & 1) === 0}
 
-		{/*
-			Using the value directly is not reactive because
-			rvx has no way of re-evaluating the expression:
-		*/}
-		Initial count: {count.value}
-	</>
-);
+			{/*
+				Using the value directly is not reactive because
+				rvx has no way of re-evaluating the expression:
+			*/}
+			Initial count: {count.value}
+		</>
+	);
+});
 ```
 
 To replace a signal value, you can set the `value` property:

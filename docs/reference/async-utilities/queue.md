@@ -8,9 +8,11 @@ Depending on the use case, a task can be either **blocking** or a **side effect*
 
 === "JSX"
 	```jsx
+	import { leak } from "rvx";
 	import { Queue } from "rvx/async";
 
-	const queue = new Queue();
+	// The queue registers a teardown hook, so it needs a lifecycle:
+	const queue = leak(() => new Queue());
 
 	// Queue a blocking task:
 	const value = await queue.block(async () => {
@@ -26,9 +28,11 @@ Depending on the use case, a task can be either **blocking** or a **side effect*
 
 === "No Build"
 	```jsx
+	import { leak } from "./rvx.js";
 	import { Queue } from "./rvx.async.js";
 
-	const queue = new Queue();
+	// The queue registers a teardown hook, so it needs a lifecycle:
+	const queue = leak(() => new Queue());
 
 	// Queue a blocking task:
 	const value = await queue.block(async () => {

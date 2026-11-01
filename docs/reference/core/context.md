@@ -105,7 +105,7 @@ When rendering content, you can use the `<Provide>` component with JSX or the fu
 	```jsx
 	import { Provide, Context } from "rvx";
 
-	const MESSAGE = new Context<string>();
+	const MESSAGE = new Context<string | undefined>();
 
 	<Provide context={MESSAGE} value="Hello World!">
 		{() => <h1>{MESSAGE.current}</h1>}
@@ -140,7 +140,7 @@ Since contexts rely on the synchronous call stack, they don't automatically work
 	```jsx
 	import { Context } from "rvx";
 
-	const MESSAGE = new Context<string>();
+	const MESSAGE = new Context<string | undefined>();
 
 	MESSAGE.provide("Hello World!", () => {
 		MESSAGE.current; // "Hello World!"

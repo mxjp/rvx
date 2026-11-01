@@ -100,20 +100,20 @@ The example below shows a test that asserts that asynchronously loaded content i
 === "No Build"
 	```jsx
 	import { e, mount } from "./rvx.js";
-	import { Async } from "./rvx.async.js";
+	import { nestAsync } from "./rvx.async.js";
 	import { runAsyncTest, querySelector } from "./rvx.test.js";
 
 	await runAsyncTest(async ({ asyncCtx, use }) => {
 		const view = use(() => {
 			return mount(
 				document.body,
-				Async({
-					source: async () => {
+				nestAsync(
+					async () => {
 						await something();
 						return "Hello World!";
 					},
-					children: content => e("div").set("class", "page").append(content),
-				}),
+					content => e("div").set("class", "page").append(content),
+				),
 			);
 		});
 

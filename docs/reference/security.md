@@ -11,7 +11,7 @@ Interpolation in rendered content is always safe to use.
 
 	// Using interpolation in content is equivalent to the following code:
 	const text = document.createTextNode("");
-	text.textContent = String(untrusted);
+	text.textContent = untrusted;
 	```
 
 === "No Build"
@@ -21,7 +21,7 @@ Interpolation in rendered content is always safe to use.
 
 	// Using interpolation in content is equivalent to the following code:
 	const text = document.createTextNode("");
-	text.textContent = String(untrusted);
+	text.textContent = untrusted;
 	```
 
 Interpolation in attribute values is safe to use as long as the same is true for HTML itself. E.g. an image `alt` attribute is fine, but `href` is not.
@@ -32,7 +32,11 @@ Interpolation in attribute values is safe to use as long as the same is true for
 	<img alt={untrusted} />;
 
 	// Using interpolation in attribute values is equivalent to the following code:
-	image.setAttribute("alt", String(untrusted));
+	if (untrusted === null || untrusted === undefined || untrusted === false) {
+		image.removeAttribute("alt");
+	} else {
+		image.setAttribute("alt", untrusted === true ? "" : untrusted);
+	}
 	```
 
 === "No Build"
@@ -41,7 +45,11 @@ Interpolation in attribute values is safe to use as long as the same is true for
 	e("img").set("alt", untrusted);
 
 	// Using interpolation in attribute values is equivalent to the following code:
-	image.setAttribute("alt", String(untrusted));
+	if (untrusted === null || untrusted === undefined || untrusted === false) {
+		image.removeAttribute("alt");
+	} else {
+		image.setAttribute("alt", untrusted === true ? "" : untrusted);
+	}
 	```
 
 ## Common Mistakes
