@@ -24,7 +24,7 @@ export function normalize(path: string, preserveDir = true): string {
 /**
  * Join two paths.
  *
- * Note, that this dosn't handle empty, ".." or "." parts.
+ * Note, that this doesn't handle empty, ".." or "." parts.
  *
  * @param parent The parent path.
  * @param child The child path.
@@ -40,7 +40,7 @@ export function join(parent: string, child: string, preserveDir = true): string 
 /**
  * Get a normalized relative path.
  *
- * Note, that this dosn't handle empty, ".." or "." parts, but inserts ".." parts if necessary.
+ * Note, that this doesn't handle empty, ".." or "." parts, but inserts ".." parts if necessary.
  *
  * @param from The path from which the relative path starts.
  * @param to The path to which the relative path points.

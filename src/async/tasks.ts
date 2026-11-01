@@ -6,7 +6,7 @@ export interface TasksOptions {
 	/**
 	 * If true, focus is restored on the last active element when there are no more pending tasks in this instance.
 	 *
-	 * By default, this is inherited from the parent or true of there is none.
+	 * By default, this is inherited from the parent or true if there is none.
 	 */
 	restoreFocus?: boolean;
 }

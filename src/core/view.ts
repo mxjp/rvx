@@ -52,7 +52,7 @@ function use(setBoundary: ViewSetBoundaryFn, node: Node, env: typeof globalThis)
  * + Anything else is displayed as text.
  *
  * @param content The content to render.
- * @returns A view instance or the `content` parameter itself if its already a view.
+ * @returns A view instance or the `content` parameter itself if it's already a view.
  *
  * @example
  * ```tsx
