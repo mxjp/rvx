@@ -17,6 +17,8 @@ Render [content](../elements.md#content) for each index in an iterable [expressi
 	indexEach(someIterable, value => e("li").append(value))
 	```
 
+`value` is a function to reactively get the value for the current index.
+
 ## Index
 The index is passed as the second argument:
 
