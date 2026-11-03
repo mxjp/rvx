@@ -1,5 +1,16 @@
 # Installation
 
+## Templates
+Quickly get up and running by using the project templates below:
+
++ [vite](https://github.com/mxjp/rvx/tree/main/templates/vite) - Vite + TypeScript
++ [vite-ssg](https://github.com/mxjp/rvx/tree/main/templates/vite-ssg) - Basic static site generation with Vite + TypeScript.
+
+```bash
+# Create "my-app" from one of the templates above:
+npx degit mxjp/rvx/templates/<name> my-app
+```
+
 ## Npm
 Rvx is available as an [npm package](https://www.npmjs.com/package/rvx).
 ```bash
