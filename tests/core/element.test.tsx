@@ -84,6 +84,11 @@ await suite("element", async () => {
 							data-bar="baz"
 							attr:data-baz="boo"
 							prop:title="example"
+							data-foo-bar="fooBar"
+							data-foo-b-a-r="fooBAR"
+							data-foo1-bar="foo1Bar"
+							data--foo="Foo"
+							data-fooÉ="fooÉ"
 						/> as HTMLElement
 						: e("div")
 							.set("foo", "bar")
@@ -91,17 +96,31 @@ await suite("element", async () => {
 							.set("data-bar", "baz")
 							.set("data-baz", "boo")
 							.prop("title", "example")
+							.set("data-foo-bar", "fooBar")
+							.set("data-foo-b-a-r", "fooBAR")
+							.set("data-foo1-bar", "foo1Bar")
+							.set("data--foo", "Foo")
+							.set("data-fooÉ", "fooÉ")
 							.elem;
 				});
 				strictEqual(elem.getAttribute("foo"), "bar");
 				deepStrictEqual(Array.from(elem.classList), ["a", "b"]);
 				strictEqual(elem.getAttribute("data-bar"), "baz");
 				strictEqual(elem.getAttribute("data-baz"), "boo");
-				// TODO: Support dataset:
-				if (!isRvxDom()) {
-					strictEqual(elem.dataset.bar, "baz");
-					strictEqual(elem.dataset.baz, "boo");
-				}
+				strictEqual(elem.dataset.bar, "baz");
+				strictEqual(elem.dataset.baz, "boo");
+				strictEqual(elem.dataset.fooBar, "fooBar");
+				strictEqual(elem.dataset.fooBAR, "fooBAR");
+				strictEqual(elem.dataset.foo1Bar, "foo1Bar");
+				strictEqual(elem.dataset.Foo, "Foo");
+				strictEqual(elem.dataset.fooÉ, "fooÉ");
+				strictEqual(elem.dataset.missing, undefined);
+				elem.dataset.helloWorld = "42";
+				strictEqual(elem.getAttribute("data-hello-world"), "42");
+				strictEqual("helloWorld" in elem.dataset, true);
+				strictEqual("nope" in elem.dataset, false);
+				delete elem.dataset.helloWorld;
+				strictEqual(elem.getAttribute("data-hello-world"), null);
 				strictEqual(elem.title, "example");
 			});
 

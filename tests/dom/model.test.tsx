@@ -939,6 +939,7 @@ await suite("dom/model", async () => {
 				elem.removeAttribute("foo");
 				strictEqual(elem.hasAttribute("foo"), false);
 				strictEqual(elem.getAttribute("foo"), null);
+				strictEqual(elem.dataset, elem.dataset);
 			});
 
 			await test("toggle", () => {

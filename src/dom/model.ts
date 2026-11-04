@@ -1,6 +1,7 @@
 import { Context, HTML } from "../core/index.js";
 import { isVoidTag, resolveNamespaceURI, XMLNS, XMLNS_HTML } from "./internals/element-info.js";
 import { htmlEscapeAppendTo } from "./internals/html-escape.js";
+import { toDataAttr } from "./internals/to-data-attr.js";
 import { WINDOW_MARKER } from "./internals/window-marker.js";
 
 const NODE_LENGTH = Symbol("length");
@@ -813,6 +814,10 @@ export class ElementStyles {
 	}
 }
 
+export interface DOMStringMap {
+	[key: string]: string | undefined;
+}
+
 export class Element extends Node {
 	static {
 		this.prototype.nodeType = 1;
@@ -825,6 +830,7 @@ export class Element extends Node {
 	#attrs: Attribute[] = [];
 	#classList = new ElementClassList(this.#attrs);
 	#styles = new ElementStyles(this.#attrs);
+	#dataset: DOMStringMap | null = null;
 
 	constructor(namespaceURI: string, tagName: string) {
 		super();
@@ -880,6 +886,34 @@ export class Element extends Node {
 			this.#styles = new ElementStyles(this.#attrs);
 		}
 		return this.#styles;
+	}
+
+	get dataset(): DOMStringMap {
+		if (this.#dataset === null) {
+			this.#dataset = new Proxy({}, {
+				get: (_target, prop) => {
+					if (typeof prop === "string") {
+						return this.getAttribute(toDataAttr(prop)) ?? undefined;
+					}
+				},
+				set: (_target, prop, value) => {
+					if (typeof prop === "string") {
+						this.setAttribute(toDataAttr(prop), String(value));
+					}
+					return true;
+				},
+				deleteProperty: (_target, prop) => {
+					if (typeof prop === "string") {
+						this.removeAttribute(toDataAttr(prop));
+					}
+					return true;
+				},
+				has: (_target, prop) => {
+					return typeof prop === "string" && this.hasAttribute(toDataAttr(prop));
+				},
+			});
+		}
+		return this.#dataset;
 	}
 
 	cloneNode(deep: boolean): Node {
