@@ -875,16 +875,10 @@ export class Element extends Node {
 	}
 
 	get classList(): ElementClassList {
-		if (this.#classList === null) {
-			this.#classList = new ElementClassList(this.#attrs);
-		}
 		return this.#classList;
 	}
 
 	get style(): ElementStyles {
-		if (this.#styles === null) {
-			this.#styles = new ElementStyles(this.#attrs);
-		}
 		return this.#styles;
 	}
 
