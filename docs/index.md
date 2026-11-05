@@ -25,7 +25,7 @@ const count = $(0);
 Rvx's API is designed to closely represent what happens internally to avoid hidden complexity. Exact behavior and possible edge cases are subject to semantic versioning.
 
 ## Lightweight
-The entire core module has a size of about 4KB when minified & gzipped and almost everything is treeshakeable.
+The entire core module has a size of about 5KB when minified & gzipped and almost everything is treeshakeable.
 
 ## No Build System Required
 Rvx doesn't require a build system at all.
