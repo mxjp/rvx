@@ -32,5 +32,5 @@ function watchStyle(value: StyleValue, handler: StyleHandler): void {
 
 export function setStyle(elem: Element, value: StyleValue): void {
 	const style = (elem as HTMLElement).style;
-	watchStyle(value, (name, value) => style.setProperty(name, value as any));
+	watchStyle(value, style.setProperty.bind(style) as StyleHandler);
 }

@@ -18,7 +18,7 @@ export function mapArray<I, O>(inputs: Expression<Iterable<I>>, fn: MapArrayFn<N
 	const output = $obj<O[]>([]);
 	watch(() => {
 		const update = mapArrayUpdate(state, get(inputs), fn, keyFn);
-		if (update !== null) {
+		if (update) {
 			output.inert.splice(update.s, update.p.length, ...update.n.map(s => s.o));
 			output.notify();
 		}

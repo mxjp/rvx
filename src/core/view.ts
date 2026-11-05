@@ -22,11 +22,41 @@ function createParent(env: typeof globalThis): Node {
 }
 
 /**
- * Internal shorthand for creating the boundary comment of an empty view.
+ * Move all nodes from first to last (inclusive) to the specified parent.
  */
-function empty(setBoundary: ViewSetBoundaryFn, env: typeof globalThis): void {
+function moveNodes(first: Node, last: Node, parent: Node, ref: Node | null): void {
+	let node = first;
+	for (;;) {
+		const next = node.nextSibling;
+		if (ref === null) {
+			parent.appendChild(node);
+		} else {
+			parent.insertBefore(node, ref);
+		}
+		if (node === last) {
+			break;
+		}
+		node = next!;
+	}
+}
+
+/**
+ * Internal shorthand for creating the boundary comment of an empty view.
+ *
+ * @returns The created placeholder node.
+ */
+function emptyBoundary(setBoundary: ViewSetBoundaryFn, env: typeof globalThis): Node {
 	const node = createPlaceholder(env);
 	setBoundary(node, node);
+	return node;
+}
+
+/**
+ * Initialize a view's boundary and take ownership of future boundary changes.
+ */
+function adoptBoundary(view: View, setBoundary: ViewSetBoundaryFn): void {
+	setBoundary(view.first, view.last);
+	view.setBoundaryOwner(setBoundary);
 }
 
 /**
@@ -34,7 +64,7 @@ function empty(setBoundary: ViewSetBoundaryFn, env: typeof globalThis): void {
  */
 function use(setBoundary: ViewSetBoundaryFn, node: Node, env: typeof globalThis): void {
 	if (node.firstChild === null) {
-		empty(setBoundary, env);
+		emptyBoundary(setBoundary, env);
 	} else {
 		setBoundary(node.firstChild, node.lastChild!);
 	}
@@ -98,8 +128,8 @@ export function render(content: Content): View {
 					let part = flat[i];
 					if (part === null || part === undefined) {
 						parent.appendChild(createPlaceholder(env));
-					} else if (typeof part === "object") {
-						if (NODE in part) {
+					} else {
+						if (typeof part === "object" && NODE in part) {
 							part = (part as NodeTarget)[NODE];
 						}
 						if (part instanceof env.Node) {
@@ -118,8 +148,6 @@ export function render(content: Content): View {
 						} else {
 							parent.appendChild(createText(part, env));
 						}
-					} else {
-						parent.appendChild(createText(part, env));
 					}
 				}
 				use(setBoundary, parent, env);
@@ -128,9 +156,9 @@ export function render(content: Content): View {
 			content = flat[0];
 		}
 		if (content === null || content === undefined) {
-			empty(setBoundary, env);
-		} else if (typeof content === "object") {
-			if (NODE in content) {
+			emptyBoundary(setBoundary, env);
+		} else {
+			if (typeof content === "object" && NODE in content) {
 				content = (content as NodeTarget)[NODE];
 			}
 			if (content instanceof env.Node) {
@@ -140,15 +168,11 @@ export function render(content: Content): View {
 					setBoundary(content, content);
 				}
 			} else if (content instanceof View) {
-				setBoundary(content.first, content.last);
-				content.setBoundaryOwner(setBoundary);
+				adoptBoundary(content, setBoundary);
 			} else {
 				const text = createText(content, env);
 				setBoundary(text, text);
 			}
-		} else {
-			const text = createText(content, env);
-			setBoundary(text, text);
 		}
 	});
 }
@@ -344,16 +368,7 @@ export class View {
 	 * @param parent The parent to append to.
 	 */
 	appendTo(parent: Node): void {
-		let node = this.#first;
-		const last = this.#last;
-		for (;;) {
-			const next = node.nextSibling;
-			parent.appendChild(node);
-			if (node === last) {
-				break;
-			}
-			node = next!;
-		}
+		moveNodes(this.#first, this.#last, parent, null);
 	}
 
 	/**
@@ -363,19 +378,7 @@ export class View {
 	 * @param ref The reference child to insert before. If this is null, the nodes are appended to the parent.
 	 */
 	insertBefore(parent: Node, ref: Node | null): void {
-		if (ref === null) {
-			return this.appendTo(parent);
-		}
-		let node = this.#first;
-		const last = this.#last;
-		for (;;) {
-			const next = node.nextSibling;
-			parent.insertBefore(node, ref);
-			if (node === last) {
-				break;
-			}
-			node = next!;
-		}
+		moveNodes(this.#first, this.#last, parent, ref);
 	}
 
 	/**
@@ -392,7 +395,7 @@ export class View {
 			first.parentNode?.removeChild(first);
 			return first;
 		} else {
-			const fragment = ENV.current.document.createDocumentFragment();
+			const fragment = createParent(ENV.current);
 			this.appendTo(fragment);
 			return fragment;
 		}
@@ -483,8 +486,7 @@ export function nest(expr: Expression<unknown>, component: Component<unknown> = 
 			} else {
 				view = render(component(value));
 			}
-			setBoundary(view.first, view.last);
-			view.setBoundaryOwner(setBoundary);
+			adoptBoundary(view, setBoundary);
 		});
 	});
 }
@@ -547,8 +549,7 @@ export interface ForContentFn<T> {
 export function forEach<T>(each: Expression<Iterable<T>>, component: ForContentFn<NoInfer<T>>, keyFn?: MapArrayKeyFn<unknown, NoInfer<T>>): View {
 	return new View(setBoundary => {
 		const env = ENV.current;
-		const first = createPlaceholder(env);
-		setBoundary(first, first);
+		const first = emptyBoundary(setBoundary, env);
 		const mapFn: MapArrayFn<T, View> = (input, index) => render(component(input, index));
 		const state = createMapArrayState<unknown, T, View>();
 		watch(() => {
@@ -623,8 +624,7 @@ export function indexEach<T>(each: Expression<Iterable<T>>, component: IndexCont
 		const env = ENV.current;
 		const state: Instance[] = [];
 
-		const first = createPlaceholder(env);
-		setBoundary(first, first);
+		const first = emptyBoundary(setBoundary, env);
 
 		teardown(() => {
 			for (let i = state.length - 1; i >= 0; i--) {
@@ -701,8 +701,7 @@ export function movable(content: Content): Component<void, View> {
 				self.detach();
 				setBoundary(removed, removed);
 			});
-			setBoundary(inner.first, inner.last);
-			inner.setBoundaryOwner(setBoundary);
+			adoptBoundary(inner, setBoundary);
 		});
 	});
 }

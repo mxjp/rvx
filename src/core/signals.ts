@@ -45,6 +45,8 @@ const _toDep = <T, S>(observable: Observable<T, S>): Dependency<T, S> => ({
 	s: observable.e.s(observable.p()),
 });
 
+const _isReactive = (expr: Expression<unknown>): boolean => expr instanceof Signal || typeof expr === "function";
+
 /**
  * A function that is called by a signal when accessed.
  */
@@ -180,7 +182,7 @@ export function teardownOnError<T>(fn: () => T): T {
  * @param hook The hook to register. This may be called multiple times.
  */
 export function teardown(hook: TeardownHook): void {
-	return TEARDOWN_FRAME.push(hook);
+	TEARDOWN_FRAME.push(hook);
 }
 
 /**
@@ -211,7 +213,7 @@ export function isolate<F extends (...args: any) => any>(fn: F, ...args: Paramet
  * Internal test utility to check if lifecycle & access tracking is isolated in the current context.
  */
 export function isIsolated() {
-	return TEARDOWN_FRAME === TEARDOWN_FRAME_THROW && ACCESS_FRAME === undefined;
+	return TEARDOWN_FRAME === TEARDOWN_FRAME_THROW && !ACCESS_FRAME;
 }
 
 /**
@@ -466,28 +468,6 @@ export type Reactive<T> = Signal<T> | (() => T);
 export type Static<T> = unknown extends T ? never : Exclude<T, Reactive<any>>;
 
 /**
- * Internal utility to unfold potential recursion into a sequence.
- */
-const _unfold = (hook: Effect): Effect => {
-	let depth = 0;
-	return () => {
-		if (depth < 2) {
-			depth++;
-		}
-		if (depth === 1) {
-			try {
-				while (depth > 0) {
-					hook();
-					depth--;
-				}
-			} finally {
-				depth = 0;
-			}
-		}
-	};
-};
-
-/**
  * Watch an expression until the current lifecycle is disposed.
  *
  * + Both the expression and effect are called at least once immediately.
@@ -560,8 +540,7 @@ export function watch<T>(expr: Static<T>, effect: (value: NoInfer<T>) => void): 
 export function watch(expr: () => void): void;
 export function watch<T>(expr: Expression<T>, effect: (value: NoInfer<T>) => void): void;
 export function watch<T>(expr: Expression<T>, effect?: (value: NoInfer<T>) => void): void {
-	const isSignal = expr instanceof Signal;
-	if (isSignal || typeof expr === "function") {
+	if (_isReactive(expr)) {
 		let disposed = false;
 		let dispose: TeardownHook = NOOP;
 		const deps: Dependency<unknown, unknown>[] = [];
@@ -569,13 +548,13 @@ export function watch<T>(expr: Expression<T>, effect?: (value: NoInfer<T>) => vo
 		const invalidate = () => schedule(() => {
 			if (deps.some(_isStale)) {
 				unsubscribe();
-				deps.length = 0;
 				run();
 			}
 		});
 
 		const unsubscribe = () => {
 			deps.forEach(d => d.o.u(invalidate));
+			deps.length = 0;
 		};
 
 		teardown(() => {
@@ -589,14 +568,16 @@ export function watch<T>(expr: Expression<T>, effect?: (value: NoInfer<T>) => vo
 			observable.s(invalidate);
 		};
 
-		const run = _unfold(Context.bind(() => {
+		let running = false;
+		let stale = false;
+		const exec = Context.bind(() => {
 			if (!disposed) {
 				dispose();
 				dispose = capture(() => {
 					const parent = ACCESS_FRAME;
 					try {
 						ACCESS_FRAME = access;
-						const value = isSignal ? (expr as Signal<T>).value : (expr as () => T)();
+						const value = get(expr);
 						ACCESS_FRAME = undefined;
 						effect?.(value);
 					} finally {
@@ -604,11 +585,26 @@ export function watch<T>(expr: Expression<T>, effect?: (value: NoInfer<T>) => vo
 					}
 				});
 			}
-		}));
+		});
+		const run = () => {
+			if (running) {
+				stale = true;
+				return;
+			}
+			running = true;
+			try {
+				do {
+					stale = false;
+					exec();
+				} while (stale);
+			} finally {
+				running = false;
+			}
+		};
 
 		run();
 	} else {
-		effect!(expr);
+		effect!(expr as T);
 	}
 }
 
@@ -736,8 +732,7 @@ export function computed<T>(expr: Static<T>, eq?: StateEq<NoInfer<T>, any>): () 
  */
 export function computed<T>(expr: Expression<T>, eq?: StateEq<NoInfer<T>, any>): () => T;
 export function computed<T>(expr: Expression<T>, eq: StateEq<NoInfer<T>, any> = OBJECT_IS): () => T {
-	const isSignal = expr instanceof Signal;
-	if (!isSignal && typeof expr !== "function") {
+	if (!_isReactive(expr)) {
 		return () => expr as T;
 	}
 
@@ -759,12 +754,12 @@ export function computed<T>(expr: Expression<T>, eq: StateEq<NoInfer<T>, any> = 
 		s: effect => {
 			const prev = effects.size;
 			effects.add(effect);
-			if (prev === 0) {
+			if (!prev) {
 				deps.forEach(d => d.o.s(proxy));
 			}
 		},
 		u: effect => {
-			if (effects.delete(effect) && effects.size === 0) {
+			if (effects.delete(effect) && !effects.size) {
 				deps.forEach(d => d.o.u(proxy));
 			}
 		},
@@ -777,7 +772,7 @@ export function computed<T>(expr: Expression<T>, eq: StateEq<NoInfer<T>, any> = 
 				updating = true;
 				if (stale || deps.some(_isStale)) {
 					stale = true;
-					if (effects.size > 0) {
+					if (effects.size) {
 						deps.forEach(d => d.o.u(proxy));
 					}
 					deps.length = 0;
@@ -786,12 +781,12 @@ export function computed<T>(expr: Expression<T>, eq: StateEq<NoInfer<T>, any> = 
 					try {
 						ACCESS_FRAME = access;
 						TEARDOWN_FRAME = TEARDOWN_FRAME_THROW;
-						value = isSignal ? (expr as Signal<T>).value : (expr as () => T)();
+						value = get(expr);
 						stale = false;
 					} finally {
 						ACCESS_FRAME = accessParent;
 						TEARDOWN_FRAME = teardownParent;
-						if (effects.size > 0) {
+						if (effects.size) {
 							deps.forEach(d => d.o.s(proxy));
 						}
 					}
@@ -881,7 +876,7 @@ export function untrack<T>(expr: Expression<T>): T {
  * Check if signal accesses are currently tracked.
  */
 export function isTracking(): boolean {
-	return ACCESS_FRAME !== undefined;
+	return !!ACCESS_FRAME;
 }
 
 /**
@@ -914,15 +909,15 @@ export interface TriggerPipe {
 export function trigger(callback: () => void): TriggerPipe {
 	const sources: Observable<unknown, unknown>[] = [];
 
-	teardown(() => {
+	const clear = () => {
 		sources.forEach(o => o.u(effect));
 		sources.length = 0;
-	});
+	};
+
+	teardown(clear);
 
 	const effect: Effect = () => {
-		sources.forEach(o => o.u(effect));
-		sources.length = 0;
-
+		clear();
 		schedule(Context.bind(callback));
 	};
 
@@ -932,12 +927,10 @@ export function trigger(callback: () => void): TriggerPipe {
 	};
 
 	return <T>(expr: Expression<T>) => {
-		sources.forEach(o => o.u(effect));
-		sources.length = 0;
-
+		clear();
 		const parent = ACCESS_FRAME;
 		try {
-			if (parent === undefined) {
+			if (!parent) {
 				ACCESS_FRAME = access;
 			} else {
 				ACCESS_FRAME = observable => {
@@ -1047,11 +1040,5 @@ export function map<I, O>(input: Static<I>, mapFn: MapFn<NoInfer<I>, O>): Expres
  */
 export function map<I, O>(input: Expression<I>, mapFn: MapFn<NoInfer<I>, O>): Expression<O>;
 export function map<I, O>(input: Expression<I>, mapFn: MapFn<NoInfer<I>, O>): Expression<O> {
-	if (input instanceof Signal) {
-		return () => mapFn(input.value);
-	}
-	if (typeof input === "function") {
-		return () => mapFn((input as () => I)());
-	}
-	return mapFn(input);
+	return _isReactive(input) ? () => mapFn(get(input)) : mapFn(input as I);
 }

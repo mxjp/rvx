@@ -31,9 +31,7 @@ export interface MapArrayUpdate<K, I, O> {
 export function createMapArrayState<K, I, O>() {
 	const state: MapArrayStateEntry<K, O>[] = [];
 	teardown(() => {
-		for (let i = 0; i < state.length; i++) {
-			state[i].d();
-		}
+		state.forEach(e => e.d());
 	});
 	return state;
 }

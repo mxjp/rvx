@@ -13,7 +13,7 @@ export function uniqueId(): string {
 	} else {
 		NEXT_ID.value++;
 	}
-	return "rvx_" + String(next);
+	return "rvx_" + next;
 }
 
 /**
@@ -35,29 +35,6 @@ export function useUniqueId<T = Content>(component: Component<string, T>): T {
 	return component(uniqueId());
 }
 
-/**
- * A component that provides a unique id in the form `rvx_123` to its children.
- *
- * See {@link useUniqueId} when not using JSX.
- *
- * @example
- * ```tsx
- * import { UseUniqueId } from "rvx";
- *
- * <UseUniqueId>
- *   {id => <>
- *     <label for={id}>Text</label>
- *     <input type="text" id={id} />
- *   </>}
- * </UseUniqueId>
- * ```
- */
-export function UseUniqueId<T = Content>(props: {
-	children: Component<string, T>;
-}): T {
-	return props.children(uniqueId());
-}
-
 const IDS = new WeakMap();
 
 /**
@@ -69,8 +46,7 @@ const IDS = new WeakMap();
 export function uniqueIdFor(target: object): string {
 	let id = IDS.get(target);
 	if (id === undefined) {
-		id = uniqueId();
-		IDS.set(target, id);
+		IDS.set(target, id = uniqueId());
 	}
 	return id;
 }
