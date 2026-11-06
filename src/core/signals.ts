@@ -677,11 +677,11 @@ export function watchUpdates<T>(expr: Expression<T>, effect: (value: NoInfer<T>)
 }
 
 /**
- * Wrap an expression to re-run only when any accessed observable has been updated.
+ * Wrap an expression to re-run only when any accessed observable has changed.
  *
  * + The {@link Context} from where `computed` was called is available in the expression.
  * + Teardown hooks in the expression are not supported.
- * + The expression only re-runs when the result is accessed after any used observable has been updated.
+ * + The expression only re-runs when the result is accessed after any used observable has changed.
  * + Observers only re-run when the result is not equal to the previous one.
  *
  * @param expr The expression to wrap.
@@ -708,11 +708,11 @@ export function computed<T>(expr: Reactive<T>, eq?: StateEq<NoInfer<T>, any>): (
 export function computed<T>(expr: Static<T>, eq?: StateEq<NoInfer<T>, any>): () => T;
 
 /**
- * Wrap an expression to re-run only when any accessed observable has been updated.
+ * Wrap an expression to re-run only when any accessed observable has changed.
  *
  * + The {@link Context} from where `computed` was called is available in the expression.
  * + Teardown hooks in the expression are not supported.
- * + The expression only re-runs when the result is accessed after any used observable has been updated.
+ * + The expression only re-runs when the result is accessed after any used observable has changed.
  * + Observers only re-run when the result is not equal to the previous one.
  *
  * @param expr The expression to wrap.
@@ -880,7 +880,7 @@ export function isTracking(): boolean {
 }
 
 /**
- * Evaluate an expression while tracking accesses to schedule the trigger effect when updated.
+ * Evaluate an expression while tracking accesses to schedule the trigger effect when any accessed observable has changed.
  *
  * See {@link trigger}.
  */
@@ -899,32 +899,35 @@ export interface TriggerPipe {
 }
 
 /**
- * Create a pipe for evaluating expressions that schedules an effect once when any accessed observables from the latest evaluated expression are updated.
+ * Create a pipe for evaluating expressions that schedules an effect once when any accessed observables from the latest evaluated expression have changed.
  *
+ * + The effect only runs when any accessed observable has changed.
  * + When the lifecycle at which the pipe was created is disposed, the effect will not be called anymore.
  * + It is guaranteed that the effect is called before any other observers like {@link watch} or {@link watchUpdates} are notified.
  * + If pipes are nested, the effect for the most inner one is called first.
  *
- * @param callback The effect to schedule when an accessed observable is updated.
+ * @param callback The effect to schedule.
  * @returns The pipe to evaluate expressions.
  */
 export function trigger(callback: () => void): TriggerPipe {
-	const sources: Observable<unknown, unknown>[] = [];
+	const deps: Dependency<unknown, unknown>[] = [];
 
 	const clear = () => {
-		sources.forEach(o => o.u(effect));
-		sources.length = 0;
+		deps.forEach(d => d.o.u(effect));
+		deps.length = 0;
 	};
 
 	teardown(clear);
 
-	const effect: Effect = () => {
-		clear();
-		schedule(Context.bind(callback));
-	};
+	const effect: Effect = () => schedule(() => {
+		if (deps.some(_isStale)) {
+			clear();
+			Context.bind(callback)();
+		}
+	});
 
 	const access: AccessFrame = observable => {
-		sources.push(observable);
+		deps.push(_toDep(observable));
 		observable.s(effect);
 	};
 

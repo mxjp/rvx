@@ -2551,6 +2551,54 @@ await suite("signals", async () => {
 			assertEvents(events, []);
 		});
 
+		await test("same values & unchanged notify", () => {
+			const events: unknown[] = [];
+			const signal = $(1);
+			const pipe = leak(() => trigger(() => events.push("t")));
+			strictEqual(pipe(signal), 1);
+
+			signal.notify();
+			signal.value = 1;
+			dispatch();
+			assertEvents(events, []);
+
+			signal.value = 2;
+			dispatch();
+			assertEvents(events, ["t"]);
+		});
+
+		await test("revert before dispatch", () => {
+			const events: unknown[] = [];
+			const signal = $(1);
+			const pipe = leak(() => trigger(() => events.push("t")));
+			strictEqual(pipe(signal), 1);
+
+			signal.value = 2;
+			signal.value = 1;
+			dispatch();
+			assertEvents(events, []);
+
+			signal.value = 3;
+			dispatch();
+			assertEvents(events, ["t"]);
+		});
+
+		await test("computed result equality", () => {
+			const events: unknown[] = [];
+			const signal = $(1);
+			const parity = computed(() => signal.value % 2);
+			const pipe = leak(() => trigger(() => events.push("t")));
+			strictEqual(pipe(parity), 1);
+
+			signal.value = 3;
+			dispatch();
+			assertEvents(events, []);
+
+			signal.value = 2;
+			dispatch();
+			assertEvents(events, ["t"]);
+		});
+
 		await test("nested + batch", () => {
 			const events: unknown[] = [];
 			const signal = $(1);

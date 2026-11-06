@@ -260,7 +260,7 @@ This is the same as [`watch`](#watch), but the initial value is returned instead
 	```
 
 ## `computed`
-Wrap an expression to re-run only when any accessed observable has been updated.
+Wrap an expression to re-run only when any accessed observable has changed.
 
 === "JSX"
 	```jsx
@@ -278,7 +278,7 @@ Wrap an expression to re-run only when any accessed observable has been updated.
 
 + The [context](context.md) from where `computed` was called is available in the expression.
 + Teardown hooks in the expression are not supported.
-+ The expression only re-runs when the result is accessed after any used observable has been updated.
++ The expression only re-runs when the result is accessed after any used observable has changed.
 + Observers only re-run when the result is not equal to the previous one (see [Equality](#equality) for custom checks).
 
 ## `untrack`
@@ -345,9 +345,10 @@ Map an expression value while preserving if the expression is static or not.
 	```
 
 ## `trigger`
-Create a pipe for evaluating expressions that schedules an effect once when any accessed observable from the latest evaluated expression is updated.
+Create a pipe for evaluating expressions that schedules an effect once when any accessed observable from the latest evaluated expression has changed.
 
-When the lifecycle at which the pipe was created is disposed, the effect will not be called anymore.
++ The effect only runs when any accessed observable has changed (see [Equality](#equality) for custom checks).
++ When the lifecycle at which the pipe was created is disposed, the effect will not be called anymore.
 
 === "JSX"
 	```jsx
