@@ -48,7 +48,7 @@ const _toDep = <T, S>(observable: Observable<T, S>): Dependency<T, S> => ({
 const _isReactive = (expr: Expression<unknown>): boolean => expr instanceof Signal || typeof expr === "function";
 
 /**
- * A function that is called by a signal when accessed.
+ * A function that is called by an observable when accessed.
  */
 interface AccessFrame {
 	/**
@@ -188,7 +188,7 @@ export function teardown(hook: TeardownHook): void {
 /**
  * Run a function in isolation from the following side effect causing APIs:
  * + Teardown hooks can not be registered and cause an error. To isolate only teardown hooks, use {@link leak} instead.
- * + Signal accesses are not tracked and the default tracking behavior is restored. To only isolate signal accesses, use {@link untrack} instead.
+ * + Accesses are not tracked and the default tracking behavior is restored. To only isolate accesses, use {@link untrack} instead.
  *
  * Note that contexts are not isolated.
  *
@@ -474,7 +474,7 @@ export type Static<T> = unknown extends T ? never : Exclude<T, Reactive<any>>;
  * + Lifecycle hooks from the expression or effect are called before a signal update is processed or when the current lifecycle is disposed.
  *
  * @param expr The expression to watch.
- * @param effect An optional function to call with each expression result without tracking signal accesses.
+ * @param effect An optional effect to call with each expression result without tracking accesses.
  *
  * @example
  * ```tsx
@@ -513,7 +513,7 @@ export function watch<T>(expr: Static<T>, effect: (value: NoInfer<T>) => void): 
  * + Lifecycle hooks from the expression or effect are called before a signal update is processed or when the current lifecycle is disposed.
  *
  * @param expr The expression to watch.
- * @param effect An optional function to call with each expression result without tracking signal accesses.
+ * @param effect An optional effect to call with each expression result without tracking accesses.
  *
  * @example
  * ```tsx
@@ -643,7 +643,7 @@ export function schedule(effect: Effect): void {
  * Watch an expression until the current lifecycle is disposed.
  *
  * @param expr The expression to watch.
- * @param effect A function to call with each subsequent expression result without tracking signal accesses.
+ * @param effect An effect to call with each subsequent expression result without tracking accesses.
  * @returns The first expression result.
  */
 export function watchUpdates<T>(expr: Reactive<T>, effect: (value: NoInfer<T>) => void): T;
@@ -658,7 +658,7 @@ export function watchUpdates<T>(expr: Static<T>, effect: (value: NoInfer<T>) => 
  * Watch an expression until the current lifecycle is disposed.
  *
  * @param expr The expression to watch.
- * @param effect A function to call with each subsequent expression result without tracking signal accesses.
+ * @param effect An effect to call with each subsequent expression result without tracking accesses.
  * @returns The first expression result.
  */
 export function watchUpdates<T>(expr: Expression<T>, effect: (value: NoInfer<T>) => void): T;
@@ -677,11 +677,11 @@ export function watchUpdates<T>(expr: Expression<T>, effect: (value: NoInfer<T>)
 }
 
 /**
- * Wrap an expression to re-run only when any accessed signal has been updated.
+ * Wrap an expression to re-run only when any accessed observable has been updated.
  *
  * + The {@link Context} from where `computed` was called is available in the expression.
  * + Teardown hooks in the expression are not supported.
- * + The expression only re-runs when the result is accessed after any used signal has been updated.
+ * + The expression only re-runs when the result is accessed after any used observable has been updated.
  * + Observers only re-run when the result is not equal to the previous one.
  *
  * @param expr The expression to wrap.
@@ -695,7 +695,7 @@ export function watchUpdates<T>(expr: Expression<T>, effect: (value: NoInfer<T>)
  * const a = $(2);
  * const b = $(3);
  *
- * // This function always returns the sum of the current signal values:
+ * // This computed always returns the sum of the current signal values:
  * const sum = computed(() => a.value + b.value);
  * ```
  */
@@ -708,11 +708,11 @@ export function computed<T>(expr: Reactive<T>, eq?: StateEq<NoInfer<T>, any>): (
 export function computed<T>(expr: Static<T>, eq?: StateEq<NoInfer<T>, any>): () => T;
 
 /**
- * Wrap an expression to re-run only when any accessed signal has been updated.
+ * Wrap an expression to re-run only when any accessed observable has been updated.
  *
  * + The {@link Context} from where `computed` was called is available in the expression.
  * + Teardown hooks in the expression are not supported.
- * + The expression only re-runs when the result is accessed after any used signal has been updated.
+ * + The expression only re-runs when the result is accessed after any used observable has been updated.
  * + Observers only re-run when the result is not equal to the previous one.
  *
  * @param expr The expression to wrap.
@@ -726,7 +726,7 @@ export function computed<T>(expr: Static<T>, eq?: StateEq<NoInfer<T>, any>): () 
  * const a = $(2);
  * const b = $(3);
  *
- * // This function always returns the sum of the current signal values:
+ * // This computed always returns the sum of the current signal values:
  * const sum = computed(() => a.value + b.value);
  * ```
  */
@@ -806,7 +806,7 @@ export function computed<T>(expr: Expression<T>, eq: StateEq<NoInfer<T>, any> = 
 }
 
 /**
- * {@link get Evaluate an expression} without tracking signal accesses.
+ * {@link get Evaluate an expression} without tracking accesses.
  *
  * @param expr The expression to evaluate.
  * @returns The function's return value.
@@ -838,7 +838,7 @@ export function untrack<T>(expr: Reactive<T>): T;
 export function untrack<T>(expr: Static<T>): T;
 
 /**
- * {@link get Evaluate an expression} without tracking signal accesses.
+ * {@link get Evaluate an expression} without tracking accesses.
  *
  * @param expr The expression to evaluate.
  * @returns The function's return value.
@@ -873,14 +873,14 @@ export function untrack<T>(expr: Expression<T>): T {
 }
 
 /**
- * Check if signal accesses are currently tracked.
+ * Check if accesses are currently tracked.
  */
 export function isTracking(): boolean {
 	return !!ACCESS_FRAME;
 }
 
 /**
- * Evaluate an expression while tracking signal accesses to invoke the trigger callback when updated.
+ * Evaluate an expression while tracking accesses to schedule the trigger effect when updated.
  *
  * See {@link trigger}.
  */
@@ -899,13 +899,13 @@ export interface TriggerPipe {
 }
 
 /**
- * Create an expression evaluator pipe that calls a function once when any accessed signals from the latest evaluated expression are updated.
+ * Create a pipe for evaluating expressions that schedules an effect once when any accessed observables from the latest evaluated expression are updated.
  *
- * + When the lifecycle at which the pipe was created is disposed, the callback function will not be called anymore.
- * + It is guaranteed that the function is called before any other observers like {@link watch} or {@link watchUpdates} are notified.
- * + If pipes are nested, the callback for the most inner one is called first.
+ * + When the lifecycle at which the pipe was created is disposed, the effect will not be called anymore.
+ * + It is guaranteed that the effect is called before any other observers like {@link watch} or {@link watchUpdates} are notified.
+ * + If pipes are nested, the effect for the most inner one is called first.
  *
- * @param callback The callback to invoke when a signal is updated.
+ * @param callback The effect to schedule when an accessed observable is updated.
  * @returns The pipe to evaluate expressions.
  */
 export function trigger(callback: () => void): TriggerPipe {
@@ -923,9 +923,9 @@ export function trigger(callback: () => void): TriggerPipe {
 		schedule(Context.bind(callback));
 	};
 
-	const access: AccessFrame = observer => {
-		sources.push(observer);
-		observer.s(effect);
+	const access: AccessFrame = observable => {
+		sources.push(observable);
+		observable.s(effect);
 	};
 
 	return <T>(expr?: Expression<T>) => {

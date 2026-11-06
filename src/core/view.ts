@@ -533,7 +533,7 @@ export interface ForContentFn<T> {
  *
  * See {@link For `<For>`} for use with JSX.
  *
- * @param each The expression to watch. Note, that signals accessed during iteration will also trigger updates.
+ * @param each The expression to watch. Note, that observables accessed during iteration will also trigger updates.
  * @param component The component to render for each entry.
  * @param keyFn A function to get the key for a given value. If not specified, the value is used as key.
  *
@@ -598,7 +598,7 @@ export interface IndexContentFn<T> {
  *
  * See {@link Index `<Index>`} when using JSX.
  *
- * @param each The expression to watch. Note, that signals accessed during iteration will also trigger updates.
+ * @param each The expression to watch. Note, that observables accessed during iteration will also trigger updates.
  * @param component The component to render for each index.
  *
  * @example

@@ -53,7 +53,7 @@ count.notify();
 ```
 
 ## Equality
-Observers re-run when any accessed signal or computed value has changed. By default, `Object.is` is used for checking if two values are equal.
+Observers re-run when any accessed signal or computed value (an observable) has changed. By default, `Object.is` is used for checking if two values are equal.
 ```jsx
 const count = $(42);
 
@@ -236,7 +236,7 @@ The second effect parameter can be omitted if you want or need to run side effec
 	```
 
 !!! tip
-	You can use [`untrack`](#untrack) to ignore specific signal accesses or [`isolate`](isolation.md) all side effects of arbitrary code.
+	You can use [`untrack`](#untrack) to ignore specific accesses or [`isolate`](isolation.md) all side effects of arbitrary code.
 
 ## `watchUpdates`
 This is the same as [`watch`](#watch), but the initial value is returned instead of being passed to the effect.
@@ -260,7 +260,7 @@ This is the same as [`watch`](#watch), but the initial value is returned instead
 	```
 
 ## `computed`
-Wrap an expression to re-run only when any accessed signal has been updated.
+Wrap an expression to re-run only when any accessed observable has been updated.
 
 === "JSX"
 	```jsx
@@ -278,11 +278,11 @@ Wrap an expression to re-run only when any accessed signal has been updated.
 
 + The [context](context.md) from where `computed` was called is available in the expression.
 + Teardown hooks in the expression are not supported.
-+ The expression only re-runs when the result is accessed after any used signal has been updated.
++ The expression only re-runs when the result is accessed after any used observable has been updated.
 + Observers only re-run when the result is not equal to the previous one (see [Equality](#equality) for custom checks).
 
 ## `untrack`
-Evaluate an expression and isolate signal accesses from the current observer.
+Evaluate an expression and isolate accesses from the current observer.
 
 === "JSX"
 	```jsx
@@ -345,9 +345,9 @@ Map an expression value while preserving if the expression is static or not.
 	```
 
 ## `trigger`
-Create an expression evaluator pipe that calls a function once when any accessed signals from the latest evaluated expression are updated.
+Create a pipe for evaluating expressions that schedules an effect once when any accessed observable from the latest evaluated expression is updated.
 
-When the lifecycle at which the pipe was created is disposed, the callback function will not be called anymore.
+When the lifecycle at which the pipe was created is disposed, the effect will not be called anymore.
 
 === "JSX"
 	```jsx
@@ -360,11 +360,11 @@ When the lifecycle at which the pipe was created is disposed, the callback funct
 
 	const signal = $(42);
 
-	// Evaluating an expression through the pipe will track all signal accesses:
+	// Evaluating an expression through the pipe will track all accesses:
 	console.log(pipe(signal)); // 42
 	console.log(pipe(() => signal.value)); // 42
 
-	// This will trigger the callback:
+	// This will schedule the effect:
 	signal.value = 77;
 	```
 
@@ -379,15 +379,15 @@ When the lifecycle at which the pipe was created is disposed, the callback funct
 
 	const signal = $(42);
 
-	// Evaluating an expression through the pipe will track all signal accesses:
+	// Evaluating an expression through the pipe will track all accesses:
 	console.log(pipe(signal)); // 42
 	console.log(pipe(() => signal.value)); // 42
 
-	// This will trigger the callback:
+	// This will schedule the effect:
 	signal.value = 77;
 	```
 
-It is guaranteed that the function is called before any other observers like [`watch`](#watch) or [`watchUpdates`](#watchupdates) are notified. This can be used to run side effects like clearing a cache before an expression is re-evaluated:
+It is guaranteed that the effect is called before any other observers like [`watch`](#watch) or [`watchUpdates`](#watchupdates) are notified. This can be used to run side effects like clearing a cache before an expression is re-evaluated:
 
 === "JSX"
 	```jsx
@@ -435,7 +435,7 @@ Evaluating...
 Value: 77
 ```
 
-If pipes are nested, the callback for the most inner one is called first. In the example below, the callback for `pipeB` is called first:
+If pipes are nested, the effect for the most inner one is called first. In the example below, the effect for `pipeB` is called first:
 
 === "JSX"
 	```jsx
@@ -463,7 +463,7 @@ If pipes are nested, the callback for the most inner one is called first. In the
 	signal.value = 77;
 	```
 
-Trigger callbacks run [isolated](./isolation.md) from signal access tracking and the current lifecycle.
+Trigger effects run [isolated](./isolation.md) from access tracking and the current lifecycle.
 
 ## `mapArray`
 Run a function for each entry in an iterable expression.
@@ -472,7 +472,7 @@ Run a function for each entry in an iterable expression.
 + The current [context](./context.md) is available in the map function.
 + Evaluation is stopped when the current [lifecycle](./lifecycle.md) is disposed.
 + Teardown hooks from within the map function are called when an entry is removed or when the current [lifecycle](./lifecycle.md) is disposed.
-+ Returns a function to reactively access the latest result.
++ Returns an expression to access the latest result.
 
 === "JSX"
 	```jsx
@@ -572,7 +572,7 @@ Final count: 2
 Observers like [`watch`](#watch) and [`trigger`](#trigger), signals and teardown hooks reference each other in the ways described below.
 
 + Observer registered teardown hooks reference their observers.
-+ Observers reference all accessed signals from the latest expression until disposed.
++ Observers reference all accessed observables from the latest expression until disposed.
 + Signals reference all current observers.
 
 Note that [`computed`](#computed) is not an observer itself, but acts as one while its result is accessed by another observer and does not affect references otherwise.

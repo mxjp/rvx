@@ -86,7 +86,7 @@ By default, all component properties are static. To accept reactive inputs, use 
 	// Static values:
 	<Counter value={count.value} />
 
-	// Reactive values:
+	// Reactive expressions:
 	<Counter value={count} />
 	<Counter value={() => count.value} />
 	```
@@ -109,7 +109,7 @@ By default, all component properties are static. To accept reactive inputs, use 
 	Counter({ count: 42 })
 	Counter({ count: count.value })
 
-	// Reactive values:
+	// Reactive expressions:
 	Counter({ count: count })
 	Counter({ count: () => count.value })
 	```

@@ -33,7 +33,7 @@ A tiny synchronous event system separate from DOM events.
 	```
 
 ## Isolation
-Event listeners are not [isolated](./isolation.md) from the current context in any way. E.g. they will be able to register teardown hooks or signal accesses etc.
+Event listeners are not [isolated](./isolation.md) from the current context in any way. E.g. they will be able to register teardown hooks or accesses etc.
 
 ## Error Handling
 The event system has no dedicated error handling. Any errors thrown from listeners will prevent further listeners from running.

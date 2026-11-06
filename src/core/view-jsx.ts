@@ -119,7 +119,7 @@ export function For<T>(props: {
 	/**
 	 * The expression to watch.
 	 *
-	 * Note that signals accessed during iteration will also trigger updates.
+	 * Note that observables accessed during iteration will also trigger updates.
 	 */
 	each: Expression<Iterable<T>>;
 
@@ -158,7 +158,7 @@ export function Index<T>(props: {
 	/**
 	 * The expression to watch.
 	 *
-	 * Note that signals accessed during iteration will also trigger updates.
+	 * Note that observables accessed during iteration will also trigger updates.
 	 */
 	each: Expression<Iterable<T>>;
 

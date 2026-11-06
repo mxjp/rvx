@@ -9,7 +9,7 @@ export { MapArrayFn, MapArrayKeyFn } from "./internals/map-array.js";
  * + The current context is available in the map function.
  * + Evaluation is stopped when the current lifecycle is disposed.
  * + Teardown hooks from within the map function are called when an entry is removed or when the current lifecycle is disposed.
- * + Returns a function to reactively access the latest result.
+ * + Returns an expression to access the latest result.
  *
  * @param keyFn A function to get the key for a given value. If not specified, the value is used as key.
  */

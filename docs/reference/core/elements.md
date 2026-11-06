@@ -26,7 +26,7 @@ Attributes are set using `setAttribute` or `removeAttribute` by default.
 	+ Attributes prefixed with `on:` are added as event listeners.
 		+ An array can be used to pass the event listener with additional options.
 		+ The current [context](./context.md) is available within the listener.
-		+ Event listeners run [isolated](./isolation.md) from signal access tracking and the current lifecycle.
+		+ Event listeners run [isolated](./isolation.md) from access tracking and the current lifecycle.
 	+ The [`class`](#classes) and [`style`](#styles) attributes are special cases described below.
 
 	```jsx
@@ -64,7 +64,7 @@ Attributes are set using `setAttribute` or `removeAttribute` by default.
 
 	// Adding event listeners:
 	// (The current context is available within the listener)
-	// (Event listeners run isolated from signal access tracking and the current lifecycle)
+	// (Event listeners run isolated from access tracking and the current lifecycle)
 	e("input").on("click", event => { ... })
 	e("input").on("click", event => { ... }, { capture: true, passive: true })
 	```

@@ -9,7 +9,7 @@ export class ProbeSignal<T> extends Signal<T> {
 	/**
 	 * Create a new probe signal.
 	 *
-	 * @param onDisposable A function to call when it is guaranteed that this signal is no longer watched.
+	 * @param onDisposable A function to call when it is guaranteed that this signal is no longer observed.
 	 * @param value The initial value.
 	 */
 	constructor(onDisposable: () => void, value: T) {
@@ -44,7 +44,7 @@ export class ProbeMap<K, V> {
 	/**
 	 * Access the specified key.
 	 *
-	 * If an expression is currently evaluated to track signal accesses, this will create and access a probe signal for the specified key. That probe signal is automatically removed when it is guaranteed that this key is no longer watched.
+	 * If accesses are tracked in this context, this will create and access a probe signal for the specified key. That probe signal is automatically removed when it is guaranteed that this key is no longer observed.
 	 */
 	access(key: K): void {
 		if (isTracking()) {

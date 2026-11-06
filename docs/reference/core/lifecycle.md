@@ -32,7 +32,7 @@ Register a hook to be called when the current lifecycle is disposed:
 
 Calling `teardown` outside of a lifecycle context "leaks" the teardown hook and causes an [error](../error-handling.md#g5) by default. See [`leak`](#leak) for intentionally leaking teardown hooks.
 
-Teardown hooks run [isolated](./isolation.md) from signal access tracking and the current lifecycle.
+Teardown hooks run [isolated](./isolation.md) from access tracking and the current lifecycle.
 
 ## `capture`
 Capture teardown hooks during a function call:

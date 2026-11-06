@@ -1,7 +1,7 @@
 # Side Effect Isolation
-The [signal](./signals.md) and [lifecycle](./lifecycle.md) APIs can cause side effects such as tracking a signal access or registering a teardown hook.
+The [signal](./signals.md) and [lifecycle](./lifecycle.md) APIs can cause side effects such as tracking accesses or registering a teardown hook.
 
-The `isolate` function can be used to run arbitrary code in isolation from signal access tracking and the current lifecycle.
+The `isolate` function can be used to run arbitrary code in isolation from access tracking and the current lifecycle.
 
 === "JSX"
 	```jsx
@@ -55,7 +55,7 @@ Registering teardown hooks throws an [error](../error-handling.md#g5) as if [`te
 	```
 
 ## Signals
-Signal accesses are not tracked as if the signal was accessed outside of any observer.
+Accesses are not tracked as if they were made outside of any observer.
 
 === "JSX"
 	```jsx
@@ -87,7 +87,7 @@ Signal accesses are not tracked as if the signal was accessed outside of any obs
 	});
 	```
 
-To only isolate signal accesses, use [`untrack`](./signals.md#untrack) instead.
+To only isolate accesses, use [`untrack`](./signals.md#untrack) instead.
 
 ## Non Isolated APIs
 The `isolate` function is transparent to all [contexts](./context.md) for performance reasons:

@@ -31,8 +31,8 @@ Watch an [expression](../signals.md#expressions) and render dynamic content from
 	})
 	```
 
-## Signal Access & Lifecycle
-All signals accessed from the `watch` expression will trigger a full re-render when updated.
+## Observable Access & Lifecycle
+All observables accessed from the `watch` expression will trigger a full re-render when updated.
 
 === "JSX"
 	```jsx

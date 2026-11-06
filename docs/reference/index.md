@@ -13,7 +13,7 @@ hide:
 	The lifecycle API allows you to register and manage cleanup code.
 
 - ## [Signals](./core/signals.md)
-	Signals are objects with a value that can be watched for changes.
+	Signals are objects with a value that can be observed for changes.
 
 - ## [Context](./core/context.md)
 	The context API implicitly passes values along the call stack.
