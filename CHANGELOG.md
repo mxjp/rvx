@@ -1,5 +1,13 @@
 # Changelog
 
+## 28.2
++ Rename & **deprecate** old router exports:
+	+ `watchRoutes => computedRoutes`.
+	+ `WatchedRoutes => ComputedRoutes`.
+
+## 28.1
++ Add `dataset` support in `rvx/dom`.
+
 ## 28.0
 + **Breaking:** Signal updates are now processed on the next microtask.
 + **Breaking:** Observers now re-run only if any directly used signals or computed results have changed:
