@@ -683,6 +683,7 @@ export function watchUpdates<T>(expr: Expression<T>, effect: (value: NoInfer<T>)
  * + Teardown hooks in the expression are not supported.
  * + The expression only re-runs when the result is accessed after any used observable has changed.
  * + Observers only re-run when the result is not equal to the previous one.
+ * + The expression may re-run before an accessing observer while that observer checks if it should re-run.
  *
  * @param expr The expression to wrap.
  * @param eq Defines how two results are checked for equality. See {@link eq}. Default is {@link OBJECT_IS}.
@@ -714,6 +715,7 @@ export function computed<T>(expr: Static<T>, eq?: StateEq<NoInfer<T>, any>): () 
  * + Teardown hooks in the expression are not supported.
  * + The expression only re-runs when the result is accessed after any used observable has changed.
  * + Observers only re-run when the result is not equal to the previous one.
+ * + The expression may re-run before an accessing observer while that observer checks if it should re-run.
  *
  * @param expr The expression to wrap.
  * @param eq Defines how two results are checked for equality. See {@link eq}. Default is {@link OBJECT_IS}.

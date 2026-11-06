@@ -280,6 +280,7 @@ Wrap an expression to re-run only when any accessed observable has changed.
 + Teardown hooks in the expression are not supported.
 + The expression only re-runs when the result is accessed after any used observable has changed.
 + Observers only re-run when the result is not equal to the previous one (see [Equality](#equality) for custom checks).
++ The expression may re-run before an accessing observer while that observer checks if it should re-run.
 
 ## `untrack`
 Evaluate an expression and isolate accesses from the current observer.
