@@ -1,4 +1,4 @@
-import { $, Component, Expression, get, nest, View, watch } from "../core/index.js";
+import { Component, computed, eq, Expression, get, nest, View } from "../core/index.js";
 import { ChildRouter } from "./child-router.js";
 import { normalize } from "./path.js";
 import { Router, ROUTER } from "./router.js";
@@ -102,45 +102,42 @@ export function matchRoute<T extends Route>(path: string, route: T): RouteMatch<
 	}
 }
 
-export interface WatchedRoutes<T extends Route> {
+export interface ComputedRoutes<T extends Route> {
 	match: () => ParentRouteMatch<T> | undefined;
 	rest: () => string;
 }
 
 /**
- * Watch and match routes against an expression.
+ * @deprecated Use {@link ComputedRoutes} instead.
+ */
+export type WatchedRoutes<T extends Route> = ComputedRoutes<T>;
+
+/**
+ * Match routes against an expression.
  *
  * @param path The normalized path.
- * @param routes The routes to watch.
- * @returns An object with individually watchable route match and the unmatched rest path.
+ * @param routes The routes to match.
+ * @returns An object with individually computable route match and the unmatched rest path.
  */
-export function watchRoutes<T extends Route>(path: Expression<string>, routes: Expression<Iterable<T>>): WatchedRoutes<T> {
-	const parent = $<ParentRouteMatch<T> | undefined>(undefined);
-	const rest = $<string>(undefined!);
-	watch(() => {
-		const rest = get(path);
+export function computedRoutes<T extends Route>(path: Expression<string>, routes: Expression<Iterable<T>>): ComputedRoutes<T> {
+	const result = computed(() => {
+		const p = get(path);
 		for (const route of get(routes)) {
-			const match = matchRoute(rest, route);
+			const match = matchRoute(p, route);
 			if (match) {
 				return match;
 			}
 		}
-	}, match => {
-		if (match) {
-			if (!parent.value || parent.value.path !== match.path || parent.value.route !== match.route) {
-				parent.value = match;
-			}
-			rest.value = match.rest;
-		} else {
-			parent.value = undefined;
-			rest.value = "";
-		}
 	});
-	return {
-		match: () => parent.value,
-		rest: () => rest.value,
-	};
+	const match = computed(result, eq<RouteMatch<T> | undefined>((a, b) => a?.route === b?.route && a?.path === b?.path));
+	const rest = computed(() => result()?.rest ?? "");
+	return { match, rest };
 }
+
+/**
+ * @deprecated Use {@link computedRoutes} instead.
+ */
+export const watchRoutes = computedRoutes;
 
 /**
  * Props passed to the root component of a {@link ComponentRoute}.
@@ -168,10 +165,10 @@ export function routes(routes: Expression<Iterable<ComponentRoute<any>>>): View 
 		// Router is not available in the current context:
 		throw new Error("G3");
 	}
-	const watched = watchRoutes(router.path, routes);
-	return nest(watched.match, match => {
+	const matched = computedRoutes(router.path, routes);
+	return nest(matched.match, match => {
 		if (match) {
-			return ROUTER.provide(new ChildRouter(router, match.path, watched.rest), () => {
+			return ROUTER.provide(new ChildRouter(router, match.path, matched.rest), () => {
 				return match.route.content({ params: match.params });
 			});
 		}

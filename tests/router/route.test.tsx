@@ -1,7 +1,7 @@
 import { deepStrictEqual, strictEqual } from "node:assert";
 import test, { suite } from "node:test";
 import { $, dispatch, leak, Provide, watch } from "rvx";
-import { ChildRouter, matchRoute, Route, ROUTER, Routes, watchRoutes } from "rvx/router";
+import { ChildRouter, computedRoutes, matchRoute, Route, ROUTER, Routes } from "rvx/router";
 import { assertEvents, lifecycleEvent, text } from "../common.js";
 import { TestRouter } from "./common.js";
 
@@ -67,7 +67,7 @@ await suite("router/route", async () => {
 		assert({ match: /^\/foo(?=\/bar$)/ }, "/foo/bar", ["/foo", "/bar"]);
 	});
 
-	await test("watch", () => {
+	await test("computed", () => {
 		const events: unknown[] = [];
 		const routes: Route[] = [
 			{ match: "/" },
@@ -75,39 +75,39 @@ await suite("router/route", async () => {
 		];
 
 		const path = $("");
-		const watched = leak(() => watchRoutes(path, routes));
+		const matched = leak(() => computedRoutes(path, routes));
 		leak(() => {
-			watch(watched.match, () => events.push("match"));
-			watch(watched.rest, () => events.push("rest"));
+			watch(matched.match, () => events.push("match"));
+			watch(matched.rest, () => events.push("rest"));
 		});
 		assertEvents(events, ["match", "rest"]);
 
-		strictEqual(watched.match()?.route, routes[0]);
-		strictEqual(watched.match()?.path, "");
-		strictEqual(watched.match()?.params, undefined);
-		strictEqual(watched.rest(), "");
+		strictEqual(matched.match()?.route, routes[0]);
+		strictEqual(matched.match()?.path, "");
+		strictEqual(matched.match()?.params, undefined);
+		strictEqual(matched.rest(), "");
 
 		path.value = "/foo";
 		assertEvents(events, []);
 		dispatch();
 		assertEvents(events, ["match"]);
-		strictEqual(watched.match()?.route, routes[1]);
-		strictEqual(watched.match()?.path, "/foo");
-		strictEqual(Array.isArray(watched.match()?.params), true);
-		strictEqual(watched.rest(), "");
+		strictEqual(matched.match()?.route, routes[1]);
+		strictEqual(matched.match()?.path, "/foo");
+		strictEqual(Array.isArray(matched.match()?.params), true);
+		strictEqual(matched.rest(), "");
 
 		path.value = "/foo/bar";
 		assertEvents(events, []);
 		dispatch();
 		assertEvents(events, ["rest"]);
-		strictEqual(watched.rest(), "/bar");
+		strictEqual(matched.rest(), "/bar");
 
 		path.value = "/bar";
 		assertEvents(events, []);
 		dispatch();
 		assertEvents(events, ["match", "rest"]);
-		strictEqual(watched.match(), undefined);
-		strictEqual(watched.rest(), "");
+		strictEqual(matched.match(), undefined);
+		strictEqual(matched.rest(), "");
 	});
 
 	await suite("routes", async () => {
