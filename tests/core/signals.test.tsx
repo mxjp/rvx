@@ -2513,6 +2513,13 @@ await suite("signals", async () => {
 			assertEvents(events, []);
 			dispatch();
 			assertEvents(events, []);
+
+			strictEqual(pipe(signalA), 7);
+			pipe();
+			signalA.value = 8;
+			assertEvents(events, []);
+			dispatch();
+			assertEvents(events, []);
 		});
 
 		await test("batch", () => {

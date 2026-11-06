@@ -880,7 +880,7 @@ export function isTracking(): boolean {
 }
 
 /**
- * Run a function while tracking signal accesses to invoke the trigger callback when updated.
+ * Evaluate an expression while tracking signal accesses to invoke the trigger callback when updated.
  *
  * See {@link trigger}.
  */
@@ -894,6 +894,8 @@ export interface TriggerPipe {
 	<T>(expr: Static<T>): T;
 
 	<T>(expr: Expression<T>): T;
+
+	(): void;
 }
 
 /**
@@ -926,7 +928,7 @@ export function trigger(callback: () => void): TriggerPipe {
 		observer.s(effect);
 	};
 
-	return <T>(expr: Expression<T>) => {
+	return <T>(expr?: Expression<T>) => {
 		clear();
 		const parent = ACCESS_FRAME;
 		try {
