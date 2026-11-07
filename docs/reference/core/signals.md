@@ -282,6 +282,65 @@ Wrap an expression to re-run only when any accessed observable has changed.
 + Observers only re-run when the result is not equal to the previous one (see [Equality](#equality) for custom checks).
 + The expression may re-run before an accessing observer while that observer checks if it should re-run.
 
+## `computedObj`
+Wrap an expression that modifies a value in place to re-run only when any accessed observable has changed.
+
+=== "JSX"
+	```jsx
+	import { $, computedObj } from "rvx";
+
+	const words = $(["example", "foo", "bar"]);
+
+	const lengths = computedObj((update, value: number[]) => {
+		const current = words.value;
+		let changed = false;
+		for (let i = 0; i < current.length; i++) {
+			if (value[i] !== current[i].length) {
+				value[i] = current[i].length;
+				changed = true;
+			}
+		}
+		if (value.length !== current.length) {
+			value.length = current.length;
+			changed = true;
+		}
+		if (changed) {
+			update(value);
+		}
+	}, []);
+	```
+
+=== "No Build"
+	```jsx
+	import { $, computedObj } from "./rvx.js";
+
+	const words = $(["example", "foo", "bar"]);
+
+	const lengths = computedObj((update, value) => {
+		const current = words.value;
+		let changed = false;
+		for (let i = 0; i < current.length; i++) {
+			if (value[i] !== current[i].length) {
+				value[i] = current[i].length;
+				changed = true;
+			}
+		}
+		if (value.length !== current.length) {
+			value.length = current.length;
+			changed = true;
+		}
+		if (changed) {
+			update(value);
+		}
+	}, []);
+	```
+
++ The [context](context.md) from where `computedObj` was called is available in the expression.
++ Teardown hooks in the expression are not supported.
++ The expression only re-runs when the result is accessed after any used observable has changed.
++ Observers only re-run if `update` has been called by the expression since their last access.
++ The expression may re-run before an accessing observer while that observer checks if it should re-run.
+
 ## `untrack`
 Evaluate an expression and isolate accesses from the current observer.
 

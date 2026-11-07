@@ -1,6 +1,7 @@
 # Changelog
 
 ## 28.2
++ Add `computedObj`.
 + Rename & **deprecate** old router exports:
 	+ `watchRoutes => computedRoutes`.
 	+ `WatchedRoutes => ComputedRoutes`.

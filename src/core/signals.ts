@@ -808,6 +808,97 @@ export function computed<T>(expr: Expression<T>, eq: StateEq<NoInfer<T>, any> = 
 }
 
 /**
+ * Wrap an expression that modifies a value in place to re-run only when any accessed observable has changed.
+ *
+ * + The {@link Context} from where `computedObj` was called is available in the expression.
+ * + Teardown hooks in the expression are not supported.
+ * + The expression only re-runs when the result is accessed after any used observable has changed.
+ * + Observers only re-run if `update` has been called by the expression since their last access.
+ * + The expression may re-run before an accessing observer while that observer checks if it should re-run.
+ *
+ * @param expr The expression to compute or update the current state. The first argument is a function to call when the computed state has changed.
+ * @param value The initial value.
+ *
+ * @example
+ * ```tsx
+ * import { $, computedObj } from "rvx";
+ *
+ * const words = $(["example", "foo", "bar"]);
+ *
+ * const lengths = computedObj((update, value: number[]) => {
+ *   const current = words.value;
+ *   let changed = false;
+ *   for (let i = 0; i < current.length; i++) {
+ *     if (value[i] !== current[i].length) {
+ *       value[i] = current[i].length;
+ *       changed = true;
+ *     }
+ *   }
+ *   if (value.length !== current.length) {
+ *     value.length = current.length;
+ *     changed = true;
+ *   }
+ *   if (changed) {
+ *     update(value);
+ *   }
+ * }, []);
+ * ```
+ */
+export function computedObj<T>(expr: (update: (next: T) => void, value: T) => void, value: T): () => T;
+/**
+ * Wrap an expression that modifies a value in place to re-run only when any accessed observable has changed.
+ *
+ * + The {@link Context} from where `computedObj` was called is available in the expression.
+ * + Teardown hooks in the expression are not supported.
+ * + The expression only re-runs when the result is accessed after any used observable has changed.
+ * + Observers only re-run if `update` has been called by the expression since their last access.
+ * + The expression may re-run before an accessing observer while that observer checks if it should re-run.
+ *
+ * @param expr The expression to compute or update the current state. The first argument is a function to call when the computed state has changed.
+ * @param value The initial value.
+ *
+ * @example
+ * ```tsx
+ * import { $, computedObj } from "rvx";
+ *
+ * const words = $(["example", "foo", "bar"]);
+ *
+ * const lengths = computedObj((update, value: number[]) => {
+ *   const current = words.value;
+ *   let changed = false;
+ *   for (let i = 0; i < current.length; i++) {
+ *     if (value[i] !== current[i].length) {
+ *       value[i] = current[i].length;
+ *       changed = true;
+ *     }
+ *   }
+ *   if (value.length !== current.length) {
+ *     value.length = current.length;
+ *     changed = true;
+ *   }
+ *   if (changed) {
+ *     update(value);
+ *   }
+ * }, []);
+ * ```
+ */
+export function computedObj<T>(expr: (update: (next: T | undefined) => void, value: T | undefined) => void): () => T | undefined;
+export function computedObj<T>(expr: (update: (next: T) => void, value: T) => void, value?: T): () => T {
+	let state = value as T;
+	let version = Symbol();
+	return computed(() => {
+		expr(next => {
+			state = next;
+			version = Symbol();
+		}, state);
+		return state;
+	}, {
+		s: () => version,
+		e: prev => prev === version,
+	});
+}
+
+/**
  * {@link get Evaluate an expression} without tracking accesses.
  *
  * @param expr The expression to evaluate.

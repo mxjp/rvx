@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual, throws } from "node:assert";
 import test, { suite } from "node:test";
-import { $, $obj, capture, computed, Context, dispatch, eq, isTracking, leak, map, schedule, teardown, TeardownHook, trigger, TriggerPipe, untrack, watch, watchUpdates } from "rvx";
+import { $, $obj, capture, computed, computedObj, Context, dispatch, eq, isTracking, leak, map, schedule, teardown, TeardownHook, trigger, TriggerPipe, untrack, watch, watchUpdates } from "rvx";
 import { assertEvents, causesRejection, lifecycleEvent, withMsg } from "../common.js";
 
 await suite("signals", async () => {
@@ -738,6 +738,132 @@ await suite("signals", async () => {
 			assertEvents(events, []);
 			dispatch();
 			assertEvents(events, [1]);
+		});
+	});
+
+	await suite("computedObj", async () => {
+		await test("in-place update", () => {
+			const events: unknown[] = [];
+			const words = $(["example", "foo", "bar"]);
+			const lengths = computedObj((update, value: number[]) => {
+				events.push("compute");
+				const current = words.value;
+				let changed = false;
+				for (let i = 0; i < current.length; i++) {
+					if (value[i] !== current[i].length) {
+						value[i] = current[i].length;
+						changed = true;
+					}
+				}
+				if (value.length !== current.length) {
+					value.length = current.length;
+					changed = true;
+				}
+				if (changed) {
+					update(value);
+				}
+			}, []);
+
+			leak(() => watch(lengths, value => {
+				events.push(value.slice());
+			}));
+			assertEvents(events, ["compute", [7, 3, 3]]);
+
+			const identity = lengths();
+
+			words.value = ["abcdefg", "xyz", "uvw"];
+			assertEvents(events, []);
+			dispatch();
+			assertEvents(events, ["compute"]);
+
+			words.value = ["abcdefg", "xyz", "uvw", "a"];
+			assertEvents(events, []);
+			dispatch();
+			assertEvents(events, ["compute", [7, 3, 3, 1]]);
+
+			words.value = ["a"];
+			assertEvents(events, []);
+			dispatch();
+			assertEvents(events, ["compute", [1]]);
+
+			words.value = ["a", "bc"];
+			assertEvents(events, []);
+			dispatch();
+			assertEvents(events, ["compute", [1, 2]]);
+
+			strictEqual(lengths(), identity);
+		});
+
+		await test("skipped update", () => {
+			const events: unknown[] = [];
+			const source = $([1]);
+			const size = computedObj((update, value: number[]) => {
+				events.push("compute");
+				if (value.length !== source.value.length) {
+					value.length = 0;
+					value.push(source.value.length);
+					update(value);
+				}
+			}, []);
+
+			leak(() => watch(size, value => {
+				events.push(value.slice());
+			}));
+			assertEvents(events, ["compute", [1]]);
+
+			source.value = [2];
+			assertEvents(events, []);
+			dispatch();
+			assertEvents(events, ["compute"]);
+
+			source.value = [2, 3];
+			assertEvents(events, []);
+			dispatch();
+			assertEvents(events, ["compute", [2]]);
+		});
+
+		await test("replace value", () => {
+			const events: unknown[] = [];
+			const trigger = $(0);
+			let next = 0;
+			const array = computedObj((update, value: number[]) => {
+				events.push("compute");
+				update([...value, trigger.value + next++]);
+			}, []);
+
+			leak(() => watch(array, value => {
+				events.push(value.slice());
+			}));
+			assertEvents(events, ["compute", [0]]);
+
+			const first = array();
+			trigger.value = 1;
+			assertEvents(events, []);
+			dispatch();
+			assertEvents(events, ["compute", [0, 2]]);
+			strictEqual(array() === first, false);
+		});
+
+		await test("lazy & no initial value", () => {
+			const events: unknown[] = [];
+			const source = $([2]);
+			const map = computedObj((update, value?: Map<number, number>) => {
+				events.push(value === undefined ? undefined : Array.from(value));
+				const result = value ?? new Map<number, number>();
+				for (const item of source.value) {
+					result.set(item, item * 2);
+				}
+				update(result);
+			}) as () => Map<number, number>;
+			assertEvents(events, []);
+
+			strictEqual(untrack(map).get(2), 4);
+			assertEvents(events, [undefined]);
+
+			source.value = [3];
+			strictEqual(untrack(map).get(3), 6);
+			strictEqual(untrack(map).get(2), 4);
+			assertEvents(events, [[[2, 4]]]);
 		});
 	});
 
