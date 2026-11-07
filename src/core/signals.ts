@@ -225,14 +225,6 @@ export interface StateEq<T, S> {
 }
 
 /**
- * Use `Object.is` for checking if two values are equal.
- */
-export const OBJECT_IS: StateEq<any, any> = {
-	s: value => value,
-	e: Object.is,
-};
-
-/**
  * Create a state equality check that uses the previous and next values.
  *
  * @param e A function that returns true if the values are equal.
@@ -240,6 +232,8 @@ export const OBJECT_IS: StateEq<any, any> = {
 export function eq<T>(e: (prev: T, next: T) => boolean): StateEq<T, NoInfer<T>> {
 	return { s: value => value, e };
 }
+
+const OBJECT_IS = eq(Object.is);
 
 /**
  * Represents a value that changes over time.
@@ -264,7 +258,7 @@ export class Signal<T> {
 	 * Create a new signal.
 	 *
 	 * @param value The initial value.
-	 * @param eq Defines how two values are checked for equality. See {@link eq}. Default is {@link OBJECT_IS}.
+	 * @param eq Defines how two values are checked for equality. See {@link eq}. Default uses `Object.is`.
 	 */
 	constructor(value: T, eq: StateEq<NoInfer<T>, unknown> = OBJECT_IS) {
 		this.inert = value;
@@ -356,7 +350,7 @@ export class Signal<T> {
  * Create a new signal.
  *
  * @param value The initial value.
- * @param eq Defines how two values are checked for equality. See {@link eq}. Default is {@link OBJECT_IS}.
+ * @param eq Defines how two values are checked for equality. See {@link eq}. Default uses `Object.is`.
  */
 export function $<T>(value: T, eq?: StateEq<NoInfer<T>, unknown>): Signal<T> {
 	return new Signal(value, eq);
@@ -686,7 +680,7 @@ export function watchUpdates<T>(expr: Expression<T>, effect: (value: NoInfer<T>)
  * + The expression may re-run before an accessing observer while that observer checks if it should re-run.
  *
  * @param expr The expression to wrap.
- * @param eq Defines how two results are checked for equality. See {@link eq}. Default is {@link OBJECT_IS}.
+ * @param eq Defines how two results are checked for equality. See {@link eq}. Default uses `Object.is`.
  * @returns The wrapped expression.
  *
  * @example
@@ -718,7 +712,7 @@ export function computed<T>(expr: Static<T>, eq?: StateEq<NoInfer<T>, any>): () 
  * + The expression may re-run before an accessing observer while that observer checks if it should re-run.
  *
  * @param expr The expression to wrap.
- * @param eq Defines how two results are checked for equality. See {@link eq}. Default is {@link OBJECT_IS}.
+ * @param eq Defines how two results are checked for equality. See {@link eq}. Default uses `Object.is`.
  * @returns The wrapped expression.
  *
  * @example
