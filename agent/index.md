@@ -1,5 +1,8 @@
 # Rvx
-This is a signal based frontend framework.
+This document is meant as a compact quick reference for rvx.
+
++ Prefer working with this reference only.
++ If more detail is required, search by keyword in "../docs", "../examples/src" or typedefs with jsdoc in "../dist/es/*.d.ts".
 
 # Core API
 Rvx core API can be imported from `rvx`.

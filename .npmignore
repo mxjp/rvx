@@ -11,7 +11,8 @@
 /docs/assets
 /docs/examples
 /docs/stylesheets
-/examples
+/examples/*
+!/examples/src/
 /mkdocs*
 /package-lock.json
 /rollup*
