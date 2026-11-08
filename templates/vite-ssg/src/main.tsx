@@ -33,10 +33,10 @@ async function main() {
 
 		if (start && end) {
 			await asyncCtx.complete();
-			app.appendTo(document.body);
+			app.move(document.body);
 			new View(u => u(start, end)).detach();
 		} else {
-			app.appendTo(document.body);
+			app.move(document.body);
 		}
 	} finally {
 		document.body.inert = false;
