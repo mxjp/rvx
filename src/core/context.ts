@@ -20,8 +20,6 @@ const _capture = <T>(context: Context<T>): ContextState<T> => {
 
 /**
  * A context for implicitly passing values along the call stack.
- *
- * If you need a global default value, use {@link DefaultContext} instead.
  */
 export class Context<T> {
 	/**

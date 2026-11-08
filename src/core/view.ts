@@ -730,7 +730,7 @@ export function movable(content: Content): Component<void, View> {
  *
  * @example
  * ```tsx
- * import { $, attach } from "rvx";
+ * import { $, attachWhen } from "rvx";
  *
  * const showMessage = $(true);
  *

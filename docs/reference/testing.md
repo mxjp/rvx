@@ -32,7 +32,7 @@ Rvx provides a lightweight wrapper for running small synchronous tests that take
 
 === "JSX"
 	```jsx
-	import { $ } from "rvx";
+	import { $, mount } from "rvx";
 	import { runTest, querySelector } from "rvx/test";
 
 	runTest(() => {
@@ -48,7 +48,7 @@ Rvx provides a lightweight wrapper for running small synchronous tests that take
 
 === "No Build"
 	```jsx
-	import { $ } from "./rvx.js";
+	import { $, mount, e } from "./rvx.js";
 	import { runTest, querySelector } from "./rvx.test.js";
 
 	runTest(() => {

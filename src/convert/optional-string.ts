@@ -7,7 +7,7 @@ import { Expression, map } from "../core/index.js";
  *
  * @example
  * ```tsx
- * import { optionalString } from "rvx";
+ * import { optionalString } from "rvx/convert";
  *
  * <div some-value={optionalString(false)} />; // <div some-value="false" />
  * <div some-value={optionalString(null)} />; // <div />

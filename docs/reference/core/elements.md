@@ -165,7 +165,7 @@ The `class` attribute can be any combination of class tokens, arrays and objects
 The **style** attribute can be any combination of arrays, objects and [expressions](signals.md#expressions).
 
 + Properties use the same casing as in css. E.g. `font-family`, not `fontFamily`.
-+ Values are converted to strings except `null` which is set as an empty string like in `CSSStyleProperties.setProperty`.
++ Values are passed to `style.setProperty` as-is.
 
 === "JSX"
 	```jsx

@@ -77,18 +77,19 @@ By default, all component properties are static. To accept reactive inputs, use 
 	```jsx
 	import { $, Expression } from "rvx";
 
-	function Counter(props: { value: Expression<number>; }) {
-		return <>Current count: {props.value}</>;
+	function Counter(props: { count: Expression<number>; }) {
+		return <>Current count: {props.count}</>;
 	}
 
 	const count = $(42);
 
 	// Static values:
-	<Counter value={count.value} />
+	<Counter count={42} />
+	<Counter count={count.value} />
 
 	// Reactive expressions:
-	<Counter value={count} />
-	<Counter value={() => count.value} />
+	<Counter count={count} />
+	<Counter count={() => count.value} />
 	```
 
 === "No Build"
@@ -97,10 +98,10 @@ By default, all component properties are static. To accept reactive inputs, use 
 
 	/**
 	 * @param {object} props
-	 * @param {import("./rvx.js").Expression<number>} props.value
+	 * @param {import("./rvx.js").Expression<number>} props.count
 	 */
 	function Counter(props) {
-		return ["Current count: ", props.value];
+		return ["Current count: ", props.count];
 	}
 
 	const count = $(42);
@@ -280,7 +281,7 @@ Sometimes it can be useful to forward properties to the root element of a compon
 
 === "JSX"
 	```jsx
-	import { ClassValue, StyleValue } from "rvx";
+	import { ClassValue, Expression, StyleValue } from "rvx";
 
 	function Button(props: {
 		class?: ClassValue;

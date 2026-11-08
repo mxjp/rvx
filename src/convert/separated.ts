@@ -9,7 +9,7 @@ import { Expression, map } from "../core/index.js";
  *
  * @example
  * ```tsx
- * import { separated } from "rvx";
+ * import { separated } from "rvx/convert";
  *
  * <div aria-owns={separated(["a", "b", ...])} />
  * ```

@@ -4,7 +4,7 @@ This is a queue for sequentially running async tasks.
 Depending on the use case, a task can be either **blocking** or a **side effect**:
 
 + **Blocking** tasks are queued normally and are guaranteed to run.
-+ **Side effects** are queued, but aborted when anything else is queued.
++ **Side effects** are not queued or are aborted when anything else is queued.
 
 === "JSX"
 	```jsx

@@ -155,7 +155,7 @@ The `isRvxDom` function can be used to detect if rvx dom is enabled in the curre
 The [JSDOM](https://www.npmjs.com/package/jsdom) library can emulate a subset of browser APIs in NodeJS and is fully supported as an environment for rvx. This can be used for testing without using a real browser.
 ```jsx
 import { JSDOM } from "jsdom";
-import { ENV } from "rvx";
+import { ENV, mount } from "rvx";
 
 ENV.default = new JSDOM().window;
 

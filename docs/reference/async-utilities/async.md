@@ -18,6 +18,7 @@ The `<Async>` component is meant for asynchronous rendering. E.g. loading page c
 
 === "No Build"
 	```jsx
+	import { e } from "./rvx.js";
 	import { nestAsync } from "./rvx.async.js";
 
 	// main.js:
