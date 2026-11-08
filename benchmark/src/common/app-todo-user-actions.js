@@ -114,7 +114,7 @@ export function createBenchmark({ $, $obj, capture, render, e, teardown, forEach
 				),
 			]);
 			if (onscreen) {
-				app.appendTo(document.body);
+				app.move(document.body);
 				teardown(() => app.detach());
 			}
 		});

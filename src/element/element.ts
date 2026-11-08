@@ -56,7 +56,7 @@ export abstract class RvxElement extends moduleEnv.HTMLElement {
 					const view = render(this.render());
 					const parent = this.shadowRoot ?? this;
 					parent.innerHTML = "";
-					view.appendTo(parent);
+					view.move(parent);
 				});
 			});
 		}

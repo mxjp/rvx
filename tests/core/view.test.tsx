@@ -63,11 +63,11 @@ await suite("view", async () => {
 		assertEvents(events, []);
 	});
 
-	await suite("appendTo", async () => {
+	await suite("move, append", async () => {
 		await test("single node", () => {
 			const view = render(<div>a</div>);
 			const parent = <div>p</div> as HTMLElement;
-			view.appendTo(parent);
+			view.move(parent);
 			strictEqual(parent.textContent, "pa");
 			strictEqual(view.parent, parent);
 			assertViewState(view);
@@ -81,7 +81,7 @@ await suite("view", async () => {
 			]);
 			notStrictEqual(view.first, view.last);
 			const parent = <div>p</div> as HTMLElement;
-			view.appendTo(parent);
+			view.move(parent);
 			strictEqual(parent.textContent, "pabc");
 			strictEqual(view.parent, parent);
 			assertViewState(view);
@@ -98,18 +98,18 @@ await suite("view", async () => {
 				inner,
 			]));
 			strictEqual(viewText(outer), "0abc");
-			inner.appendTo(outer.parent!);
+			inner.move(outer.parent!);
 			strictEqual(viewText(outer), "0abc");
 			assertViewState(inner);
 			assertViewState(outer);
 		});
 	});
 
-	await suite("insertBefore", async () => {
+	await suite("move, before", async () => {
 		await test("single node", () => {
 			const view = render(<div>c</div>);
 			const parent = <div>{["a", "b"]}</div> as HTMLElement;
-			view.insertBefore(parent, parent.lastChild!);
+			view.move(parent, parent.lastChild);
 			strictEqual(parent.textContent, "acb");
 			strictEqual(view.parent, parent);
 			assertViewState(view);
@@ -123,7 +123,7 @@ await suite("view", async () => {
 			]);
 			notStrictEqual(view.first, view.last);
 			const parent = <div>{["a", "b"]}</div> as HTMLElement;
-			view.insertBefore(parent, parent.lastChild!);
+			view.move(parent, parent.lastChild);
 			strictEqual(parent.textContent, "acdeb");
 			strictEqual(view.parent, parent);
 			assertViewState(view);
@@ -143,7 +143,7 @@ await suite("view", async () => {
 				"1",
 			]);
 			strictEqual(viewText(outer), "0abcr1");
-			inner.insertBefore(outer.parent!, ref);
+			inner.move(outer.parent!, ref);
 			strictEqual(viewText(outer), "0abcr1");
 			assertViewState(inner);
 			assertViewState(outer);

@@ -49,13 +49,13 @@ view.setBoundaryOwner((first, last) => {
 });
 ```
 
-To move or detach a view, use the `appendTo`, `insertBefore` and `detach` functions. They ensure, that a view doesn't break when moving or detaching a view with multiple nodes.
+To move or detach a view, use the `move` and `detach` functions. They ensure, that a view doesn't break when moving or detaching a view with multiple nodes.
 ```jsx
 // Append all nodes of the view to an element:
-view.appendTo(someElement);
+view.move(someElement);
 
 // Insert all nodes of the view before a reference node:
-view.insertBefore(parent, someChild);
+view.move(parent, someChild);
 
 // Detach the view from its current position:
 view.detach();

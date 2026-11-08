@@ -20,7 +20,7 @@ export function appendContent(node: Node, content: Content, env: typeof globalTh
 	} else if (content instanceof env.Node) {
 		node.appendChild(content);
 	} else if (content instanceof View) {
-		content.appendTo(node);
+		content.move(node);
 	} else if (typeof content === "object" && NODE in content) {
 		node.appendChild((content as NodeTarget)[NODE]);
 	} else {

@@ -2,6 +2,8 @@
 
 ## 28.2
 + Add `computedObj`.
++ Add `View.move`.
++ **Deprecated:** `View.appendTo` & `View.insertBefore`.
 + Rename & **deprecate** old router exports:
 	+ `watchRoutes => computedRoutes`.
 	+ `WatchedRoutes => ComputedRoutes`.

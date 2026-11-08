@@ -139,7 +139,7 @@ export function render(content: Content): View {
 								parent.appendChild(part);
 							}
 						} else if (part instanceof View) {
-							part.appendTo(parent);
+							part.move(parent);
 							if (i === 0) {
 								part.setBoundaryOwner((first, _last) => setBoundary(first, undefined));
 							} else if (i === flat.length - 1) {
@@ -224,7 +224,7 @@ export function render(content: Content): View {
  */
 export function mount(parent: Node, content: Content): View {
 	const view = render(content);
-	view.appendTo(parent);
+	view.move(parent);
 	teardown(() => view.detach());
 	return view;
 }
@@ -366,9 +366,10 @@ export class View {
 	 * Append all nodes of this view to the specified parent.
 	 *
 	 * @param parent The parent to append to.
+	 * @deprecated Use {@link move} instead.
 	 */
 	appendTo(parent: Node): void {
-		moveNodes(this.#first, this.#last, parent, null);
+		this.move(parent);
 	}
 
 	/**
@@ -376,9 +377,20 @@ export class View {
 	 *
 	 * @param parent The parent to insert into.
 	 * @param ref The reference child to insert before. If this is null, the nodes are appended to the parent.
+	 * @deprecated Use {@link move} instead.
 	 */
 	insertBefore(parent: Node, ref: Node | null): void {
-		moveNodes(this.#first, this.#last, parent, ref);
+		this.move(parent, ref);
+	}
+
+	/**
+	 * Move all nodes of this view into the specified parent.
+	 *
+	 * @param parent The parent to move into.
+	 * @param before A child of the specified parent to insert before, or null or undefined to append.
+	 */
+	move(parent: Node, before: Node | null = null) {
+		moveNodes(this.#first, this.#last, parent, before);
 	}
 
 	/**
@@ -396,7 +408,7 @@ export class View {
 			return first;
 		} else {
 			const fragment = createParent(ENV.current);
-			this.appendTo(fragment);
+			this.move(fragment);
 			return fragment;
 		}
 	}
@@ -482,7 +494,7 @@ export function nest(expr: Expression<unknown>, component: Component<unknown> = 
 				const anchor = last.nextSibling;
 				self.detach();
 				view = render(component(value));
-				view.insertBefore(parent, anchor);
+				view.move(parent, anchor);
 			} else {
 				view = render(component(value));
 			}
@@ -570,7 +582,7 @@ export function forEach<T>(each: Expression<Iterable<T>>, component: ForContentF
 				for (let i = 0; i < update.n.length; i++) {
 					const view = update.n[i].o;
 					if (prev.nextSibling !== view.first) {
-						view.insertBefore(parent, prev.nextSibling);
+						view.move(parent, prev.nextSibling);
 					}
 					prev = view.last;
 				}
@@ -656,7 +668,7 @@ export function indexEach<T>(each: Expression<Iterable<T>>, component: IndexCont
 						d: dispose,
 					});
 					const prev = index > 0 ? state[index - 1].v.last : first;
-					view.insertBefore(parent, prev.nextSibling);
+					view.move(parent, prev.nextSibling);
 				}
 				index++;
 			}

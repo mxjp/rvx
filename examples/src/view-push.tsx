@@ -71,10 +71,10 @@ function PushView<T>(props: {
 
 			// Append or prepend the item view to this one:
 			if (action === "append") {
-				view.insertBefore(parent, self.last!.nextSibling);
+				view.move(parent, self.last!.nextSibling);
 				setBoundary(undefined, view.last);
 			} else {
-				view.insertBefore(parent, self.first!);
+				view.move(parent, self.first!);
 				setBoundary(view.first, undefined);
 			}
 		});
