@@ -282,7 +282,7 @@ export class Signal<T> {
 	/**
 	 * Set the current value.
 	 *
-	 * If the new value is the same as the previous one, no observers are notified.
+	 * Observers only re-run when their last known value of this signal has changed.
 	 *
 	 * @example
 	 * ```tsx
@@ -298,10 +298,11 @@ export class Signal<T> {
 	 * ```
 	 */
 	set value(value: T) {
-		if (!Object.is(this.inert, value)) {
-			this.inert = value;
+		const eq = this.#observable.e;
+		if (!eq.e(eq.s(this.inert), value)) {
 			this.notify();
 		}
+		this.inert = value;
 	}
 
 	/**
@@ -336,7 +337,7 @@ export class Signal<T> {
 	 *
 	 * <TextInput value={
 	 *   value
-	 *     .pipe(parseInt)
+	 *     .pipe(toString)
 	 *     .pipe(trim)
 	 * } />
 	 * ```
@@ -356,6 +357,13 @@ export function $<T>(value: T, eq?: StateEq<NoInfer<T>, unknown>): Signal<T> {
 	return new Signal(value, eq);
 }
 
+interface ObjSignalState<T> {
+	/** previous value */
+	p: T;
+	/** version */
+	v: symbol;
+}
+
 /**
  * A {@link Signal} with a manually versioned state.
  */
@@ -364,9 +372,9 @@ export class ObjSignal<T> extends Signal<T> {
 
 	constructor(value: T) {
 		super(value, {
-			s: _value => this.#version,
-			e: (prev, _next) => prev === this.#version,
-		} satisfies StateEq<T, symbol>);
+			s: _value => ({ p: _value, v: this.#version }),
+			e: (prev, _next) => Object.is(prev.p, _next) && prev.v === this.#version,
+		} satisfies StateEq<T, ObjSignalState<T>>);
 	}
 
 	/**
@@ -990,7 +998,7 @@ export interface TriggerPipe {
  *
  * + The effect only runs when any accessed observable has changed.
  * + When the lifecycle at which the pipe was created is disposed, the effect will not be called anymore.
- * + It is guaranteed that the effect is called before any other observers like {@link watch} or {@link watchUpdates} are notified.
+ * + It is guaranteed that the effect is called before any outer observers like {@link watch} or {@link watchUpdates} are notified.
  * + If pipes are nested, the effect for the most inner one is called first.
  *
  * @param callback The effect to schedule.

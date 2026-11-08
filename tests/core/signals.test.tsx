@@ -622,6 +622,7 @@ await suite("signals", async () => {
 		}));
 		assertEvents(events, [1]);
 		signal.value = "1";
+		strictEqual(signal.inert, "1");
 		assertEvents(events, []);
 		dispatch();
 		assertEvents(events, []);

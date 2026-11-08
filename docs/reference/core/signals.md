@@ -448,7 +448,7 @@ Create a pipe for evaluating expressions that schedules an effect once when any 
 	signal.value = 77;
 	```
 
-It is guaranteed that the effect is called before any other observers like [`watch`](#watch) or [`watchUpdates`](#watchupdates) are notified. This can be used to run side effects like clearing a cache before an expression is re-evaluated:
+It is guaranteed that the effect is called before any outer observers like [`watch`](#watch) or [`watchUpdates`](#watchupdates) are notified. This can be used to run side effects like clearing a cache before an expression is re-evaluated:
 
 === "JSX"
 	```jsx
