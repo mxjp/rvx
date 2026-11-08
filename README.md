@@ -11,7 +11,7 @@ import { $, mount } from "rvx";
 const count = $(0);
 
 <button on:click={() => { count.value++ }}>
-	Clicked {count} times
+  Clicked {count} times
 </button>
 ```
 
