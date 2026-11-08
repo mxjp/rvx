@@ -7,6 +7,7 @@
 + Rename & **deprecate** old router exports:
 	+ `watchRoutes => computedRoutes`.
 	+ `WatchedRoutes => ComputedRoutes`.
++ Fix: Custom signal equality check is now respected when replacing a value.
 
 ## 28.1
 + Add `dataset` support in `rvx/dom`.
