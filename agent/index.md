@@ -26,6 +26,7 @@ Rvx core API can be imported from `rvx`.
 + `fn = computed(expr, eq?)` - Wrap an expression to re-run only when any accessed observable has changed.
 + `fn = computedObj((update, value) => {}, initial?)` - Like `computed` but with mutable state. Call `update(value)` to pretend the value has changed.
 + `watch(expr, effect?)` - Watch an expression.
+	+ `expr` and `effect` run once immediately and for subsequent updates.
 + `first = watchUpdates(expr, effect)` - Like `watch`, but returns the first result & calls the effect for subsequent updates.
 + `value = get(expr)` - Evaluate an expression.
 + `value = untrack(expr)` - Evaluate an expression without tracking.
