@@ -7,6 +7,9 @@ This document is meant as a compact quick reference for rvx.
 # Core API
 Rvx core API can be imported from `rvx`.
 
+## Errors
+`Error`s with a `"G*"` error code always indicate that some rvx API has been used wrongly and should never be handled at runtime.
+
 ## Signals
 + `Expression<T>` - Type for a static value, Signal or function to get a value.
   + `42` - Static value.
@@ -26,19 +29,23 @@ Rvx core API can be imported from `rvx`.
 + `fn = computed(expr, eq?)` - Wrap an expression to re-run only when any accessed observable has changed.
 + `fn = computedObj((update, value) => {}, initial?)` - Like `computed` but with mutable state. Call `update(value)` to pretend the value has changed.
 + `watch(expr, effect?)` - Watch an expression.
-	+ `expr` and `effect` run once immediately and for subsequent updates.
-+ `first = watchUpdates(expr, effect)` - Like `watch`, but returns the first result & calls the effect for subsequent updates.
-+ `value = get(expr)` - Evaluate an expression.
+	+ `expr` and `effect` run once immediately and are scheduled for subsequent updates.
++ `first = watchUpdates(expr, effect)` - Like `watch`, but returns the first result & only schedules `expr` and `effect` for subsequent updates.
++ `value = get(expr)` - Get the current value of an expression.
+	+ `get(signal)` is equivalent to `signal.value`.
+	+ `get(fn)` is equivalent to `fn()`.
+	+ Any "static" value is returned as is. E.g. `get(42) === 42, get(undefined) === undefined`.
 + `value = untrack(expr)` - Evaluate an expression without tracking.
 + `expr = map(expr, value => value)` - Map an expression value preserving staticness.
 + `pipe = trigger(effect)` - Call `pipe(expr)` to evaluate expressions & schedule `effect` once when accessed observables change.
 + `isTracking()` - Check if accesses are tracked in this context.
-+ `dispatch()` - Run scheduled effects immediately.
++ `dispatch()` - Run scheduled effects immediately until no more new effects are scheduled.
 + `schedule(effect)` - Schedule an effect to run in series with signal updates.
 + `eq((prev, next) => boolean)` - Create a custom state equality check to pass to `$` or `computed`. Default uses `Object.is`.
++ `fn = mapArray(expr, mapFn)` - Map each item in an iterable keyed by identity with lifecycle support.
 
 ## Lifecycle
-+ `teardown(hook)` - Register a teardown hook to run when the current lifecycle is disposed. Throws outside of a lifecycle context.
++ `teardown(hook)` - Register a teardown hook to run when the current lifecycle is disposed. Throws when used outside of a lifecycle context.
 + `dispose = capture(fn)` - Run a function while capturing teardown hooks. `dispose()` runs hooks in reverse registration order.
 + `value = captureSelf(fn)` - The same as `capture`, but the dispose function is passed to the function as first argument.
 + `value = teardownOnError(fn)` - Run a function & dispose immediately on error.
@@ -67,9 +74,12 @@ Components (`Component<TProps, TContent?>`) are functions that return initial co
 
 ## JSX
 + `<div title="example">{content}</div>` - JSX expressions create real DOM elements.
-  + `name={expr}` - Attributes accept expressions. `null`, `undefined` or `false` are removed, `true` is set as an empty string. Other values are converted to strings.
+  + `name={expr}` - Attributes accept expressions.
+	+ Signals & functions are reactive. A static value is applied once during initial rendering.
+	+ For attributes except `class` & `style`: `null`, `undefined` or `false` are removed, `true` is set as an empty string. Other values are converted to strings.
 	+ `attr:name={expr}` - Set using `setAttribute` / `removeAttribute`. This is the default behavior except for `class` & `style`.
 	+ `prop:name={expr}` - Set using a JavaScript property.
+	+ `aria-*` attributes are not specially handled. Use `string` or `optionalString` from `rvx/convert` for literal `"true"/"false"` strings.
   + `on:click={event => ...}` - Add an event listener. Pass `[listener, options]` for listener options. The current context is available in listeners.
 	+ `class={value}` - Any combination of class tokens, arrays and objects with boolean expressions to determine which classes are added.
 		+ `undefined`, `null` and `false` are ignored.
@@ -96,8 +106,7 @@ Components (`Component<TProps, TContent?>`) are functions that return initial co
 
 ## Supported content
 The following can be used as element content & returned from components:
-+ `null` and `undefined` are ignored.
-+ Expressions (static values, signals & functions) rendered as escaped text.
++ Expressions (static values, signals & functions): `null` & `undefined` are not rendered. Any other value is stringified.
 + DOM nodes, JSX expressions or element builders.
 + Views.
 + Arbitrarily nested arrays & JSX Fragments.
@@ -108,6 +117,7 @@ Views are an abstraction for sequences of DOM nodes that change over time.
 + `view = mount(parent, content)` - Same as `render`, but the view is appended to the parent DOM node for the current lifecycle.
 + `component = movable(content)` - Wrap rendered content for safely moving it into different places.
 	+ Reusing the returned component removes content from its previous position.
+	+ Apart from `movable`, DOM nodes are never reused automatically.
 + `viewNodes(view)` - Get an iterator over current nodes of a view.
 
 ### JSX
@@ -129,7 +139,6 @@ Views are an abstraction for sequences of DOM nodes that change over time.
 + `forEach(each, (value, getIndex) => content)` - Render content for each item in an iterable keyed by identity.
 + `indexEach(each, (getValue, index) => content)` - Render content for each index in an iterable.
 + `attachWhen(expr, content)` - Attach content while a condition matches.
-+ `fn = mapArray(expr, mapFn)` - Map each item in an iterable keyed by identity with lifecycle support.
 
 ## Namespaces
 + `XMLNS` - A `Context<XMLNS>` for the namespace of newly created elements.
